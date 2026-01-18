@@ -1,123 +1,103 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        //debug
-        {
-            "label": "Ensure Build Dir",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-Command",
-                "if (-not (Test-Path '${workspaceFolder}/build')) { Write-Host 'Build NOT exists!.' -ForegroundColor Yellow; cmake -B build } else { Write-Host 'Build ready' -ForegroundColor Green }"
-            ],
-            "problemMatcher": "$msCompile"
+  "version": "2.0.0",
+  "tasks": [
+    //debug
+    {
+      "label": "Ensure Build Dir",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "if (-not (Test-Path '${workspaceFolder}/build')) { Write-Host 'Build NOT exists!.' -ForegroundColor Yellow; cmake -B build } else { Write-Host 'Build ready' -ForegroundColor Green }"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "CMake Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build", "--config", "Debug"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "Ensure Build Dir",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Super Clean (Desktop)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "Remove-Item -Path '${workspaceFolder}/build' -Recurse -Force"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    //release
+    {
+      "label": "CMake Build Release",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build", "--config", "Release"],
+      "dependsOn": "Ensure Build Dir",
+      "problemMatcher": "$msCompile"
+    },
+    //web
+    {
+      "label": "Start Web Server",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "http.server", "8000", "--directory", "build_web"],
+      "isBackground": true,
+      "dependsOn": "Web Build",
+      "problemMatcher": {
+        "owner": "python",
+        "pattern": {
+          "regexp": "^Serving HTTP on"
         },
-        {
-            "label": "CMake Build",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "${workspaceFolder}/build",
-                "--config",
-                "Debug"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "dependsOn": "Ensure Build Dir",
-            "problemMatcher": "$gcc",
-        },
-        {
-            "label": "Super Clean (Desktop)",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-Command",
-                "Remove-Item -Path '${workspaceFolder}/build' -Recurse -Force"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        //release
-        {
-            "label": "CMake Build Release",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "${workspaceFolder}/build",
-                "--config",
-                "Release"
-            ],
-            "dependsOn": "Ensure Build Dir",
-            "problemMatcher": "$msCompile"
-        },
-        //web
-        {
-            "label": "Start Web Server",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "-m",
-                "http.server",
-                "8000",
-                "--directory",
-                "build_web"
-            ],
-            "isBackground": true,
-            "dependsOn": "Web Build",
-            "problemMatcher": {
-                "owner": "python",
-                "pattern": {
-                    "regexp": "^Serving HTTP on"
-                },
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "^Serving HTTP on",
-                    "endsPattern": "^Serving HTTP on"
-                }
-            }
-        },
-        {
-            "label": "Web Build",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "build_web"
-            ],
-            "group": "build",
-            "dependsOn": "Web Configure",
-            "problemMatcher": "$gcc"
-        },
-        {
-            "label": "Web Configure",
-            "type": "shell",
-            "command": "emcmake",
-            "args": [
-                "cmake",
-                "-B",
-                "build_web",
-                "-DPLATFORM=Web",
-                "-DCMAKE_BUILD_TYPE=Release",
-                "-G",
-                "MinGW Makefiles"
-            ],
-            "group": "build",
-            "dependsOn": [
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Super Clean (Web)",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-Command",
-                "Remove-Item -Path '${workspaceFolder}/build_web' -Recurse -Force"
-            ],
-            "problemMatcher": "$msCompile"
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^Serving HTTP on",
+          "endsPattern": "^Serving HTTP on"
         }
-    ]
+      }
+    },
+    {
+      "label": "Web Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build_web"],
+      "group": "build",
+      "dependsOn": "Web Configure",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Web Configure",
+      "type": "shell",
+      "command": "emcmake",
+      "args": [
+        "cmake",
+        "-B",
+        "build_web",
+        "-DPLATFORM=Web",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-G",
+        "MinGW Makefiles"
+      ],
+      "group": "build",
+      "dependsOn": [],
+      "problemMatcher": []
+    },
+    {
+      "label": "Super Clean (Web)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "Remove-Item -Path '${workspaceFolder}/build_web' -Recurse -Force"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }
