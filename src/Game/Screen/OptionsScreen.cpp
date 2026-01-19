@@ -83,6 +83,7 @@ void OptionsScreen::Draw()
     // Draw popup options when open
     if (m_resolutionDropdownOpen)
     {
+        bool selectionMade = false;
         for (int i = 0; i < 4; ++i)
         {
             Rectangle optRect = {ddRect.x, ddRect.y + (i + 1) * (ddRect.height + 4), ddRect.width, ddRect.height};
@@ -93,10 +94,10 @@ void OptionsScreen::Draw()
                 int h = resHeights[m_resolutionIndex];
                 SetWindowSize(w, h);
                 m_resolutionDropdownOpen = false;
+                selectionMade = true;
             }
         }
-        // Close dropdown if clicked outside
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        if (!selectionMade && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
             Vector2 mp = GetMousePosition();
             bool clickedInside = (mp.x >= ddRect.x && mp.x <= ddRect.x + ddRect.width && mp.y >= ddRect.y && mp.y <= ddRect.y + ddRect.height + 4 * (ddRect.height + 4));
