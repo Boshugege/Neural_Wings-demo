@@ -8,7 +8,7 @@ class GameplayScreen : public GameScreen
 {
 public:
     GameplayScreen();
-    virtual ~GameplayScreen() = default;
+    ~GameplayScreen();
 
     void OnEnter() override;
     void FixedUpdate(float fixedDeltaTime) override;

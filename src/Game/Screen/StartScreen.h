@@ -4,7 +4,7 @@
 class StartScreen : public GameScreen {
 public:
     StartScreen();
-    virtual ~StartScreen() = default;
+    ~StartScreen();
 
     void OnEnter() override;
     void FixedUpdate(float fixedDeltaTime) override;

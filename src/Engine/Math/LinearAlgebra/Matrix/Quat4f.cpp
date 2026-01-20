@@ -5,11 +5,6 @@
 #include "Quat4f.h"
 #include "Engine/Math/LinearAlgebra/Vector/Vector3f.h"
 #include "Engine/Math/LinearAlgebra/Vector/Vector4f.h"
-
-//////////////////////////////////////////////////////////////////////////
-// Public
-//////////////////////////////////////////////////////////////////////////
-
 // static
 const Quat4f Quat4f::ZERO = Quat4f( 0, 0, 0, 0 );
 

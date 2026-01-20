@@ -6,14 +6,19 @@
 // #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+#include <cstdio>
 OptionsScreen::OptionsScreen()
     : m_nextScreenState(static_cast<int>(ScreenStateID::NONE)),
-      m_resolutionIndex(1),
-      m_resolutionDropdownOpen(false),
-      m_fullscreen(false),
-      m_targetFPS(144.0f) {}
+      m_resolutionDropdownOpen(false)
+{
+}
+OptionsScreen::~OptionsScreen() {
+    OnExit();
+}
 void OptionsScreen::OnEnter() {}
-void OptionsScreen::OnExit() {}
+void OptionsScreen::OnExit() {
+
+}
 void OptionsScreen::FixedUpdate(float fixedDeltaTime) {}
 
 void OptionsScreen::Update(float deltaTime)

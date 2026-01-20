@@ -8,7 +8,9 @@ StartScreen::StartScreen()
       m_alpha(0.0f)
 {
 }
-
+StartScreen::~StartScreen() {
+    OnExit();
+}
 void StartScreen::OnEnter() {
     m_elapsedTime = 0.0f;
     m_alpha = 0.0f;

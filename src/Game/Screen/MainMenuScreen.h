@@ -4,7 +4,7 @@
 class MainMenuScreen : public GameScreen {
 public:
     MainMenuScreen();
-    virtual ~MainMenuScreen() = default; 
+    ~MainMenuScreen(); 
 
 
     void OnEnter() override;
