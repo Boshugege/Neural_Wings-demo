@@ -18,10 +18,7 @@ public:
 
 private:
     int m_nextScreenState;
-
-    // Video settings
-    int m_resolutionIndex= 1;
-    bool m_resolutionDropdownOpen;
-    bool m_fullscreen = false;
-    float m_targetFPS = 144.0f;
+    void LoadConfig();
+    void SaveConfig() const;
+    void ApplyCurrentSelection() const;
 };
