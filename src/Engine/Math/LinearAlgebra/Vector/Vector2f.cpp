@@ -1,6 +1,7 @@
 #include "Vector2f.h"
 #include <cmath>
 #include <stdexcept>
+#include <algorithm>
 
 const Vector2f Vector2f::ZERO = Vector2f( 0, 0 );
 
@@ -213,6 +214,6 @@ float Vector2f::Distance(const Vector2f &a, const Vector2f &b)
 Vector2f Vector2f::Lerp(const Vector2f &a, const Vector2f &b, float t)
 {
     // Clamp t to [0, 1]
-    t = std::max(0.0f, std::min(1.0f, t));
+    t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
     return t*b + (1 - t)*a;
 }
