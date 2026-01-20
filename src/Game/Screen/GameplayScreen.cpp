@@ -13,7 +13,10 @@ GameplayScreen::GameplayScreen()
     m_cameraManager->LoadConfig("assets/config/cameras.json");
     ConfigureRenderer();
 }
-
+GameplayScreen::~GameplayScreen() 
+{
+    OnExit();
+}
 void GameplayScreen::ConfigureRenderer() {
     m_renderer->ClearRenderViews();
 

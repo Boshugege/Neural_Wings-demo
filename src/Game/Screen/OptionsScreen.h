@@ -6,7 +6,7 @@ class OptionsScreen : public GameScreen
 {
 public:
     OptionsScreen();
-    virtual ~OptionsScreen() = default;
+    ~OptionsScreen();
 
     void OnEnter() override;
     void FixedUpdate(float fixedDeltaTime) override;
@@ -20,8 +20,8 @@ private:
     int m_nextScreenState;
 
     // Video settings
-    int m_resolutionIndex;
+    int m_resolutionIndex= 1;
     bool m_resolutionDropdownOpen;
-    bool m_fullscreen;
-    float m_targetFPS;
+    bool m_fullscreen = false;
+    float m_targetFPS = 144.0f;
 };

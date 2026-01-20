@@ -96,9 +96,9 @@ void ScreenManager::ChangeScreen(int newState) {
     if (newState == SCREEN_STATE_EXIT || newState == SCREEN_STATE_NONE) {
         return;
     }
-    // 1. 通知当前屏幕退出，并释放其资源
+    // 1. 删除当前屏幕，释放资源
     if (m_currentScreen) {
-        m_currentScreen->OnExit();
+        m_currentScreen.reset();
     }
     // 2. 使用工厂创建一个新的屏幕实例
     m_currentScreen = m_factory->Create(newState);

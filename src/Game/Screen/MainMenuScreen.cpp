@@ -9,7 +9,9 @@ MainMenuScreen::MainMenuScreen()
     : m_nextScreenState(static_cast<int>(ScreenStateID::NONE))
 {
 }
-
+MainMenuScreen::~MainMenuScreen() {
+    OnExit();
+}
 // 进入时调用
 void MainMenuScreen::OnEnter() {
     // GuiLoadStyle("path/to/my_style.rgs");
