@@ -7,7 +7,7 @@
 using json = nlohmann::json;
 
 InputManager::InputManager() {
-    LoadBindings("assets/config/default/input_test.json");
+    LoadBindings("assets/config/default/input_config.json");
     m_lastMousePosition=GetMousePosition();
 }
 

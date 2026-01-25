@@ -1,8 +1,8 @@
 #include "Renderer.h"
 #include "Engine/Core/GameWorld.h"
 #include "CameraManager.h"
-#include "Engine/Core/Component/TransformComponent.h"
-#include "Engine/Core/Component/RenderComponent.h"
+#include "Engine/Core/Components/TransformComponent.h"
+#include "Engine/Core/Components/RenderComponent.h"
 
 void Renderer::AddRenderView(const RenderView& view) {
     m_renderViews.push_back(view);

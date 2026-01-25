@@ -1,8 +1,8 @@
 #pragma once
-#include "Component.h"
+#include "IComponent.h"
 #include "raylib.h"
 
-struct RenderComponent : public Component {
+struct RenderComponent : public IComponent {
     Model model;
     Color tint = WHITE; // 模型颜色
 

@@ -11,6 +11,7 @@ GameplayScreen::GameplayScreen()
     m_renderer = std::make_unique<Renderer>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
+    m_physicsSystem= std::make_unique<PhysicsSystem>();
 
     m_cameraManager->LoadConfig("assets/config/cameras_config.json");
     ConfigureRenderer();
@@ -47,25 +48,59 @@ void GameplayScreen::ConfigureRenderer()
 }
 
 // 当进入游戏场景时调用
-
-#include "Engine/Core/Component/TransformComponent.h"
-#include "Engine/Core/Component/RenderComponent.h"
+#include "Engine/Core/Components/Components.h"
+#include "Game/Systems/Physics/GravityStage.h"
+#include "Game/Systems/Physics/SolarStage.h"
 void GameplayScreen::OnEnter()
 {
     DisableCursor();
-    auto &playerCube = m_world->CreateGameObject();
+    m_physicsSystem->AddStage(std::make_unique<SolarStage>(10.0f));
+    
+    GameObject *Cube = &m_world->CreateGameObject();
 
     // 2. 为它添加 TransformComponent，并设置初始位置
-    playerCube.AddComponent<TransformComponent>(Vector3{0.0f, 0.5f, 0.0f});
+    Cube->AddComponent<TransformComponent>(Vector3{5.0f, 0.0f, 0.0f});
+    RigidbodyComponent*  rbPtr=&Cube->AddComponent<RigidbodyComponent>();
+    rbPtr->mass=100.0f;
+    rbPtr->drag=0.1f;
+    rbPtr->velocity=Vector3{0.0f,0.0f,10.0f};
 
     // 3. 为它添加 RenderComponent
-    auto &renderComp = playerCube.AddComponent<RenderComponent>();
+    RenderComponent* rdPtr = &Cube->AddComponent<RenderComponent>();
 
     // 4. 为 RenderComponent 创建一个模型
-    // 使用 Raylib 的程序化生成功能来创建一个 1x1x1 的立方体
     Mesh cubeMesh = GenMeshCube(1.0f, 1.0f, 1.0f);
-    renderComp.model = LoadModelFromMesh(cubeMesh);
-    renderComp.tint = BLUE; // 设置颜色为蓝色
+    rdPtr->model = LoadModelFromMesh(cubeMesh);
+    rdPtr->tint = BLUE;
+
+
+    Cube = &m_world->CreateGameObject();
+
+    Cube->AddComponent<TransformComponent>(Vector3{-5.0f, 0.0f, 0.0f});
+    rbPtr=&Cube->AddComponent<RigidbodyComponent>();
+    rbPtr->mass=100.0f;
+    rbPtr->drag=0.1f;
+    rbPtr->velocity=Vector3{0.0f,0.0f,-10.0f};
+
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+
+    rdPtr->model = LoadModelFromMesh(cubeMesh);
+    rdPtr->tint = RED; 
+
+    
+    Cube = &m_world->CreateGameObject();
+
+    Cube->AddComponent<TransformComponent>(Vector3{0.0f, 5.0f, 0.0f});
+    rbPtr=&Cube->AddComponent<RigidbodyComponent>();
+    rbPtr->mass=10.0f;
+    rbPtr->drag=0.1f;
+    rbPtr->velocity=Vector3{3.0f,0.0f,-1.0f};
+
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+
+    rdPtr->model = LoadModelFromMesh(cubeMesh);
+    rdPtr->tint = BLACK; 
+
 
     // m_sceneManager->LoadScene("assets/scenes/earth_map.json");
 }
@@ -81,8 +116,13 @@ void GameplayScreen::OnExit()
 // 在固定时间步更新（未来的物理和网络逻辑将在这里）
 void GameplayScreen::FixedUpdate(float fixedDeltaTime)
 {
-    // m_physicsSystem->Update(*m_world, fixedDeltaTime);
     // m_networkManager->Update(fixedDeltaTime);
+    // auto *mainCam = m_cameraManager->GetMainCamera();
+    // Vector3 mainPos = mainCam->position;
+    // mainPos = Vector3Add(mainPos, Vector3Scale(mainCam->direction, 0.2f));
+    
+    // mainCam->UpdateFromDirection(mainPos, mainCam->direction, mainCam->up);
+    m_physicsSystem->Update(*m_world, fixedDeltaTime);
 }
 
 void GameplayScreen::Update(float deltaTime)

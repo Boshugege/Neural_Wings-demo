@@ -1,5 +1,5 @@
 #pragma once
-#include "Component/Component.h"
+#include "Components/IComponent.h"
 #include <vector>
 #include <memory>
 #include <typeindex>
@@ -8,7 +8,7 @@ class GameObject
 {
 public:
     GameObject();
-    ~GameObject() = default;
+    ~GameObject();
     GameObject(const GameObject &) = delete;
     GameObject &operator=(const GameObject &) = delete;
 
@@ -25,7 +25,7 @@ public:
     unsigned int GetID() const;
 
 private:
-    std::vector<std::unique_ptr<Component>> m_components;
+    std::vector<std::unique_ptr<IComponent>> m_components;
     // 组件索引
     std::vector<std::type_index> m_componentTypeIndex;
 

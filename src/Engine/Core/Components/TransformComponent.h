@@ -1,8 +1,8 @@
 #pragma once
-#include "Component.h" 
+#include "IComponent.h" 
 #include "raylib.h"
 // TODO: 数学库替换
-struct TransformComponent : public Component {
+struct TransformComponent : public IComponent {
     Vector3 position = { 0.0f, 0.0f, 0.0f };
     Quaternion rotation = { 0.0f, 0.0f, 0.0f, 1.0f }; 
     Vector3 scale = { 1.0f, 1.0f, 1.0f };

@@ -8,4 +8,5 @@ public:
     void UpdateFromDirection(Vector3 pos, Vector3 dir, Vector3 u, const CameraMode &mode = CAMERA_CUSTOM);
     void UpdateFromTarget(Vector3 pos, Vector3 tar, Vector3 u, const CameraMode &mode = CAMERA_CUSTOM);
     void Rotate(float LookHorizontal, float LookVertical);
+    // TODO:挂载脚本
 };
