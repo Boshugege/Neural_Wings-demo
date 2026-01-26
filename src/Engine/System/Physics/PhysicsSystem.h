@@ -10,7 +10,7 @@ public:
     void ClearStages();
 
 private:
-    // 不同的物理规则
+    // 不同物理规则
     std::vector<std::unique_ptr<IPhysicsStage>> m_stages;
     
     // 半euler积分

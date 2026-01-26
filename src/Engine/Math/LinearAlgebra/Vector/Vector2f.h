@@ -1,5 +1,6 @@
 #pragma once
-
+#include "raylib.h"
+#include "raymath.h"
 class Vector2f
 {
 public:
@@ -7,7 +8,10 @@ public:
     static const Vector2f UP;
     static const Vector2f RIGHT;
 
-    Vector2f() = default;
+    Vector2f(const Vector2& v) {
+        m_data[0] = v.x;
+        m_data[1] = v.y;
+    }
     Vector2f(const Vector2f &other);
     Vector2f(float val = 0.0f);
     Vector2f(float x, float y);
@@ -46,6 +50,7 @@ public:
     static float Distance(const Vector2f &a, const Vector2f &b);
     static Vector2f Lerp(const Vector2f &a, const Vector2f &b, float t);
 
+    operator Vector2() const{return {m_data[0], m_data[1]};}
 private:
     float m_data[2];
 };

@@ -1,6 +1,11 @@
 #pragma once
+#include "raylib.h"
+#include "raymath.h"
+#include <nlohmann/json.hpp>
+#include <iostream>
 class Vector2f;
 
+using json = nlohmann::json;
 class Vector3f
 {
 public:
@@ -9,11 +14,22 @@ public:
     static const Vector3f RIGHT;
     static const Vector3f FORWARD;
 
-    Vector3f() = default;
+    Vector3f(const Vector3& v) {
+        m_data[0] = v.x;
+        m_data[1] = v.y;
+        m_data[2] = v.z;
+    }
     Vector3f(const Vector3f &other);
     Vector3f(float val = 0.0f);
     Vector3f(float x, float y, float z);
-
+    Vector3f(const json& arr) {
+        if(arr.size() >= 3) {
+            m_data[0] = arr[0];
+            m_data[1] = arr[1];
+            m_data[2] = arr[2];
+        }
+    }
+    
     Vector3f &operator=(const Vector3f &other);
 
     Vector3f &operator+=(const Vector3f &other);
@@ -48,10 +64,13 @@ public:
     Vector2f Homogenized() const;
 
     void Negate();
+    Vector3f RotateByAxixAngle(const Vector3f &axis, float angle);
 
     static float Distance(const Vector3f &a, const Vector3f &b);
     static Vector3f Lerp(const Vector3f &a, const Vector3f &b, float t);
 
+    void print() const{std::cout<<m_data[0]<<", "<<m_data[1]<<", "<<m_data[2]<<std::endl;};
+    operator Vector3() const{return {m_data[0], m_data[1], m_data[2]};}
 private:
     float m_data[3];
 };
