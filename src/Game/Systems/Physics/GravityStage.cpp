@@ -4,7 +4,7 @@
 #include "Engine/Core/Components/TransformComponent.h"
 #include <iostream>
 
-GravityStage::GravityStage(Vector3 gravity) : m_gravity(gravity) {}
+GravityStage::GravityStage(Vector3f gravity) : m_gravity(gravity) {}
 
 void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
 {
@@ -19,14 +19,14 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
         if (gameObject->HasComponent<RigidbodyComponent>())
         {
             auto &rigidBodyComponent = gameObject->GetComponent<RigidbodyComponent>();
-            rigidBodyComponent.AddForce(Vector3Scale(m_gravity, rigidBodyComponent.mass));
+            rigidBodyComponent.AddForce(m_gravity*rigidBodyComponent.mass);
             if (gameObject->HasComponent<TransformComponent>())
             {
                 auto &transformComponent = gameObject->GetComponent<TransformComponent>();
-                if (transformComponent.position.y < 0.0f)
+                if (transformComponent.position.y() < 0.0f)
                 {
-                    transformComponent.position.y = 0.0f;
-                    rigidBodyComponent.velocity.y = -rigidBodyComponent.velocity.y*0.99;
+                    transformComponent.position.y() = 0.0f;
+                    rigidBodyComponent.velocity.y() = -rigidBodyComponent.velocity.y()*0.99;
                 }
             }
         }

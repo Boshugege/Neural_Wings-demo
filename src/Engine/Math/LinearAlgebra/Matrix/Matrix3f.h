@@ -28,7 +28,8 @@ public:
 
 	Vector3f getCol( int j ) const;
 	void setCol( int j, const Vector3f& v );
-
+	
+	void setDiag(float d0, float d1, float d2 );
 	// gets the 2x2 submatrix of this matrix to m
 	// starting with upper left corner at (i0, j0)
 	Matrix2f getSubmatrix2x2( int i0, int j0 ) const;

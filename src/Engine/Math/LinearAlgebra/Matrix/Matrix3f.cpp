@@ -73,7 +73,12 @@ float& Matrix3f::operator () ( int i, int j )
 {
 	return m_data[ j * 3 + i ];
 }
-
+void Matrix3f::setDiag(float d1, float d2, float d3)
+{
+	m_data[ 0 ] = d1;
+	m_data[ 4 ] = d2;
+	m_data[ 8 ] = d3;
+}
 Vector3f Matrix3f::getRow( int i ) const
 {
 	return Vector3f

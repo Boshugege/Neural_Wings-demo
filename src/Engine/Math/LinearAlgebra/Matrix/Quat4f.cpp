@@ -222,11 +222,34 @@ Quat4f Quat4f::exp() const
 		return Quat4f( cos( theta ), m_data[ 1 ] * coeff, m_data[ 2 ] * coeff, m_data[ 3 ] * coeff );		
 	}
 }
+Matrix3f Quat4f::toMatrix() const
+{
+    float xx = x() * x();
+    float yy = y() * y();
+    float zz = z() * z();
+    float xy = x() * y();
+    float xz = x() * z();
+    float yz = y() * z();
+    float wx = w() * x();
+    float wy = w() * y();
+    float wz = w() * z();
+
+    return Matrix3f(
+        1.0f - 2.0f * (yy + zz),  2.0f * (xy - wz),        2.0f * (xz + wy),
+        2.0f * (xy + wz),         1.0f - 2.0f * (xx + zz),  2.0f * (yz - wx),
+        2.0f * (xz - wy),         2.0f * (yz + wx),        1.0f - 2.0f * (xx + yy)
+    );
+}
 
 Vector3f Quat4f::getAxisAngle( float* radiansOut )
 {
 	float theta = acos( w() ) * 2;
 	float vectorNorm = sqrt( x() * x() + y() * y() + z() * z() );
+	if( vectorNorm < 1e-6 )
+	{
+		*radiansOut = theta;
+		return Vector3f( 1.0f, 0.0f, 0.0f );
+	}
 	float reciprocalVectorNorm = 1.f / vectorNorm;
 
 	*radiansOut = theta;
@@ -406,6 +429,7 @@ Quat4f Quat4f::fromRotationMatrix( const Matrix3f& m )
 
 	Quat4f q( w, x, y, z );
 	return q.normalized();
+	
 }
 
 // static
@@ -488,4 +512,13 @@ Quat4f operator * ( const Quat4f& q, float f )
 		f * q.y(),
 		f * q.z()
 	);
+}
+Vector3f operator * ( const Quat4f& q, const Vector3f& v )
+{
+	Vector3f q_xyz(q.x(), q.y(), q.z());
+    
+    // t = 2 * cross(q_xyz, v)
+    Vector3f t = q_xyz^v * 2.0f;
+    // result = v + (q.w * t) + cross(q_xyz, t)
+    return v + (t * q.w()) + (q_xyz^t);
 }
