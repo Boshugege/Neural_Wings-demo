@@ -34,7 +34,7 @@ if (!root) {
     app.config.errorHandler = (error) => {
       console.error(error);
       setFallback(
-        "UI 初始化失败",
+        "UI Initialization Failed",
         error && error.message ? error.message : String(error),
       );
       window.__NW_UI_ERROR__ = error;
@@ -45,7 +45,7 @@ if (!root) {
   } catch (error) {
     console.error(error);
     setFallback(
-      "UI 初始化失败",
+      "UI Initialization Failed",
       error && error.message ? error.message : String(error),
     );
     window.__NW_UI_ERROR__ = error;

@@ -56,7 +56,8 @@
       "command": "python",
       "args": ["-m", "http.server", "8000", "--directory", "build_web"],
       "isBackground": true,
-      "dependsOn": "Web Build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["UI: Build", "Web Build"],
       "problemMatcher": {
         "owner": "python",
         "pattern": {
@@ -89,7 +90,7 @@
         "-DPLATFORM=Web",
         "-DCMAKE_BUILD_TYPE=Release",
         "-G",
-        "MinGW Makefiles"
+        "Ninja"
       ],
       "group": "build",
       "dependsOn": [],

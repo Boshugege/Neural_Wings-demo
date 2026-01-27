@@ -91,6 +91,27 @@ if (PLATFORM STREQUAL "Web")
         "--preload-file" "${CMAKE_CURRENT_SOURCE_DIR}/assets@assets"
     )
 
+    # Try to find npm to build the Vue UI automatically for web builds.
+    find_program(NPM_EXECUTABLE npm)
+    if (NPM_EXECUTABLE)
+        add_custom_target(WebUI
+            COMMAND ${NPM_EXECUTABLE} ci
+            COMMAND ${NPM_EXECUTABLE} run build
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ui
+            COMMENT "Building Vue UI into ui/dist"
+        )
+        add_dependencies(${PROJECT_NAME} WebUI)
+    else()
+        message(STATUS "npm not found: skipping automatic UI build for Web. Run 'npm ci' and 'npm run build' in ui/ manually.")
+    endif()
+
+    # After building the Emscripten HTML, copy the generated ui/dist into the web build output
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dist"
+        "${CMAKE_BINARY_DIR}/ui/dist"
+    )
+
 else()
     
     target_link_libraries(${PROJECT_NAME} PRIVATE enet)
