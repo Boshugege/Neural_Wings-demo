@@ -33,14 +33,7 @@ protected:
         if (configJson.contains("window"))
         {
             const auto &windowJson = configJson.at("window");
-            if (windowJson.contains("fullscreen"))
-            {
-                this->fullScreen = windowJson.value("fullscreen", this->fullScreen);
-            }
-            else
-            {
-                this->fullScreen = windowJson.value("fullScreen", this->fullScreen);
-            }
+            this->fullScreen = windowJson.value("fullscreen", this->fullScreen);
         }
         this->initialScreen = SCREEN_STATE_START;
     }
