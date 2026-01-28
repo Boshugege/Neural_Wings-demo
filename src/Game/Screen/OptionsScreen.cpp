@@ -48,7 +48,7 @@ void OptionsScreen::OnEnter()
             "window.vueAppState = window.vueAppState || {};"
             "window.vueAppState.vueAppReady = false;"
             "window.vueAppState.settingsSaveRequested = false;");
-        uiLayer->LoadRoute("menu");
+        uiLayer->LoadRoute("options");
     }
 }
 void OptionsScreen::OnExit()
@@ -70,7 +70,7 @@ void OptionsScreen::Update(float deltaTime)
     {
         std::string currentRoute = screenManager->GetUILayer()->GetCurrentRoute();
 
-        if (currentRoute == "#/" + GAMEPLAY.getName())
+        if (currentRoute == "#/" + MAIN_MENU.getName())
         {
             m_nextScreenState = MAIN_MENU;
             return;
