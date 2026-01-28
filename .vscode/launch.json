@@ -1,38 +1,38 @@
 {
-    "version": "0.1.0",
-    "configurations": [
-        {
-            "name": "Debug Game",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/${workspaceFolderBasename}.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "preLaunchTask": "CMake Build"
-        },
-        {
-            "name": "Run Game (Release)",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/Release/${workspaceFolderBasename}.exe", 
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "console": "integratedTerminal",
-            "preLaunchTask": "CMake Build Release" 
-        },
-        {
-            "name": "Debug Web (Chrome)",
-            "type": "chrome", 
-            "request": "launch",
-            "url": "http://localhost:8000/Neural_Wings-demo.html", 
-            "webRoot": "${workspaceFolder}",
-            "userDataDir": true,
-            "preLaunchTask": "Start Web Server"
-        }
-    ]
+  "version": "0.1.0",
+  "configurations": [
+    {
+      "name": "Debug Game",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Debug/${workspaceFolderBasename}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/Debug",
+      "environment": [],
+      "externalConsole": false,
+      "preLaunchTask": "Build All (UI + Debug)"
+    },
+    {
+      "name": "Run Game (Release)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Release/${workspaceFolderBasename}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/Release",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "CMake Build Release"
+    },
+    {
+      "name": "Debug Web (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8000/Neural_Wings-demo.html",
+      "webRoot": "${workspaceFolder}",
+      "userDataDir": true,
+      "preLaunchTask": "Start Web Server"
+    }
+  ]
 }

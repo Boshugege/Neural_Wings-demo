@@ -5,15 +5,10 @@
 #if defined(PLATFORM_WEB)
 #include <emscripten/emscripten.h>
 #endif
-// #define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-
 #include <cstdio>
+#include <sstream>
 OptionsScreen::OptionsScreen()
-    : m_nextScreenState(static_cast<int>(ScreenStateID::NONE)),
-      m_fullscreenToggle(false),
-      m_resolutionDropdownActive(0),
-      m_resolutionDropdown(false)
+    : m_nextScreenState(static_cast<int>(ScreenStateID::NONE))
 {
 }
 OptionsScreen::~OptionsScreen()
@@ -22,25 +17,45 @@ OptionsScreen::~OptionsScreen()
 }
 void OptionsScreen::OnEnter()
 {
-    m_currentConfig.load("assets/config/engine_config.json");
+    // Prefer the runtime-applied settings so the UI reflects the actual window.
+    if (screenManager)
+    {
+        m_currentConfig = screenManager->GetActiveConfig();
+    }
+    else
+    {
+        m_currentConfig.load("assets/config/engine_config.json");
+    }
+
+    // As an extra guard, sync window size/fullscreen from raylib.
+    m_currentConfig.fullScreen = IsWindowFullscreen();
+    if (!m_currentConfig.fullScreen)
+    {
+        m_currentConfig.screenWidth = GetScreenWidth();
+        m_currentConfig.screenHeight = GetScreenHeight();
+    }
 
     m_modifiedConfig = m_currentConfig;
+    m_pendingSync = true;
 
-    m_fullscreenToggle = m_modifiedConfig.fullScreen;
-    for (int i = 0; i < 4; ++i)
+    if (screenManager && screenManager->GetUILayer())
     {
-        if (m_modifiedConfig.screenWidth == RESOLUTION_WIDTHS[i] && m_modifiedConfig.screenHeight == RESOLUTION_HEIGHTS[i])
-        {
-            m_resolutionDropdownActive = i;
-            break;
-        }
+        auto *uiLayer = screenManager->GetUILayer();
+        uiLayer->SetVisible(true);
+        // Reset readiness so we don't sync against the previous page state.
+        uiLayer->ExecuteScript(
+            "window.vueAppState = window.vueAppState || {};"
+            "window.vueAppState.vueAppReady = false;"
+            "window.vueAppState.settingsSaveRequested = false;");
+        uiLayer->LoadRoute("options");
     }
 }
 void OptionsScreen::OnExit()
 {
-    if (screenManager)
+    // 不再自动应用设置，只有点击保存按钮时才应用
+    if (screenManager && screenManager->GetUILayer())
     {
-        screenManager->ApplySettings(m_currentConfig);
+        screenManager->GetUILayer()->SetVisible(false);
     }
 }
 void OptionsScreen::FixedUpdate(float fixedDeltaTime) {}
@@ -49,108 +64,45 @@ void OptionsScreen::Update(float deltaTime)
 {
     m_nextScreenState = static_cast<int>(ScreenStateID::NONE);
 
+    // 检查 Vue 路由是否已变化
+    if (screenManager && screenManager->GetUILayer())
+    {
+        std::string currentRoute = screenManager->GetUILayer()->GetCurrentRoute();
+
+        if (currentRoute == "#/menu")
+        {
+            m_nextScreenState = static_cast<int>(ScreenStateID::MAIN_MENU);
+            return;
+        }
+    }
+
     if (IsKeyPressed(KEY_ESCAPE))
     {
         m_nextScreenState = static_cast<int>(ScreenStateID::MAIN_MENU);
     }
-    m_modifiedConfig.fullScreen = m_fullscreenToggle;
-    m_modifiedConfig.screenWidth = RESOLUTION_WIDTHS[m_resolutionDropdownActive];
-    m_modifiedConfig.screenHeight = RESOLUTION_HEIGHTS[m_resolutionDropdownActive];
+
+    // 检查 Vue 中的设置是否被保存
+    if (screenManager && screenManager->GetUILayer())
+    {
+        if (m_pendingSync)
+        {
+            std::string readyStr = screenManager->GetUILayer()->GetAppState("vueAppReady");
+            if (readyStr == "true")
+            {
+                ApplyConfigToUI();
+                m_pendingSync = false;
+            }
+        }
+        ApplyVueSettings();
+    }
 }
-
-
-// --- 字体大小 ---
-#define FONT_SIZE_TITLE    50  // 标题 "OPTIONS" 的字体大小
-#define FONT_SIZE_LABEL    24  // "Resolution:" 等标签的字体大小
-#define FONT_SIZE_UI       20  // 所有RayGUI控件（按钮、下拉框）的内部字体大小
-
-// --- 布局尺寸 ---
-#define OPTIONS_PANEL_WIDTH         700  // 面板加宽
-#define OPTIONS_PANEL_HEIGHT        350  // 面板加高
-#define OPTIONS_ITEM_HEIGHT         40   // 每个设置项的高度增加
-#define OPTIONS_ITEM_SPACING        30   // 设置项之间的垂直间距增加
-#define OPTIONS_PADDING             30   // 面板的内边距增加
 
 void OptionsScreen::Draw()
 {
-    ClearBackground(BLACK);
-
-    GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE_UI);
-
-    const char* title = "OPTIONS";
-    int titleWidth = MeasureText(title, FONT_SIZE_TITLE);
-    DrawText(title, GetScreenWidth() / 2 - titleWidth / 2, 70, FONT_SIZE_TITLE, RAYWHITE);
-
-    Rectangle panelRect = {
-        (GetScreenWidth() - OPTIONS_PANEL_WIDTH) / 2.0f,
-        (GetScreenHeight() - OPTIONS_PANEL_HEIGHT) / 2.0f - 50,
-        OPTIONS_PANEL_WIDTH,
-        OPTIONS_PANEL_HEIGHT
-    };
-    DrawRectangleRounded(panelRect, 0.05f, 6, Fade(DARKGRAY, 0.8f));
-    DrawRectangleRoundedLines(panelRect, 0.05f, 6, LIGHTGRAY);
-
-    if (m_resolutionDropdown)
-        GuiDisable();
-
-    float currentY = panelRect.y + OPTIONS_PADDING;
-    float labelStartX = panelRect.x + OPTIONS_PADDING;
-    float labelWidth = 180;
-    float controlStartX = labelStartX + labelWidth + 20;
-    float controlWidth = panelRect.width - (OPTIONS_PADDING * 2) - labelWidth - 20;
-
-#if !defined(PLATFORM_WEB)
-    DrawText(TextFormat("%*s", (int)(labelWidth / 8), "Resolution:"), labelStartX, currentY + 8, FONT_SIZE_LABEL, RAYWHITE);
-    currentY += OPTIONS_ITEM_HEIGHT + OPTIONS_ITEM_SPACING;
-#endif
-
-    DrawText(TextFormat("%*s", (int)(labelWidth / 8), "Fullscreen:"), labelStartX, currentY + 8, FONT_SIZE_LABEL, RAYWHITE);
-    GuiCheckBox({ controlStartX, currentY + (OPTIONS_ITEM_HEIGHT - 20) / 2.0f, 20, 20 }, "", &m_fullscreenToggle);
-    currentY += OPTIONS_ITEM_HEIGHT + OPTIONS_ITEM_SPACING;
-    
-    DrawText(TextFormat("%*s", (int)(labelWidth / 8), "Target FPS:"), labelStartX, currentY + 8, FONT_SIZE_LABEL, RAYWHITE);
-    float sliderWidth = controlWidth - 100;
-    GuiSlider(
-        { controlStartX, currentY + (OPTIONS_ITEM_HEIGHT - 20) / 2.0f, sliderWidth, 20 },
-        "", "", &m_modifiedConfig.targetFPS, 30, 240
-    );
-    DrawText(TextFormat("%d FPS", (int)m_modifiedConfig.targetFPS), controlStartX + sliderWidth + 15, currentY + 8, FONT_SIZE_LABEL, RAYWHITE);
-
-    
-    float buttonY = panelRect.y + panelRect.height + 40.0f;
-    float buttonWidth = 200.0f;
-    float buttonHeight = 50.0f;  
-    float buttonSpacing = 20.0f;
-    float buttonStartX = (GetScreenWidth() - (buttonWidth * 3 + buttonSpacing * 2)) / 2;
-
-    if (GuiButton({ buttonStartX, buttonY, buttonWidth, buttonHeight }, "Apply")) {
-        if (screenManager) screenManager->ApplySettings(m_modifiedConfig);
-    }
-    if (GuiButton({ buttonStartX + buttonWidth + buttonSpacing, buttonY, buttonWidth, buttonHeight }, "Save & Return")) {
-        if (screenManager) screenManager->ApplySettings(m_modifiedConfig);
-        SaveConfig();
-        m_currentConfig = m_modifiedConfig;
-        m_nextScreenState = static_cast<int>(ScreenStateID::MAIN_MENU);
-    }
-    if (GuiButton({ buttonStartX + (buttonWidth + buttonSpacing) * 2, buttonY, buttonWidth, buttonHeight }, "Cancel")) {
-        m_nextScreenState = static_cast<int>(ScreenStateID::MAIN_MENU);
-    }
-
-    if (m_resolutionDropdown)
-        GuiEnable();
-    
-#if !defined(PLATFORM_WEB)
-    float resolutionY = panelRect.y + OPTIONS_PADDING;
-    if (GuiDropdownBox(
-            { controlStartX, resolutionY, controlWidth, OPTIONS_ITEM_HEIGHT },
-            m_resolutionOptionsText,
-            &m_resolutionDropdownActive,
-            m_resolutionDropdown
-        ))
+    if (screenManager && screenManager->GetUILayer())
     {
-        m_resolutionDropdown = !m_resolutionDropdown;
+        screenManager->GetUILayer()->Draw();
     }
-#endif
 }
 
 int OptionsScreen::GetNextScreenState() const
@@ -168,14 +120,97 @@ void OptionsScreen::SaveConfig()
 {
     json configJson;
     m_modifiedConfig.toJson(configJson);
-    
+
     std::ofstream o("assets/config/engine_config.json");
-    if (o.is_open()) {
+    if (o.is_open())
+    {
         o << configJson.dump(4);
         o.close();
         printf("[OptionsScreen] Config saved to engine_config.json\n");
     }
-    else {
-        printf("[OptionsScreen] Failed to save config to engine_config.json\n");
+}
+
+void OptionsScreen::ApplyVueSettings()
+{
+    // Check if save is requested
+    std::string saveRequestedStr = screenManager->GetUILayer()->GetAppState("settingsSaveRequested");
+
+    if (saveRequestedStr == "true")
+    {
+        // Read settings values
+        std::string fullscreenStr = screenManager->GetUILayer()->GetAppState("fullscreen");
+        std::string resolutionStr = screenManager->GetUILayer()->GetAppState("resolution");
+        std::string fpsStr = screenManager->GetUILayer()->GetAppState("targetFPS");
+
+        // Parse resolution string (e.g. "1920x1080")
+        size_t xPos = resolutionStr.find('x');
+        if (xPos != std::string::npos)
+        {
+            try
+            {
+                int width = std::stoi(resolutionStr.substr(0, xPos));
+                int height = std::stoi(resolutionStr.substr(xPos + 1));
+
+                // Update configuration
+                m_modifiedConfig.screenWidth = width;
+                m_modifiedConfig.screenHeight = height;
+            }
+            catch (...)
+            {
+                printf("[OptionsScreen] Failed to parse resolution: %s\n", resolutionStr.c_str());
+            }
+        }
+
+        // Parse fullscreen setting
+        m_modifiedConfig.fullScreen = (fullscreenStr == "true");
+
+        // Parse FPS
+        try
+        {
+            m_modifiedConfig.targetFPS = static_cast<float>(std::stoi(fpsStr));
+        }
+        catch (...)
+        {
+            printf("[OptionsScreen] Failed to parse FPS: %s\n", fpsStr.c_str());
+        }
+
+        printf("[OptionsScreen] Settings saved and applied: %dx%d, fullscreen=%s, fps=%.0f\n",
+               m_modifiedConfig.screenWidth,
+               m_modifiedConfig.screenHeight,
+               m_modifiedConfig.fullScreen ? "true" : "false",
+               m_modifiedConfig.targetFPS);
+
+        // Save to file immediately
+        SaveConfig();
+
+        // Apply settings to game engine immediately
+        if (screenManager)
+        {
+            screenManager->ApplySettings(m_modifiedConfig);
+        }
+
+        // Keep the current snapshot in sync after applying.
+        m_currentConfig = m_modifiedConfig;
+
+        // Reset save request flag
+        screenManager->GetUILayer()->ExecuteScript("window.vueAppState.settingsSaveRequested = false;");
+
+        printf("[OptionsScreen] Settings applied to engine\n");
     }
+}
+
+void OptionsScreen::ApplyConfigToUI()
+{
+    if (!screenManager || !screenManager->GetUILayer())
+        return;
+
+    const std::string resolution = std::to_string(m_currentConfig.screenWidth) + "x" +
+                                   std::to_string(m_currentConfig.screenHeight);
+
+    std::ostringstream script;
+    script << "if (window.__applyEngineSettings) { "
+           << "window.__applyEngineSettings({fullscreen: " << (m_currentConfig.fullScreen ? "true" : "false")
+           << ", resolution: \"" << resolution << "\", targetFPS: "
+           << static_cast<int>(m_currentConfig.targetFPS) << "}); }";
+    screenManager->GetUILayer()->ExecuteScript(script.str());
 }
