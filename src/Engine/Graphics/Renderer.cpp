@@ -107,6 +107,9 @@ void Renderer::DrawWorldObjects(const GameWorld &world)
             Quat4f rotation = transform.rotation;
             Vector3f axis = rotation.getAxisAngle(&angle);
             angle *= 180.0f / M_PI;
+
+            // TODO:web渲染bug
+
             DrawModelEx(
                 render.model,
                 transform.position,

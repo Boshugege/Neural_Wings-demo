@@ -48,7 +48,7 @@ void OptionsScreen::OnEnter()
             "window.vueAppState = window.vueAppState || {};"
             "window.vueAppState.vueAppReady = false;"
             "window.vueAppState.settingsSaveRequested = false;");
-        uiLayer->LoadRoute("options");
+        uiLayer->LoadRoute(OPTIONS);
     }
 }
 void OptionsScreen::OnExit()

@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "Game/Screen/MyScreenState.h"
 #include "raymath.h"
-
+#include "Engine/Engine.h"
 #include <iostream>
 GameplayScreen::GameplayScreen()
     : m_nextScreenState(SCREEN_STATE_NONE)
@@ -12,6 +12,7 @@ GameplayScreen::GameplayScreen()
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
     m_physicsSystem = std::make_unique<PhysicsSystem>();
+    m_resourceManager = std::make_unique<ResourceManager>();
 
     m_cameraManager->LoadConfig("assets/config/cameras_config.json");
     ConfigureRenderer();
@@ -60,13 +61,14 @@ void GameplayScreen::OnEnter()
     // m_physicsSystem->AddStage(std::make_unique<TestStage>());
     m_physicsSystem->AddStage(std::make_unique<CollisionStage>());
 
-    Mesh cubeMesh = GenMeshCube(1.0f, 1.0f, 1.0f);
-    Mesh sphereMesh = GenMeshSphere(1.0f, 32, 32);
-
     GameObject *Cube = &m_world->CreateGameObject();
 
     TransformComponent *trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(0.0f, 6.0f, 0.0f));
     RigidbodyComponent *rbPtr = &Cube->AddComponent<RigidbodyComponent>();
+    RenderComponent *rdPtr = &Cube->AddComponent<RenderComponent>();
+
+    rdPtr->model = m_resourceManager->GetModel("primitive://cube");
+    rdPtr->tint = RED;
 
     Vector3f size = Vector3f::ONE * 1.0f;
     trPtr->scale = size;
@@ -84,14 +86,13 @@ void GameplayScreen::OnEnter()
         std::cout << "BLUE " << "Collision!" << std::endl;
     };
 
-    RenderComponent *rdPtr = &Cube->AddComponent<RenderComponent>();
-    rdPtr->model = LoadModelFromMesh(sphereMesh);
-    rdPtr->tint = BLUE;
-
     Cube = &m_world->CreateGameObject();
 
     trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(-2.0f, 2.0f, 2.0f));
     rbPtr = &Cube->AddComponent<RigidbodyComponent>();
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+    rdPtr->model = m_resourceManager->GetModel("primitive://cube");
+    rdPtr->tint = BLUE;
 
     size = Vector3f(2.0f, 2.0f, 2.0f);
     trPtr->scale = size;
@@ -108,14 +109,14 @@ void GameplayScreen::OnEnter()
     {
         std::cout << "RED " << "Collision!" << std::endl;
     };
-    rdPtr = &Cube->AddComponent<RenderComponent>();
-    rdPtr->model = LoadModelFromMesh(cubeMesh);
-    rdPtr->tint = RED;
 
     Cube = &m_world->CreateGameObject();
 
     trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(-2.0f, 2.0f, 2.0f));
     rbPtr = &Cube->AddComponent<RigidbodyComponent>();
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+    rdPtr->model = m_resourceManager->GetModel("primitive://sphere");
+    rdPtr->tint = RED;
 
     size = Vector3f(2.0f, 2.0f, 2.0f);
     trPtr->scale = size;
@@ -132,13 +133,14 @@ void GameplayScreen::OnEnter()
     {
         std::cout << "RED " << "Collision!" << std::endl;
     };
-    rdPtr = &Cube->AddComponent<RenderComponent>();
-    rdPtr->model = LoadModelFromMesh(sphereMesh);
-    rdPtr->tint = RED;
 
     Cube = &m_world->CreateGameObject();
     trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(2.0f, 5.0f, 0.0f));
     rbPtr = &Cube->AddComponent<RigidbodyComponent>();
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+    rdPtr->model = m_resourceManager->GetModel("primitive://cube");
+    rdPtr->tint = BLUE;
+
     size = Vector3f(1.0f, 1.0f, 1.0f);
     trPtr->scale = size;
     rbPtr->mass = 10.0f;
@@ -153,13 +155,14 @@ void GameplayScreen::OnEnter()
     {
         std::cout << "BLACK " << "Collision!" << std::endl;
     };
-    rdPtr = &Cube->AddComponent<RenderComponent>();
-    rdPtr->model = LoadModelFromMesh(cubeMesh);
-    rdPtr->tint = BLACK;
 
     Cube = &m_world->CreateGameObject();
     trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(5.0f, 5.0f, 0.0f));
     rbPtr = &Cube->AddComponent<RigidbodyComponent>();
+    rdPtr = &Cube->AddComponent<RenderComponent>();
+    rdPtr->model = m_resourceManager->GetModel("primitive://cube");
+    rdPtr->tint = BLACK;
+
     size = Vector3f(5.0f, 0.5f, 0.5f);
     trPtr->scale = size;
     rbPtr->mass = 10.0f;
@@ -174,9 +177,6 @@ void GameplayScreen::OnEnter()
     {
         std::cout << "BLACK " << "Collision!" << std::endl;
     };
-    rdPtr = &Cube->AddComponent<RenderComponent>();
-    rdPtr->model = LoadModelFromMesh(cubeMesh);
-    rdPtr->tint = BLACK;
 
     // m_sceneManager->LoadScene("assets/scenes/earth_map.json");
 }
