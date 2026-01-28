@@ -1,5 +1,7 @@
 #pragma once
 
+#if !defined(PLATFORM_WEB)
+#include "UILayer.h"
 #include <Ultralight/Ultralight.h>
 #include <Ultralight/Renderer.h>
 #include <Ultralight/platform/Surface.h>
@@ -10,33 +12,29 @@
 #include <string>
 #include <vector>
 
-class UltralightLayer
+class UltralightLayer : public UILayer
 {
 public:
     UltralightLayer();
-    ~UltralightLayer();
+    virtual ~UltralightLayer();
 
-    bool Initialize(uint32_t width, uint32_t height, const std::string &basePath);
-    void Shutdown();
+    bool Initialize(uint32_t width, uint32_t height, const std::string &basePath) override;
+    void Shutdown() override;
 
-    void SetVisible(bool visible);
-    bool IsVisible() const;
+    void Update() override;
+    void Draw() override;
+    void HandleInput() override;
 
-    void LoadRoute(const std::string &route);
-    void Resize(uint32_t width, uint32_t height);
+    void SetVisible(bool visible) override;
+    bool IsVisible() const override;
 
-    // Get the current route from Vue app state
-    std::string GetCurrentRoute() const;
+    void LoadRoute(const std::string &route) override;
+    void ExecuteScript(const std::string &script) override;
 
-    // Get Vue app state (settings)
-    std::string GetAppState(const std::string &key) const;
+    std::string GetAppState(const std::string &key) const override;
 
-    // Execute JavaScript code
-    void ExecuteScript(const std::string &script);
-
-    void Update();
-    void HandleInput();
-    void Draw();
+    void Resize(uint32_t width, uint32_t height) override;
+    std::string GetCurrentRoute() const override;
 
 private:
     void EnsureTexture(uint32_t width, uint32_t height);
@@ -53,3 +51,4 @@ private:
     std::string m_basePath;
     std::vector<unsigned char> m_rgbaBuffer;
 };
+#endif

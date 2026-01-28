@@ -18,26 +18,22 @@ endif()
 include(FetchContent)
 FetchContent_Declare(
     raylib
-    GIT_REPOSITORY https://github.com/raysan5/raylib.git
-    GIT_TAG master
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/raylib-master"
 )
 
 FetchContent_Declare(
     raygui
-    GIT_REPOSITORY https://github.com/raysan5/raygui.git
-    GIT_TAG master
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/raygui-master"
 )
 
 FetchContent_Declare(
     nlohmann_json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.2
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/json-develop"
 )
 
 FetchContent_Declare(
     enet
-    GIT_REPOSITORY https://github.com/lsalzman/enet.git
-    GIT_TAG master
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/enet-master"
 )
 
 set(ULTRALIGHT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ultralight")
@@ -48,6 +44,13 @@ set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(raylib raygui nlohmann_json enet)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+
+if(EMSCRIPTEN)
+    list(FILTER SOURCES EXCLUDE REGEX "src/Engine/UI/UltralightLayer.cpp")
+else()
+    list(FILTER SOURCES EXCLUDE REGEX "src/Engine/UI/WebLayer.cpp")
+endif()
+
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 if(MSVC)
@@ -58,18 +61,8 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${raygui_SOURCE_DIR}/src
-    ${ULTRALIGHT_ROOT}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    raylib
-    nlohmann_json::nlohmann_json
-    "${ULTRALIGHT_ROOT}/lib/Ultralight.lib"
-    "${ULTRALIGHT_ROOT}/lib/UltralightCore.lib"
-    "${ULTRALIGHT_ROOT}/lib/WebCore.lib"
-    "${ULTRALIGHT_ROOT}/lib/AppCore.lib"
-)
-include_directories(${CMAKE_SOURCE_DIR}/src)
 
 if(EMSCRIPTEN)
     set(PLATFORM "Web")
@@ -81,8 +74,15 @@ else()
 endif()
 
 message(STATUS "当前平台: ${PLATFORM}")
+
+
 if(PLATFORM STREQUAL "Web")
     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        raylib
+        nlohmann_json::nlohmann_json
+    )
 
     target_link_options(${PROJECT_NAME} PRIVATE
         "-sUSE_GLFW=3"
@@ -114,7 +114,20 @@ if(PLATFORM STREQUAL "Web")
 
 else()
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE enet)
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${ULTRALIGHT_ROOT}/include)
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        raylib
+        enet
+        nlohmann_json::nlohmann_json
+        "${ULTRALIGHT_ROOT}/lib/Ultralight.lib"
+        "${ULTRALIGHT_ROOT}/lib/UltralightCore.lib"
+        "${ULTRALIGHT_ROOT}/lib/WebCore.lib"
+        "${ULTRALIGHT_ROOT}/lib/AppCore.lib"
+    )
+
+
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

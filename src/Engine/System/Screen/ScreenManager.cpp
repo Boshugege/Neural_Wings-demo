@@ -2,6 +2,11 @@
 #include "raylib.h"
 #include "ScreenState.h"
 
+#if defined(PLATFORM_WEB)
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
 namespace
 {
     std::string GetCurrentDirectoryPath()
@@ -23,7 +28,13 @@ ScreenManager::ScreenManager(const EngineConfig &config, std::unique_ptr<ScreenF
     m_activeConfig.screenWidth = GetScreenWidth();
     m_activeConfig.screenHeight = GetScreenHeight();
     m_activeConfig.fullScreen = IsWindowFullscreen();
+
+#if defined(PLATFORM_WEB)
+    m_uiLayer = std::make_unique<WebLayer>();
+#else
     m_uiLayer = std::make_unique<UltralightLayer>();
+#endif
+
     m_uiLayer->Initialize(
         static_cast<uint32_t>(GetScreenWidth()),
         static_cast<uint32_t>(GetScreenHeight()),
@@ -37,11 +48,6 @@ ScreenManager::~ScreenManager()
 {
     Shutdown();
 }
-#if defined(PLATFORM_WEB)
-#include <emscripten/emscripten.h>
-#include <emscripten/html5.h>
-#endif
-
 void ScreenManager::ApplySettings(const EngineConfig &newConfig)
 {
 #if defined(PLATFORM_WEB)
@@ -92,7 +98,7 @@ const EngineConfig &ScreenManager::GetActiveConfig() const
     return m_activeConfig;
 }
 
-UltralightLayer *ScreenManager::GetUILayer()
+UILayer *ScreenManager::GetUILayer()
 {
     return m_uiLayer.get();
 }
@@ -115,6 +121,7 @@ bool ScreenManager::UpdateFrame()
     m_currentScreen->Update(m_timeManager.GetDeltaTime());
     if (m_uiLayer)
     {
+
         m_uiLayer->Resize(
             static_cast<uint32_t>(GetScreenWidth()),
             static_cast<uint32_t>(GetScreenHeight()));
@@ -147,45 +154,6 @@ void ScreenManager::Shutdown()
     }
     CloseWindow();
 }
-// // 主循环
-// void ScreenManager::Run() {
-//     if (!m_currentScreen) {
-//         return;
-//     }
-
-//     TimeManager timeManager;
-//     float accumulator = 0.0f;
-
-//     while (!WindowShouldClose() && m_currentScreen->GetNextScreenState() != SCREEN_STATE_EXIT) {
-
-//         // --- 1. 更新时间 ---
-//         timeManager.Tick();
-//         accumulator += timeManager.GetDeltaTime();
-
-//         // --- 2. 固定更新循环 (FixedUpdate) ---
-//         // 这个循环确保无论渲染帧率如何波动，物理和逻辑都以固定的频率执行
-//         while (accumulator >= timeManager.GetFixedDeltaTime()) {
-//             m_currentScreen->FixedUpdate(timeManager.GetFixedDeltaTime());
-//             accumulator -= timeManager.GetFixedDeltaTime();
-//         }
-
-//         // --- 3. 可变更新 (Update) ---
-//         m_currentScreen->Update(timeManager.GetDeltaTime());
-
-//         // --- 4. 绘制 (Draw) ---
-//         BeginDrawing();
-//         ClearBackground(BLACK); // 默认黑色背景
-//         m_currentScreen->Draw();
-//         EndDrawing();
-
-//         // --- 5. 在帧末尾检查是否需要切换屏幕 ---
-//         int nextState = m_currentScreen->GetNextScreenState();
-//         if (nextState != SCREEN_STATE_NONE) {
-//             ChangeScreen(nextState);
-//         }
-//     }
-// }
-
 // 屏幕切换
 void ScreenManager::ChangeScreen(int newState)
 {

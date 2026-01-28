@@ -40,8 +40,6 @@ void MainMenuScreen::Update(float deltaTime)
     if (screenManager && screenManager->GetUILayer())
     {
         std::string currentRoute = screenManager->GetUILayer()->GetCurrentRoute();
-        std::cout << "cur: " << currentRoute << std::endl;
-        std::cout << "#/" + GAMEPLAY.getName() << std::endl;
 
         if (currentRoute == "#/" + GAMEPLAY.getName())
         {

@@ -4,6 +4,7 @@ import "./style.css";
 
 const root = document.getElementById("app");
 
+
 function setFallback(title, message) {
   if (!root) {
     return;
