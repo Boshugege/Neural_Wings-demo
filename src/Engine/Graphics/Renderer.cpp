@@ -112,12 +112,20 @@ void Renderer::DrawWorldObjects(const GameWorld &world)
                 transform.position,
                 axis,
                 angle,
-                transform.scale,
+                transform.scale & render.scale,
                 render.tint);
+            DrawModelWiresEx(
+                render.model,
+                transform.position,
+                axis,
+                angle,
+                transform.scale & render.scale,
+                BLACK);
 
             // TODO: debug
             DrawCoordinateAxes(transform.position, transform.rotation, 2.0f, 0.05f);
-            if(gameObject->HasComponent<RigidbodyComponent>())
+            DrawSphereEx(transform.position, 0.1f, 8, 8, RED);
+            if (gameObject->HasComponent<RigidbodyComponent>())
             {
                 const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
                 DrawVector(transform.position, rb.angularVelocity, 1.0f, 0.05f);

@@ -241,7 +241,7 @@ Matrix3f Quat4f::toMatrix() const
     );
 }
 
-Vector3f Quat4f::getAxisAngle( float* radiansOut )
+Vector3f Quat4f::getAxisAngle( float* radiansOut ) const
 {
 	float theta = acos( w() ) * 2;
 	float vectorNorm = sqrt( x() * x() + y() * y() + z() * z() );

@@ -11,7 +11,7 @@ GameplayScreen::GameplayScreen()
     m_renderer = std::make_unique<Renderer>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
-    m_physicsSystem= std::make_unique<PhysicsSystem>();
+    m_physicsSystem = std::make_unique<PhysicsSystem>();
 
     m_cameraManager->LoadConfig("assets/config/cameras_config.json");
     ConfigureRenderer();
@@ -49,6 +49,7 @@ void GameplayScreen::ConfigureRenderer()
 
 // 当进入游戏场景时调用
 #include "Engine/Core/Components/Components.h"
+#include "Engine/System/Physics/Physics.h"
 #include "Game/Systems/Physics/GravityStage.h"
 #include "Game/Systems/Physics/SolarStage.h"
 #include "Game/Systems/Physics/TestStage.h"
@@ -56,59 +57,77 @@ void GameplayScreen::OnEnter()
 {
     DisableCursor();
     // m_physicsSystem->AddStage(std::make_unique<SolarStage>(10.0f));
-    // m_physicsSystem->AddStage(std::make_unique<GravityStage>());
-    m_physicsSystem->AddStage(std::make_unique<TestStage>());
+     m_physicsSystem->AddStage(std::make_unique<GravityStage>());
+    //m_physicsSystem->AddStage(std::make_unique<TestStage>());
+    m_physicsSystem->AddStage(std::make_unique<CollisionStage>());
+
     GameObject *Cube = &m_world->CreateGameObject();
 
-    TransformComponent* trPtr =&Cube->AddComponent<TransformComponent>(Vector3f(0.0f, 10.0f, 0.0f));
-    RigidbodyComponent*  rbPtr=&Cube->AddComponent<RigidbodyComponent>();
+    TransformComponent *trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(0.0f, 6.0f, 0.0f));
+    RigidbodyComponent *rbPtr = &Cube->AddComponent<RigidbodyComponent>();
 
-    Vector3f size= Vector3f(0.1f, 3.0f, 4.2f);
+    Vector3f size = Vector3f(1.0f, 5.0f, 1.0f);
     trPtr->scale = size;
-    
-    rbPtr->mass=100.0f;
-    rbPtr->drag=0.0f;
-    rbPtr->angularDrag=0.000f;
-    rbPtr->velocity=Vector3f(0.0f,0.0f,0.0f);
-    
-    rbPtr->SetBoxInertia(size);
-    rbPtr->SetAnglularVelocity(Vector3f(0.1f,10.1f,0.1f));
 
+    rbPtr->mass = 1.0f;
+    rbPtr->drag = 0.0f;
+    rbPtr->angularDrag = 0.01f;
+    rbPtr->velocity = Vector3f(0.0f, 0.0f, 0.0f);
 
-    RenderComponent* rdPtr = &Cube->AddComponent<RenderComponent>();
+    rbPtr->SetBox(size);
+    // rbPtr->SetAnglularVelocity(Vector3f(0.1f,4.1f,1.1f));
+    rbPtr->collisionCallback = [](GameObject *other)
+    {
+        std::cout << "BLUE " << "Collision!" << std::endl;
+    };
 
+    RenderComponent *rdPtr = &Cube->AddComponent<RenderComponent>();
     Mesh cubeMesh = GenMeshCube(1.0f, 1.0f, 1.0f);
     rdPtr->model = LoadModelFromMesh(cubeMesh);
     rdPtr->tint = BLUE;
 
-
     // Cube = &m_world->CreateGameObject();
 
-    // Cube->AddComponent<TransformComponent>(Vector3f(-5.0f, 0.0f, 0.0f));
-    // rbPtr=&Cube->AddComponent<RigidbodyComponent>();
-    // rbPtr->mass=100.0f;
-    // rbPtr->drag=0.1f;
-    // rbPtr->velocity=Vector3f(0.0f,0.0f,-10.0f);
+    // trPtr = &Cube->AddComponent<TransformComponent>(Vector3f(-2.0f, 2.0f, 2.0f));
+    // rbPtr = &Cube->AddComponent<RigidbodyComponent>();
 
+    // size = Vector3f(1.0f, 1.0f, 1.0f);
+    // trPtr->scale = size;
+
+    // rbPtr->mass = 1.0f;
+    // rbPtr->drag = 0.0f;
+    // rbPtr->velocity = Vector3f(0.0f, 0.0f, -0.0f);
+
+    // rbPtr->SetBox(size);
+    // // rbPtr->SetAnglularVelocity(Vector3f(2.1f,0.1f,0.1f));
+    // rbPtr->collisionCallback = [](GameObject *other)
+    // {
+    //     std::cout << "RED " << "Collision!" << std::endl;
+    // };
     // rdPtr = &Cube->AddComponent<RenderComponent>();
-
     // rdPtr->model = LoadModelFromMesh(cubeMesh);
-    // rdPtr->tint = RED; 
+    // rdPtr->tint = RED;
 
-    
+
+
     // Cube = &m_world->CreateGameObject();
-
-    // Cube->AddComponent<TransformComponent>(Vector3f(0.0f, 5.0f, 0.0f));
+    // trPtr=&Cube->AddComponent<TransformComponent>(Vector3f(2.0f, 5.0f, 0.0f));
     // rbPtr=&Cube->AddComponent<RigidbodyComponent>();
+    // size= Vector3f(2.0f, 3.0f, 1.0f);
+    // trPtr->scale = size;
     // rbPtr->mass=10.0f;
     // rbPtr->drag=0.1f;
-    // rbPtr->velocity=Vector3f(3.0f,0.0f,-1.0f);
+    // rbPtr->velocity=Vector3f(0.1f,0.0f,0.0f);
 
+    // rbPtr->SetBox(size);
+    // // rbPtr->SetAnglularVelocity(Vector3f(2.1f,0.1f,-3.1f));
+    // rbPtr->collisionCallback=[](GameObject *other)
+    // {
+    //     std::cout<<"BLACK "<<"Collision!"<<std::endl;
+    // };
     // rdPtr = &Cube->AddComponent<RenderComponent>();
-
     // rdPtr->model = LoadModelFromMesh(cubeMesh);
-    // rdPtr->tint = BLACK; 
-
+    // rdPtr->tint = BLACK;
 
     // m_sceneManager->LoadScene("assets/scenes/earth_map.json");
 }
@@ -128,7 +147,7 @@ void GameplayScreen::FixedUpdate(float fixedDeltaTime)
     // auto *mainCam = m_cameraManager->GetMainCamera();
     // Vector3 mainPos = mainCam->position;
     // mainPos = Vector3Add(mainPos, Vector3Scale(mainCam->direction, 0.2f));
-    
+
     // mainCam->UpdateFromDirection(mainPos, mainCam->direction, mainCam->up);
     m_physicsSystem->Update(*m_world, fixedDeltaTime);
 }
@@ -150,27 +169,27 @@ void GameplayScreen::Update(float deltaTime)
         if (m_inputManager->IsActionDown("Forward"))
         {
             DrawText("Forward!", 200, 200, 20, GREEN);
-            mainPos +=  mainCam->Direction()*0.3f;
+            mainPos += mainCam->Direction() * 0.3f;
         }
         if (m_inputManager->IsActionDown("Backward"))
         {
             DrawText("Backward!", 200, 200, 20, GREEN);
-            mainPos -=  mainCam->Direction()*0.1f;
+            mainPos -= mainCam->Direction() * 0.1f;
         }
         if (m_inputManager->IsActionDown("Left"))
         {
             DrawText("Left!", 200, 200, 20, GREEN);
-            mainPos -= mainCam->Right()* 0.1f;
+            mainPos -= mainCam->Right() * 0.1f;
         }
         if (m_inputManager->IsActionDown("Right"))
         {
             DrawText("Right!", 200, 200, 20, GREEN);
-            mainPos += mainCam->Right()* 0.1f;
+            mainPos += mainCam->Right() * 0.1f;
         }
         mainCam->UpdateFromDirection(mainPos, mainCam->Direction(), mainCam->Up());
 
-        float lookHorizontal = -m_inputManager->GetAxisValue("LookHorizontal")*PI/180;
-        float lookVertical = m_inputManager->GetAxisValue("LookVertical")*PI/180;
+        float lookHorizontal = -m_inputManager->GetAxisValue("LookHorizontal") * PI / 180;
+        float lookVertical = m_inputManager->GetAxisValue("LookVertical") * PI / 180;
         DrawText(TextFormat("LookHorizontal: %f", lookHorizontal), 200, 300, 20, GREEN);
         DrawText(TextFormat("LookVertical: %f", lookVertical), 200, 350, 20, GREEN);
         mainCam->Rotate(lookHorizontal, lookVertical);
@@ -179,7 +198,7 @@ void GameplayScreen::Update(float deltaTime)
         {
             Vector3f mainPos = mainCam->Position();
             Vector3f mainTarget = mainCam->Target();
-            Vector3f direction =mainTarget-mainPos;
+            Vector3f direction = mainTarget - mainPos;
             direction.Normalize();
 
             rearCam->UpdateFromDirection(mainPos, -direction, mainCam->Up());

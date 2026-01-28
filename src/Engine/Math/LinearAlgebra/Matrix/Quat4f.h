@@ -54,7 +54,7 @@ public:
     Matrix3f toMatrix() const;
 
     // returns unit vector for rotation and radians about the unit vector
-    Vector3f getAxisAngle(float *radiansOut);
+    Vector3f getAxisAngle(float *radiansOut) const;
 
     // sets this quaternion to be a rotation of fRadians about v = < fx, fy, fz >, v need not necessarily be unit length
     void setAxisAngle(float radians, const Vector3f &axis);

@@ -1,5 +1,6 @@
 #include "GameObject.h"
 #include <iostream>
+
 unsigned int GameObject::s_nextID = 0;
 
 GameObject::GameObject()
@@ -23,4 +24,43 @@ void GameObject::Destroy()
 bool GameObject::IsWaitingDestroy() const
 {
     return m_isWaitingDestroy;
+}
+
+#include "Engine/Core/Components/Components.h"
+#include "Engine/Math/Math.h"
+BoundingBox GameObject::GetWorldBoundingBox(Vector3f (*outCorners)[8]) const
+{
+    if (!this->HasComponent<RigidbodyComponent>()||!this->HasComponent<TransformComponent>())
+        return BoundingBox();
+    TransformComponent &tf=this->GetComponent<TransformComponent>();
+    RigidbodyComponent &rb=this->GetComponent<RigidbodyComponent>();
+
+    Vector3f min = rb.localBoundingBox.first;
+    Vector3f max = rb.localBoundingBox.second;
+    Vector3f corners[8] = {
+        Vector3f(min.x(), min.y(), min.z()),
+        Vector3f(min.x(), min.y(), max.z()),
+        Vector3f(min.x(), max.y(), min.z()),
+        Vector3f(min.x(), max.y(), max.z()),
+        Vector3f(max.x(), min.y(), min.z()),
+        Vector3f(max.x(), min.y(), max.z()),
+        Vector3f(max.x(), max.y(), min.z()),
+        Vector3f(max.x(), max.y(), max.z()),
+    };
+    float angle = 0.0f;
+    Vector3f axis = tf.rotation.getAxisAngle(&angle);
+    Vector3f worldPos = tf.position;
+    Vector3f newMin = Vector3f(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+    Vector3f newMax = Vector3f(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest());
+    for (int i = 0; i < 8; i++)
+    {
+        corners[i] = corners[i];
+        corners[i].RotateByAxixAngle(axis, angle);
+        corners[i] += worldPos;
+        if(outCorners!=nullptr)
+            (*outCorners)[i] = corners[i];
+        newMin = Vector3f::Min(newMin, corners[i]);
+        newMax = Vector3f::Max(newMax, corners[i]);
+    }
+    return BoundingBox{newMin, newMax};
 }

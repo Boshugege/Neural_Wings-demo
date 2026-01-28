@@ -274,3 +274,11 @@ bool operator!=(const Vector3f &v0, const Vector3f &v1)
 {
     return !(v0 == v1);
 }
+Vector3f Vector3f::Min(const Vector3f &a, const Vector3f &b)
+{
+    return Vector3f(std::min(a.x(), b.x()), std::min(a.y(), b.y()), std::min(a.z(), b.z()));
+}
+Vector3f Vector3f::Max(const Vector3f &a, const Vector3f &b)
+{
+    return Vector3f(std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z()));
+}
