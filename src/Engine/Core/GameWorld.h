@@ -17,8 +17,8 @@ public:
     ~GameWorld() = default;
 
     GameObject &CreateGameObject();
-    void FixedUpdate(float fexedDeltaTime);
-    bool Update(float deltaTime); // 返回true表示游戏继续，返回false表示游戏结束
+    bool FixedUpdate(float fexedDeltaTime);
+    bool Update(float deltaTime);
     void Render();
     const std::vector<std::unique_ptr<GameObject>> &GetGameObjects() const;
 

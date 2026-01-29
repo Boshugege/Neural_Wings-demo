@@ -37,15 +37,21 @@ GameObject &GameWorld::CreateGameObject()
     return *rawPtr;
 }
 
-void GameWorld::FixedUpdate(float fixedDeltaTime)
+// 返回true表示游戏继续，返回false表示游戏结束
+bool GameWorld::FixedUpdate(float fixedDeltaTime)
 {
     // TODO: 更新世界中的所有 GameObject
     // ScriptingSystem->Update(), PhysicsSystem->Update() 等。
     m_physicsSystem->Update(*this, fixedDeltaTime);
     this->DestroyWaitingObjects();
+
+    return true;
 }
+
 bool GameWorld::Update(float deltaTime)
 {
+    // TODO
+    return true;
 }
 
 const std::vector<std::unique_ptr<GameObject>> &GameWorld::GetGameObjects() const
