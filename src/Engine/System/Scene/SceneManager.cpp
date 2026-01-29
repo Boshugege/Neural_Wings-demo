@@ -58,7 +58,8 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld,
             }
             if (entityData.contains("scale"))
             {
-                tf.scale = tf.scale * JsonParser::ToVector3f(entityData["scale"]);
+                // 逐分量相乘
+                tf.scale = tf.scale & JsonParser::ToVector3f(entityData["scale"]);
                 if (obj.HasComponent<RigidbodyComponent>())
                 {
                     auto &rb = obj.GetComponent<RigidbodyComponent>();

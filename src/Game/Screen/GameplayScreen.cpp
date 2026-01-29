@@ -67,7 +67,7 @@ void GameplayScreen::Update(float deltaTime)
     if (!m_world->Update(deltaTime))
         m_nextScreenState = MAIN_MENU;
 
-        auto &m_inputManager = m_world->GetInputManager();
+    auto &m_inputManager = m_world->GetInputManager();
     auto &m_cameraManager = m_world->GetCameraManager();
     m_inputManager.Update();
     if (m_inputManager.IsActionPressed("Exit"))
