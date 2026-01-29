@@ -1,0 +1,59 @@
+{
+    "name": "Sphere",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "primitive://sphere",
+                "tint": [
+                    255,
+                    100,
+                    100,
+                    255
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "RigidBodyComponent": {
+                "mass": 100,
+                "drag": 0.1,
+                "angularDrag": 0.1,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "colliderType": "BOX"
+            }
+        }
+    ]
+}

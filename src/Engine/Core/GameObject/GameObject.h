@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/IComponent.h"
+#include "Engine/Core/Components/Components.h"
 #include <vector>
 #include <memory>
 #include <typeindex>
@@ -28,7 +28,8 @@ public:
     bool HasComponent() const;
 
     unsigned int GetID() const;
-    AABB GetWorldAABB(Vector3f (*outCorners)[8] =nullptr) const;
+    AABB GetWorldAABB(Vector3f (*outCorners)[8] = nullptr) const;
+
 private:
     std::vector<std::unique_ptr<IComponent>> m_components;
     // 组件索引

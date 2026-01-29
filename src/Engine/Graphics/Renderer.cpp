@@ -1,10 +1,68 @@
 #include "Renderer.h"
 #include "Engine/Core/GameWorld.h"
 #include "CameraManager.h"
-#include "Engine/Core/Components/TransformComponent.h"
-#include "Engine/Core/Components/RenderComponent.h"
-#include "Engine/Core/Components/RigidBodyComponent.h"
+#include "Engine/Core/Components/Components.h"
+#include "Engine/Utils/JsonParser.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <iostream>
+using json = nlohmann::json;
+
 #define M_PI 3.14159265358979323846
+
+RenderView Renderer::ParseViews(const json &viewData)
+{
+    RenderView view;
+    if (viewData.contains("name"))
+        // 与camerajson中名字一致
+        view.cameraName = viewData["name"];
+    else
+    {
+        std::cerr << "[Renderer]: View config file missing 'name' field" << std::endl;
+        return view;
+    }
+    if (viewData.contains("viewport"))
+        view.viewport = JsonParser::ToRectangle(viewData["viewport"]);
+    else
+        view.viewport = Rectangle{0.0, 0.0, (float)GetScreenHeight(), (float)GetScreenWidth()};
+
+    view.clearBackground = viewData.value("clearBackground", false);
+    if (viewData.contains("backgroundColor"))
+        view.backgroundColor = JsonParser::ToColor(viewData["backgroundColor"]);
+    else
+        view.backgroundColor = WHITE;
+    return view;
+}
+
+bool Renderer::LoadViewConfig(const std::string &configPath)
+{
+    std::ifstream configFile(configPath);
+    if (!configFile.is_open())
+    {
+        std::cerr << "[Renderer]: Failed to open view config file: " << configPath << std::endl;
+        return false;
+    }
+    try
+    {
+        json data = json::parse(configFile);
+        if (data.contains("views"))
+        {
+            this->ClearRenderViews();
+            for (const auto &viewData : data["views"])
+            {
+                RenderView view = ParseViews(viewData);
+                this->AddRenderView(view);
+            }
+        }
+        return true;
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "[Renderer]: Failed to parse view config file: " << configPath << std::endl;
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
+}
 
 void Renderer::AddRenderView(const RenderView &view)
 {
@@ -107,6 +165,9 @@ void Renderer::DrawWorldObjects(const GameWorld &world)
             Quat4f rotation = transform.rotation;
             Vector3f axis = rotation.getAxisAngle(&angle);
             angle *= 180.0f / M_PI;
+
+            // TODO:web渲染bug
+
             DrawModelEx(
                 render.model,
                 transform.position,

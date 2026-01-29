@@ -6,9 +6,11 @@ class GameWorld;
 class SolarStage : public IPhysicsStage
 {
 public:
-    SolarStage(float G =0.1f);
+    SolarStage() = default;
 
     void Execute(GameWorld &world, float fixedDeltaTime) override;
+
+    void Initialize(const json &config) override;
 
 private:
     float m_G = 0.1f;

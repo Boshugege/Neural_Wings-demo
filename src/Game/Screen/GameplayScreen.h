@@ -1,7 +1,5 @@
 #pragma once
-#include "Engine/System/Screen/GameScreen.h"
-#include "Engine/System/Input/InputManager.h"
-#include "Engine/System/Physics/PhysicsSystem.h"
+#include "Engine/System/System.h"
 #include "Engine/Core/GameWorld.h"
 #include "Engine/Graphics/Renderer.h"
 #include "Engine/Graphics/CameraManager.h"
@@ -25,14 +23,6 @@ private:
     ScreenState m_nextScreenState;
     // 游戏世界系统
     std::unique_ptr<GameWorld> m_world;
-    std::unique_ptr<Renderer> m_renderer;
-    std::unique_ptr<CameraManager> m_cameraManager;
-    std::unique_ptr<InputManager> m_inputManager;
-
-    std::unique_ptr<PhysicsSystem> m_physicsSystem;
-
-    void ConfigureRenderer();
-    // std::unique_ptr<PhysicsSystem> m_physicsSystem;
-    // std::unique_ptr<UIManager> m_uiManager;
+    void ConfigCallback(PhysicsStageFactory &factory);
     // ...
 };

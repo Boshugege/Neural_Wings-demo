@@ -6,303 +6,290 @@
 #include "Engine/Math/LinearAlgebra/Vector/Vector3f.h"
 #include "Engine/Math/LinearAlgebra/Vector/Vector4f.h"
 // static
-const Quat4f Quat4f::ZERO = Quat4f( 0, 0, 0, 0 );
+const Quat4f Quat4f::ZERO = Quat4f(0, 0, 0, 0);
 
 // static
-const Quat4f Quat4f::IDENTITY = Quat4f( 1, 0, 0, 0 );
+const Quat4f Quat4f::IDENTITY = Quat4f(1, 0, 0, 0);
 
 Quat4f::Quat4f()
 {
-	m_data[ 0 ] = 0;
-	m_data[ 1 ] = 0;
-	m_data[ 2 ] = 0;
-	m_data[ 3 ] = 0;
+	m_data[0] = 0;
+	m_data[1] = 0;
+	m_data[2] = 0;
+	m_data[3] = 0;
 }
 
-Quat4f::Quat4f( float w, float x, float y, float z )
+Quat4f::Quat4f(float w, float x, float y, float z)
 {
-	m_data[ 0 ] = w;
-	m_data[ 1 ] = x;
-	m_data[ 2 ] = y;
-	m_data[ 3 ] = z;
+	m_data[0] = w;
+	m_data[1] = x;
+	m_data[2] = y;
+	m_data[3] = z;
 }
 
-Quat4f::Quat4f( const Quat4f& rq )
+Quat4f::Quat4f(const Quat4f &rq)
 {
-	m_data[ 0 ] = rq.m_data[ 0 ];
-	m_data[ 1 ] = rq.m_data[ 1 ];
-	m_data[ 2 ] = rq.m_data[ 2 ];
-	m_data[ 3 ] = rq.m_data[ 3 ];
+	m_data[0] = rq.m_data[0];
+	m_data[1] = rq.m_data[1];
+	m_data[2] = rq.m_data[2];
+	m_data[3] = rq.m_data[3];
 }
 
-Quat4f& Quat4f::operator = ( const Quat4f& rq )
+Quat4f &Quat4f::operator=(const Quat4f &rq)
 {
-	if( this != ( &rq ) )
+	if (this != (&rq))
 	{
-		m_data[ 0 ] = rq.m_data[ 0 ];
-		m_data[ 1 ] = rq.m_data[ 1 ];
-		m_data[ 2 ] = rq.m_data[ 2 ];
-		m_data[ 3 ] = rq.m_data[ 3 ];
+		m_data[0] = rq.m_data[0];
+		m_data[1] = rq.m_data[1];
+		m_data[2] = rq.m_data[2];
+		m_data[3] = rq.m_data[3];
 	}
-    return( *this );
+	return (*this);
 }
 
-Quat4f::Quat4f( const Vector3f& v )
+Quat4f::Quat4f(const Vector3f &v)
 {
-	m_data[ 0 ] = 0;
-	m_data[ 1 ] = v[ 0 ];
-	m_data[ 2 ] = v[ 1 ];
-	m_data[ 3 ] = v[ 2 ];
+	float cx = cosf(v.x() * 0.5f);
+	float sx = sinf(v.x() * 0.5f);
+	float cy = cosf(v.y() * 0.5f);
+	float sy = sinf(v.y() * 0.5f);
+	float cz = cosf(v.z() * 0.5f);
+	float sz = sinf(v.z() * 0.5f);
+	m_data[0] = cx * cy * cz + sx * sy * sz;
+	m_data[1] = sx * cy * cz - cx * sy * sz;
+	m_data[2] = cx * sy * cz + sx * cy * sz;
+	m_data[3] = cx * cy * sz - sx * sy * cz;
 }
 
-Quat4f::Quat4f( const Vector4f& v )
+Quat4f::Quat4f(const Vector4f &v)
 {
-	m_data[ 0 ] = v[ 0 ];
-	m_data[ 1 ] = v[ 1 ];
-	m_data[ 2 ] = v[ 2 ];
-	m_data[ 3 ] = v[ 3 ];
+	m_data[0] = v[0];
+	m_data[1] = v[1];
+	m_data[2] = v[2];
+	m_data[3] = v[3];
 }
 
-const float& Quat4f::operator [] ( int i ) const
+const float &Quat4f::operator[](int i) const
 {
-	return m_data[ i ];
+	return m_data[i];
 }
 
-float& Quat4f::operator [] ( int i )
+float &Quat4f::operator[](int i)
 {
-	return m_data[ i ];
+	return m_data[i];
 }
 
 float Quat4f::w() const
 {
-	return m_data[ 0 ];
+	return m_data[0];
 }
 
 float Quat4f::x() const
 {
-	return m_data[ 1 ];
+	return m_data[1];
 }
 
 float Quat4f::y() const
 {
-	return m_data[ 2 ];
+	return m_data[2];
 }
 
 float Quat4f::z() const
 {
-	return m_data[ 3 ];
+	return m_data[3];
 }
 
 Vector3f Quat4f::xyz() const
 {
-	return Vector3f
-	(
-		m_data[ 1 ],
-		m_data[ 2 ],
-		m_data[ 3 ]
-	);
+	return Vector3f(
+		m_data[1],
+		m_data[2],
+		m_data[3]);
 }
 
 Vector4f Quat4f::wxyz() const
 {
-	return Vector4f
-	(
-		m_data[ 0 ],
-		m_data[ 1 ],
-		m_data[ 2 ],
-		m_data[ 3 ]
-	);
+	return Vector4f(
+		m_data[0],
+		m_data[1],
+		m_data[2],
+		m_data[3]);
 }
 
 float Quat4f::abs() const
 {
-	return sqrt( absSquared() );	
+	return sqrt(absSquared());
 }
 
 float Quat4f::absSquared() const
 {
-	return
-	(
-		m_data[ 0 ] * m_data[ 0 ] +
-		m_data[ 1 ] * m_data[ 1 ] +
-		m_data[ 2 ] * m_data[ 2 ] +
-		m_data[ 3 ] * m_data[ 3 ]
-	);
+	return (
+		m_data[0] * m_data[0] +
+		m_data[1] * m_data[1] +
+		m_data[2] * m_data[2] +
+		m_data[3] * m_data[3]);
 }
 
 void Quat4f::normalize()
 {
 	float reciprocalAbs = 1.f / abs();
 
-	m_data[ 0 ] *= reciprocalAbs;
-	m_data[ 1 ] *= reciprocalAbs;
-	m_data[ 2 ] *= reciprocalAbs;
-	m_data[ 3 ] *= reciprocalAbs;
+	m_data[0] *= reciprocalAbs;
+	m_data[1] *= reciprocalAbs;
+	m_data[2] *= reciprocalAbs;
+	m_data[3] *= reciprocalAbs;
 }
 
 Quat4f Quat4f::normalized() const
 {
-	Quat4f q( *this );
+	Quat4f q(*this);
 	q.normalize();
 	return q;
 }
 
 void Quat4f::conjugate()
 {
-	m_data[ 1 ] = -m_data[ 1 ];
-	m_data[ 2 ] = -m_data[ 2 ];
-	m_data[ 3 ] = -m_data[ 3 ];
+	m_data[1] = -m_data[1];
+	m_data[2] = -m_data[2];
+	m_data[3] = -m_data[3];
 }
 
 Quat4f Quat4f::conjugated() const
 {
-	return Quat4f
-	(
-		 m_data[ 0 ],
-		-m_data[ 1 ],
-		-m_data[ 2 ],
-		-m_data[ 3 ]
-	);
+	return Quat4f(
+		m_data[0],
+		-m_data[1],
+		-m_data[2],
+		-m_data[3]);
 }
 
 void Quat4f::invert()
 {
-	Quat4f inverse = conjugated() * ( 1.0f / absSquared() );
+	Quat4f inverse = conjugated() * (1.0f / absSquared());
 
-	m_data[ 0 ] = inverse.m_data[ 0 ];
-	m_data[ 1 ] = inverse.m_data[ 1 ];
-	m_data[ 2 ] = inverse.m_data[ 2 ];
-	m_data[ 3 ] = inverse.m_data[ 3 ];
+	m_data[0] = inverse.m_data[0];
+	m_data[1] = inverse.m_data[1];
+	m_data[2] = inverse.m_data[2];
+	m_data[3] = inverse.m_data[3];
 }
 
 Quat4f Quat4f::inverse() const
 {
-	return conjugated() * ( 1.0f / absSquared() );
+	return conjugated() * (1.0f / absSquared());
 }
-
 
 Quat4f Quat4f::log() const
 {
 	float len =
-		sqrt
-		(
-			m_data[ 1 ] * m_data[ 1 ] +
-			m_data[ 2 ] * m_data[ 2 ] +
-			m_data[ 3 ] * m_data[ 3 ]
-		);
+		sqrt(
+			m_data[1] * m_data[1] +
+			m_data[2] * m_data[2] +
+			m_data[3] * m_data[3]);
 
-	if( len < 1e-6 )
+	if (len < 1e-6)
 	{
-		return Quat4f( 0, m_data[ 1 ], m_data[ 2 ], m_data[ 3 ] );
+		return Quat4f(0, m_data[1], m_data[2], m_data[3]);
 	}
 	else
 	{
-		float coeff = acos( m_data[ 0 ] ) / len;
-		return Quat4f( 0, m_data[ 1 ] * coeff, m_data[ 2 ] * coeff, m_data[ 3 ] * coeff );
+		float coeff = acos(m_data[0]) / len;
+		return Quat4f(0, m_data[1] * coeff, m_data[2] * coeff, m_data[3] * coeff);
 	}
 }
 
 Quat4f Quat4f::exp() const
 {
 	float theta =
-		sqrt
-		(
-			m_data[ 1 ] * m_data[ 1 ] +
-			m_data[ 2 ] * m_data[ 2 ] +
-			m_data[ 3 ] * m_data[ 3 ]
-		);
+		sqrt(
+			m_data[1] * m_data[1] +
+			m_data[2] * m_data[2] +
+			m_data[3] * m_data[3]);
 
-	if( theta < 1e-6 )
+	if (theta < 1e-6)
 	{
-		return Quat4f( cos( theta ), m_data[ 1 ], m_data[ 2 ], m_data[ 3 ] );
+		return Quat4f(cos(theta), m_data[1], m_data[2], m_data[3]);
 	}
 	else
 	{
-		float coeff = sin( theta ) / theta;
-		return Quat4f( cos( theta ), m_data[ 1 ] * coeff, m_data[ 2 ] * coeff, m_data[ 3 ] * coeff );		
+		float coeff = sin(theta) / theta;
+		return Quat4f(cos(theta), m_data[1] * coeff, m_data[2] * coeff, m_data[3] * coeff);
 	}
 }
 Matrix3f Quat4f::toMatrix() const
 {
-    float xx = x() * x();
-    float yy = y() * y();
-    float zz = z() * z();
-    float xy = x() * y();
-    float xz = x() * z();
-    float yz = y() * z();
-    float wx = w() * x();
-    float wy = w() * y();
-    float wz = w() * z();
+	float xx = x() * x();
+	float yy = y() * y();
+	float zz = z() * z();
+	float xy = x() * y();
+	float xz = x() * z();
+	float yz = y() * z();
+	float wx = w() * x();
+	float wy = w() * y();
+	float wz = w() * z();
 
-    return Matrix3f(
-        1.0f - 2.0f * (yy + zz),  2.0f * (xy - wz),        2.0f * (xz + wy),
-        2.0f * (xy + wz),         1.0f - 2.0f * (xx + zz),  2.0f * (yz - wx),
-        2.0f * (xz - wy),         2.0f * (yz + wx),        1.0f - 2.0f * (xx + yy)
-    );
+	return Matrix3f(
+		1.0f - 2.0f * (yy + zz), 2.0f * (xy - wz), 2.0f * (xz + wy),
+		2.0f * (xy + wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz - wx),
+		2.0f * (xz - wy), 2.0f * (yz + wx), 1.0f - 2.0f * (xx + yy));
 }
 
-Vector3f Quat4f::getAxisAngle( float* radiansOut ) const
+Vector3f Quat4f::getAxisAngle(float *radiansOut) const
 {
-	float theta = acos( w() ) * 2;
-	float vectorNorm = sqrt( x() * x() + y() * y() + z() * z() );
-	if( vectorNorm < 1e-6 )
+	float theta = acos(w()) * 2;
+	float vectorNorm = sqrt(x() * x() + y() * y() + z() * z());
+	if (vectorNorm < 1e-6)
 	{
 		*radiansOut = theta;
-		return Vector3f( 1.0f, 0.0f, 0.0f );
+		return Vector3f(1.0f, 0.0f, 0.0f);
 	}
 	float reciprocalVectorNorm = 1.f / vectorNorm;
 
 	*radiansOut = theta;
-	return Vector3f
-	(
+	return Vector3f(
 		x() * reciprocalVectorNorm,
 		y() * reciprocalVectorNorm,
-		z() * reciprocalVectorNorm
-	);
+		z() * reciprocalVectorNorm);
 }
 
-void Quat4f::setAxisAngle( float radians, const Vector3f& axis )
+void Quat4f::setAxisAngle(float radians, const Vector3f &axis)
 {
-	m_data[ 0 ] = cos( radians / 2 );
+	m_data[0] = cos(radians / 2);
 
-	float sinHalfTheta = sin( radians / 2 );
+	float sinHalfTheta = sin(radians / 2);
 	float vectorNorm = axis.Length();
 	float reciprocalVectorNorm = 1.f / vectorNorm;
 
-	m_data[ 1 ] = axis.x() * sinHalfTheta * reciprocalVectorNorm;
-	m_data[ 2 ] = axis.y() * sinHalfTheta * reciprocalVectorNorm;
-	m_data[ 3 ] = axis.z() * sinHalfTheta * reciprocalVectorNorm;
+	m_data[1] = axis.x() * sinHalfTheta * reciprocalVectorNorm;
+	m_data[2] = axis.y() * sinHalfTheta * reciprocalVectorNorm;
+	m_data[3] = axis.z() * sinHalfTheta * reciprocalVectorNorm;
 }
 
-
 // static
-float Quat4f::dot( const Quat4f& q0, const Quat4f& q1 )
+float Quat4f::dot(const Quat4f &q0, const Quat4f &q1)
 {
-	return
-	(
+	return (
 		q0.w() * q1.w() +
 		q0.x() * q1.x() +
 		q0.y() * q1.y() +
-		q0.z() * q1.z()
-	);
+		q0.z() * q1.z());
 }
 
 // static
-Quat4f Quat4f::lerp( const Quat4f& q0, const Quat4f& q1, float alpha )
+Quat4f Quat4f::lerp(const Quat4f &q0, const Quat4f &q1, float alpha)
 {
-	return( ( q0 + alpha * ( q1 - q0 ) ).normalized() );
+	return ((q0 + alpha * (q1 - q0)).normalized());
 }
 
 // static
-Quat4f Quat4f::slerp( const Quat4f& a, const Quat4f& b, float t, bool allowFlip )
+Quat4f Quat4f::slerp(const Quat4f &a, const Quat4f &b, float t, bool allowFlip)
 {
-	float cosAngle = Quat4f::dot( a, b );
+	float cosAngle = Quat4f::dot(a, b);
 
 	float c1;
 	float c2;
 
 	// Linear interpolation for close orientations
-	if( ( 1.0f - fabs( cosAngle ) ) < 0.01f )
+	if ((1.0f - fabs(cosAngle)) < 0.01f)
 	{
 		c1 = 1.0f - t;
 		c2 = t;
@@ -310,31 +297,31 @@ Quat4f Quat4f::slerp( const Quat4f& a, const Quat4f& b, float t, bool allowFlip 
 	else
 	{
 		// Spherical interpolation
-		float angle = acos( fabs( cosAngle ) );
-		float sinAngle = sin( angle );
-		c1 = sin( angle * ( 1.0f - t ) ) / sinAngle;
-		c2 = sin( angle * t ) / sinAngle;
+		float angle = acos(fabs(cosAngle));
+		float sinAngle = sin(angle);
+		c1 = sin(angle * (1.0f - t)) / sinAngle;
+		c2 = sin(angle * t) / sinAngle;
 	}
 
 	// Use the shortest path
-	if( allowFlip && ( cosAngle < 0.0f ) )
+	if (allowFlip && (cosAngle < 0.0f))
 	{
 		c1 = -c1;
 	}
 
-	return Quat4f( c1 * a[ 0 ] + c2 * b[ 0 ], c1 * a[ 1 ] + c2 * b[ 1 ], c1 * a[ 2 ] + c2 * b[ 2 ], c1 * a[ 3 ] + c2 * b[ 3 ] );
+	return Quat4f(c1 * a[0] + c2 * b[0], c1 * a[1] + c2 * b[1], c1 * a[2] + c2 * b[2], c1 * a[3] + c2 * b[3]);
 }
 
 // static
-Quat4f Quat4f::squad( const Quat4f& a, const Quat4f& tanA, const Quat4f& tanB, const Quat4f& b, float t )
+Quat4f Quat4f::squad(const Quat4f &a, const Quat4f &tanA, const Quat4f &tanB, const Quat4f &b, float t)
 {
-	Quat4f ab = Quat4f::slerp( a, b, t );
-	Quat4f tangent = Quat4f::slerp( tanA, tanB, t, false );
-	return Quat4f::slerp( ab, tangent, 2.0f * t * ( 1.0f - t ), false );
+	Quat4f ab = Quat4f::slerp(a, b, t);
+	Quat4f tangent = Quat4f::slerp(tanA, tanB, t, false);
+	return Quat4f::slerp(ab, tangent, 2.0f * t * (1.0f - t), false);
 }
 
 // static
-Quat4f Quat4f::cubicInterpolate( const Quat4f& q0, const Quat4f& q1, const Quat4f& q2, const Quat4f& q3, float t )
+Quat4f Quat4f::cubicInterpolate(const Quat4f &q0, const Quat4f &q1, const Quat4f &q2, const Quat4f &q3, float t)
 {
 	// geometric construction:
 	//            t
@@ -342,20 +329,20 @@ Quat4f Quat4f::cubicInterpolate( const Quat4f& q0, const Quat4f& q1, const Quat4
 	// t+1        t	        t-1
 
 	// bottom level
-	Quat4f q0q1 = Quat4f::slerp( q0, q1, t + 1 );
-	Quat4f q1q2 = Quat4f::slerp( q1, q2, t );
-	Quat4f q2q3 = Quat4f::slerp( q2, q3, t - 1 );
+	Quat4f q0q1 = Quat4f::slerp(q0, q1, t + 1);
+	Quat4f q1q2 = Quat4f::slerp(q1, q2, t);
+	Quat4f q2q3 = Quat4f::slerp(q2, q3, t - 1);
 
 	// middle level
-	Quat4f q0q1_q1q2 = Quat4f::slerp( q0q1, q1q2, 0.5f * ( t + 1 ) );
-	Quat4f q1q2_q2q3 = Quat4f::slerp( q1q2, q2q3, 0.5f * t );
+	Quat4f q0q1_q1q2 = Quat4f::slerp(q0q1, q1q2, 0.5f * (t + 1));
+	Quat4f q1q2_q2q3 = Quat4f::slerp(q1q2, q2q3, 0.5f * t);
 
 	// top level
-	return Quat4f::slerp( q0q1_q1q2, q1q2_q2q3, t );
+	return Quat4f::slerp(q0q1_q1q2, q1q2_q2q3, t);
 }
 
 // static
-Quat4f Quat4f::logDifference( const Quat4f& a, const Quat4f& b )
+Quat4f Quat4f::logDifference(const Quat4f &a, const Quat4f &b)
 {
 	Quat4f diff = a.inverse() * b;
 	diff.normalize();
@@ -363,23 +350,23 @@ Quat4f Quat4f::logDifference( const Quat4f& a, const Quat4f& b )
 }
 
 // static
-Quat4f Quat4f::squadTangent( const Quat4f& before, const Quat4f& center, const Quat4f& after )
+Quat4f Quat4f::squadTangent(const Quat4f &before, const Quat4f &center, const Quat4f &after)
 {
-	Quat4f l1 = Quat4f::logDifference( center, before );
-	Quat4f l2 = Quat4f::logDifference( center, after );
-	
+	Quat4f l1 = Quat4f::logDifference(center, before);
+	Quat4f l2 = Quat4f::logDifference(center, after);
+
 	Quat4f e;
-	for( int i = 0; i < 4; ++i )
+	for (int i = 0; i < 4; ++i)
 	{
-		e[ i ] = -0.25f * ( l1[ i ] + l2[ i ] );
+		e[i] = -0.25f * (l1[i] + l2[i]);
 	}
-	e = center * ( e.exp() );
+	e = center * (e.exp());
 
 	return e;
 }
 
 // static
-Quat4f Quat4f::fromRotationMatrix( const Matrix3f& m )
+Quat4f Quat4f::fromRotationMatrix(const Matrix3f &m)
 {
 	float x;
 	float y;
@@ -387,138 +374,125 @@ Quat4f Quat4f::fromRotationMatrix( const Matrix3f& m )
 	float w;
 
 	// Compute one plus the trace of the matrix
-	float onePlusTrace = 1.0f + m( 0, 0 ) + m( 1, 1 ) + m( 2, 2 );
+	float onePlusTrace = 1.0f + m(0, 0) + m(1, 1) + m(2, 2);
 
-	if( onePlusTrace > 1e-5 )
+	if (onePlusTrace > 1e-5)
 	{
 		// Direct computation
-		float s = sqrt( onePlusTrace ) * 2.0f;
-		x = ( m( 2, 1 ) - m( 1, 2 ) ) / s;
-		y = ( m( 0, 2 ) - m( 2, 0 ) ) / s;
-		z = ( m( 1, 0 ) - m( 0, 1 ) ) / s;
+		float s = sqrt(onePlusTrace) * 2.0f;
+		x = (m(2, 1) - m(1, 2)) / s;
+		y = (m(0, 2) - m(2, 0)) / s;
+		z = (m(1, 0) - m(0, 1)) / s;
 		w = 0.25f * s;
 	}
 	else
 	{
 		// Computation depends on major diagonal term
-		if( ( m( 0, 0 ) > m( 1, 1 ) ) & ( m( 0, 0 ) > m( 2, 2 ) ) )
+		if ((m(0, 0) > m(1, 1)) & (m(0, 0) > m(2, 2)))
 		{
-			float s = sqrt( 1.0f + m( 0, 0 ) - m( 1, 1 ) - m( 2, 2 ) ) * 2.0f;
+			float s = sqrt(1.0f + m(0, 0) - m(1, 1) - m(2, 2)) * 2.0f;
 			x = 0.25f * s;
-			y = ( m( 0, 1 ) + m( 1, 0 ) ) / s;
-			z = ( m( 0, 2 ) + m( 2, 0 ) ) / s;
-			w = ( m( 1, 2 ) - m( 2, 1 ) ) / s;
+			y = (m(0, 1) + m(1, 0)) / s;
+			z = (m(0, 2) + m(2, 0)) / s;
+			w = (m(1, 2) - m(2, 1)) / s;
 		}
-		else if( m( 1, 1 ) > m( 2, 2 ) )
+		else if (m(1, 1) > m(2, 2))
 		{
-			float s = sqrt( 1.0f + m( 1, 1 ) - m( 0, 0 ) - m( 2, 2 ) ) * 2.0f;
-			x = ( m( 0, 1 ) + m( 1, 0 ) ) / s;
+			float s = sqrt(1.0f + m(1, 1) - m(0, 0) - m(2, 2)) * 2.0f;
+			x = (m(0, 1) + m(1, 0)) / s;
 			y = 0.25f * s;
-			z = ( m( 1, 2 ) + m( 2, 1 ) ) / s;
-			w = ( m( 0, 2 ) - m( 2, 0 ) ) / s;
+			z = (m(1, 2) + m(2, 1)) / s;
+			w = (m(0, 2) - m(2, 0)) / s;
 		}
 		else
 		{
-			float s = sqrt( 1.0f + m( 2, 2 ) - m( 0, 0 ) - m( 1, 1 ) ) * 2.0f;
-			x = ( m( 0, 2 ) + m( 2, 0 ) ) / s;
-			y = ( m( 1, 2 ) + m( 2, 1 ) ) / s;
+			float s = sqrt(1.0f + m(2, 2) - m(0, 0) - m(1, 1)) * 2.0f;
+			x = (m(0, 2) + m(2, 0)) / s;
+			y = (m(1, 2) + m(2, 1)) / s;
 			z = 0.25f * s;
-			w = ( m( 0, 1 ) - m( 1, 0 ) ) / s;
+			w = (m(0, 1) - m(1, 0)) / s;
 		}
 	}
 
-	Quat4f q( w, x, y, z );
+	Quat4f q(w, x, y, z);
 	return q.normalized();
-	
 }
 
 // static
-Quat4f Quat4f::fromRotatedBasis( const Vector3f& x, const Vector3f& y, const Vector3f& z )
+Quat4f Quat4f::fromRotatedBasis(const Vector3f &x, const Vector3f &y, const Vector3f &z)
 {
-	return fromRotationMatrix( Matrix3f( x, y, z ) );
+	return fromRotationMatrix(Matrix3f(x, y, z));
 }
 
 // static
-Quat4f Quat4f::randomRotation( float u0, float u1, float u2 )
+Quat4f Quat4f::randomRotation(float u0, float u1, float u2)
 {
 	float z = u0;
-	float theta = static_cast< float >( 2.f * M_PI * u1 );
-	float r = sqrt( 1.f - z * z );
-	float w = static_cast< float >( M_PI * u2 );
+	float theta = static_cast<float>(2.f * M_PI * u1);
+	float r = sqrt(1.f - z * z);
+	float w = static_cast<float>(M_PI * u2);
 
-	return Quat4f
-	(
-		cos( w ),
-		sin( w ) * cos( theta ) * r,
-		sin( w ) * sin( theta ) * r,
-		sin( w ) * z
-	);
+	return Quat4f(
+		cos(w),
+		sin(w) * cos(theta) * r,
+		sin(w) * sin(theta) * r,
+		sin(w) * z);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Operators
 //////////////////////////////////////////////////////////////////////////
 
-Quat4f operator + ( const Quat4f& q0, const Quat4f& q1 )
+Quat4f operator+(const Quat4f &q0, const Quat4f &q1)
 {
-	return Quat4f
-	(
+	return Quat4f(
 		q0.w() + q1.w(),
 		q0.x() + q1.x(),
 		q0.y() + q1.y(),
-		q0.z() + q1.z()
-	);
+		q0.z() + q1.z());
 }
 
-Quat4f operator - ( const Quat4f& q0, const Quat4f& q1 )
+Quat4f operator-(const Quat4f &q0, const Quat4f &q1)
 {
-	return Quat4f
-	(
+	return Quat4f(
 		q0.w() - q1.w(),
 		q0.x() - q1.x(),
 		q0.y() - q1.y(),
-		q0.z() - q1.z()
-	);
+		q0.z() - q1.z());
 }
 
-Quat4f operator * ( const Quat4f& q0, const Quat4f& q1 )
+Quat4f operator*(const Quat4f &q0, const Quat4f &q1)
 {
-	return Quat4f
-	(
+	return Quat4f(
 		q0.w() * q1.w() - q0.x() * q1.x() - q0.y() * q1.y() - q0.z() * q1.z(),
 		q0.w() * q1.x() + q0.x() * q1.w() + q0.y() * q1.z() - q0.z() * q1.y(),
 		q0.w() * q1.y() - q0.x() * q1.z() + q0.y() * q1.w() + q0.z() * q1.x(),
-		q0.w() * q1.z() + q0.x() * q1.y() - q0.y() * q1.x() + q0.z() * q1.w()
-	);
+		q0.w() * q1.z() + q0.x() * q1.y() - q0.y() * q1.x() + q0.z() * q1.w());
 }
 
-Quat4f operator * ( float f, const Quat4f& q )
+Quat4f operator*(float f, const Quat4f &q)
 {
-	return Quat4f
-	(
+	return Quat4f(
 		f * q.w(),
 		f * q.x(),
 		f * q.y(),
-		f * q.z()
-	);
+		f * q.z());
 }
 
-Quat4f operator * ( const Quat4f& q, float f )
+Quat4f operator*(const Quat4f &q, float f)
 {
-	return Quat4f
-	(
+	return Quat4f(
 		f * q.w(),
 		f * q.x(),
 		f * q.y(),
-		f * q.z()
-	);
+		f * q.z());
 }
-Vector3f operator * ( const Quat4f& q, const Vector3f& v )
+Vector3f operator*(const Quat4f &q, const Vector3f &v)
 {
 	Vector3f q_xyz(q.x(), q.y(), q.z());
-    
-    // t = 2 * cross(q_xyz, v)
-    Vector3f t = q_xyz^v * 2.0f;
-    // result = v + (q.w * t) + cross(q_xyz, t)
-    return v + (t * q.w()) + (q_xyz^t);
+
+	// t = 2 * cross(q_xyz, v)
+	Vector3f t = q_xyz ^ v * 2.0f;
+	// result = v + (q.w * t) + cross(q_xyz, t)
+	return v + (t * q.w()) + (q_xyz ^ t);
 }

@@ -2,10 +2,20 @@
 #include "Engine/Core/GameWorld.h"
 #include "Engine/Core/Components/RigidBodyComponent.h"
 #include "Engine/Core/Components/TransformComponent.h"
+
+#include "Engine/Utils/JsonParser.h"
 #include <iostream>
 
 GravityStage::GravityStage(Vector3f gravity) : m_gravity(gravity) {}
-
+void GravityStage::Initialize(const json &config)
+{
+    if (config.contains("gravity"))
+    {
+        m_gravity = JsonParser::ToVector3f(config["gravity"]);
+    }
+    ground = config.value("ground", 0.0);
+    e_ground = config.value("e_ground", 0.5);
+}
 void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
 {
     auto &gameObjects = world.GetGameObjects();
@@ -27,13 +37,13 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
             AABB aabb = gameObject->GetWorldAABB(&corners);
             float lowy = aabb.min.y();
             tf.position.print();
-            std::cout<<lowy<<std::endl;
+            std::cout << lowy << std::endl;
             Vector3f normal = Vector3f(0.0, 1.0, 0.0);
             if (lowy < ground)
             {
                 float penetration = ground - lowy;
-                if(penetration>slop)
-                tf.position.y() += (penetration-slop)*baumgarte;
+                if (penetration > slop)
+                    tf.position.y() += (penetration - slop) * baumgarte;
                 struct Contact
                 {
                     Vector3f r;
@@ -47,7 +57,7 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                         contacts.push_back({corners[i] - tf.position, ground - corners[i].y()});
                     }
                 }
-                int div= contacts.size();
+                int div = contacts.size();
                 for (auto &cp : contacts)
                 {
                     Vector3f rV = rb.velocity + (rb.angularVelocity ^ cp.r);
@@ -55,14 +65,14 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                     if (nrV < -0.01f)
                     {
                         float invMass = 1.0f / rb.mass;
-                        float e = (fabsf(nrV)<0.2f) ? 0.0f : rb.elasticity * e_ground;
+                        float e = (fabsf(nrV) < 0.2f) ? 0.0f : rb.elasticity * e_ground;
                         float i = -(1.0 + e) * nrV;
                         auto raxn = cp.r ^ normal;
                         auto rot = tf.rotation.toMatrix();
                         auto worldInverseInertia = rot * rb.inverseInertiaTensor * rot.transposed();
                         float term = raxn * (worldInverseInertia * raxn);
                         float j = i / (term + invMass);
-                        auto impulse = j * normal/ div;
+                        auto impulse = j * normal / div;
                         rb.AddImpulse(impulse, cp.r);
 
                         // 摩擦力冲量
@@ -74,15 +84,15 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                             Vector3f raxt = cp.r ^ tangent;
                             float angularTermT = raxt * (worldInverseInertia * raxt);
                             float jt = -vt / (invMass + angularTermT);
-                            jt=std::max(-j*mu,std::min(j*mu,jt));
-                            
-                            Vector3f impulseT = jt * tangent/ div;
-                            rb.AddImpulse(impulseT,cp.r);
+                            jt = std::max(-j * mu, std::min(j * mu, jt));
+
+                            Vector3f impulseT = jt * tangent / div;
+                            rb.AddImpulse(impulseT, cp.r);
                         }
                     }
                 }
                 // 防止不稳定
-                if ( rb.velocity.LengthSquared()<0.1f&&rb.angularVelocity.LengthSquared()<0.1f)
+                if (rb.velocity.LengthSquared() < 0.1f && rb.angularVelocity.LengthSquared() < 0.1f)
                 {
                     rb.velocity.y() = 0.0f;
 

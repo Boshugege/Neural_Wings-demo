@@ -1,0 +1,62 @@
+{
+    "name": "test_scene",
+    "physics": {
+        "physicsStage": {
+            "collisionStage": {
+                "enable": true
+            },
+            "gravityStage": {
+                "gravity": [
+                    0.0,
+                    -9.8,
+                    0.0
+                ],
+                "ground": 0.0,
+                "e_ground": 0.4,
+                "enable": false
+            },
+            "solarStage": {
+                "G": 0.1,
+                "enable": true
+            }
+        }
+    },
+    "entities": [
+        {
+            "prefab": "assets/prefabs/cube.json",
+            "position": [
+                0,
+                10,
+                0
+            ],
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        },
+        {
+            "prefab": "assets/prefabs/cube.json",
+            "position": [
+                0,
+                0,
+                1
+            ],
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

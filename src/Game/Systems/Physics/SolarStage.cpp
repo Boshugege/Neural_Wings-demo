@@ -1,8 +1,10 @@
 #include "SolarStage.h"
 #include "Engine/Engine.h"
 #include <iostream>
-SolarStage::SolarStage(float G) : m_G(G) {}
-
+void SolarStage::Initialize(const json &config)
+{
+    m_G = config.value("G", 0.1);
+}
 void SolarStage::Execute(GameWorld &world, float fixedDeltaTime)
 {
     auto &gameObjects = world.GetGameObjects();
@@ -24,7 +26,7 @@ void SolarStage::Execute(GameWorld &world, float fixedDeltaTime)
                     auto &otherRb = otherGameObject->GetComponent<RigidbodyComponent>();
                     auto &otherTransform = otherGameObject->GetComponent<TransformComponent>();
 
-                    auto distance =Vector3f::Distance(transform.position,otherTransform.position);
+                    auto distance = Vector3f::Distance(transform.position, otherTransform.position);
 
                     auto f = m_G * rb.mass * otherRb.mass / (distance * distance);
                     auto F = (otherTransform.position - transform.position).Normalized() * f;

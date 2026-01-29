@@ -21,7 +21,7 @@ public:
     Quat4f(const Quat4f &rq);
     Quat4f &operator=(const Quat4f &rq);
 
-    // returns a quaternion with 0 real part
+    // Euler角初始化
     Quat4f(const Vector3f &v);
 
     // copies the components of a Vector4f directly into this quaternion
@@ -80,15 +80,16 @@ public:
     static Quat4f squadTangent(const Quat4f &before, const Quat4f &center, const Quat4f &after);
 
     static Quat4f fromRotationMatrix(const Matrix3f &m);
-    
+
     static Quat4f fromRotatedBasis(const Vector3f &x, const Vector3f &y, const Vector3f &z);
 
     // returns a unit quaternion that's a uniformly distributed rotation
     // given u[i] is a uniformly distributed random number in [0,1]
     static Quat4f randomRotation(float u0, float u1, float u2);
 
-    void print() const{std::cout << "Quat4f: " << m_data[0] << " " << m_data[1] << " " << m_data[2] << " " << m_data[3] << std::endl;};
-    operator Quaternion() const{return {m_data[1], m_data[2], m_data[3], m_data[0]};}
+    void print() const { std::cout << "Quat4f: " << m_data[0] << " " << m_data[1] << " " << m_data[2] << " " << m_data[3] << std::endl; };
+    operator Quaternion() const { return {m_data[1], m_data[2], m_data[3], m_data[0]}; }
+
 private:
     float m_data[4];
 };
@@ -98,4 +99,4 @@ Quat4f operator-(const Quat4f &q0, const Quat4f &q1);
 Quat4f operator*(const Quat4f &q0, const Quat4f &q1);
 Quat4f operator*(float f, const Quat4f &q);
 Quat4f operator*(const Quat4f &q, float f);
-Vector3f operator *(const Quat4f &q, const Vector3f &v);//旋转向量
+Vector3f operator*(const Quat4f &q, const Vector3f &v); // 旋转向量

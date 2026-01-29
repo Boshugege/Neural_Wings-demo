@@ -3,8 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "Engine/Math/Math.h"
-#include <functional>
-#include <utility>
+#include <iostream>
 
 class GameObject;
 struct TransformComponent;
@@ -101,7 +100,15 @@ struct RigidbodyComponent : public IComponent
 
         this->angularMomentum = worldInertia * (this->angularVelocity);
     }
-
+    void SetHitbox(Vector3f size)
+    {
+        if (colliderType == ColliderType::BOX)
+            SetBox(size);
+        else if (colliderType == ColliderType::SPHERE)
+            SetSphere(size);
+        else
+            std::cerr << "No hitbox set" << std::endl;
+    }
     void SetBox(Vector3f size)
     {
         SetBoxInertia(size);

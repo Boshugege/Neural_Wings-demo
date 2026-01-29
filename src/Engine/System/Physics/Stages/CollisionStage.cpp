@@ -1,7 +1,9 @@
 #include "CollisionStage.h"
 #include "Engine/Core/GameWorld.h"
 #include "Engine/Core/Components/Components.h"
-CollisionStage::CollisionStage(float eps) : epsilon(eps) {}
+
+void CollisionStage::Initialize(const json &config) {};
+
 void CollisionStage::Execute(GameWorld &world, float fixedDeltaTime)
 {
     auto &gameObjects = world.GetGameObjects();

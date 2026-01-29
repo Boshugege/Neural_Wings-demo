@@ -1,14 +1,14 @@
+#pragma once
 #include "raylib.h"
 #include "raymath.h"
 #include "Engine/Math/Math.h"
 class mCamera : public Camera3D
 {
 public:
-
     mCamera();
     mCamera(Vector3f pos, Vector3f tar, Vector3f u, float f, const CameraMode &mode = CAMERA_CUSTOM);
     Vector3f Right() const;
-    
+
     Vector3f Direction() const;
     Vector3f Position() const;
     Vector3f Target() const;

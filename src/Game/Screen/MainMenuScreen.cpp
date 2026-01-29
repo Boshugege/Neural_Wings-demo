@@ -27,10 +27,8 @@ void MainMenuScreen::OnExit()
     }
 }
 
-// 主菜单通常没有物理或网络逻辑，所以 FixedUpdate 为空
 void MainMenuScreen::FixedUpdate(float fixedDeltaTime)
 {
-    //
 }
 
 // 每帧更新逻辑
