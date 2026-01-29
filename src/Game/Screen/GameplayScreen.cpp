@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "Game/Screen/MyScreenState.h"
 #include "Game/Systems/Physics/SolarStage.h"
+#include "Game/Scripts/RotatorScript.h"
 #include "raymath.h"
 #include "Engine/Engine.h"
 #include <iostream>
@@ -12,8 +13,8 @@ GameplayScreen::GameplayScreen()
     const std::string &sceneConfigPath = "assets/scenes/test_scene.json";
     const std::string &inputConfigPath = "assets/config/input_config.json";
     const std::string &renderViewConfigPath = "assets/view/test_view.json";
-    m_world = std::make_unique<GameWorld>([this](PhysicsStageFactory &factory)
-                                          { this->ConfigCallback(factory); },
+    m_world = std::make_unique<GameWorld>([this](ScriptingFactory &scriptingFactory, PhysicsStageFactory &physicsStageFactory)
+                                          { this->ConfigCallback(scriptingFactory, physicsStageFactory); },
                                           cameraConfigPath,
                                           sceneConfigPath,
                                           inputConfigPath,
@@ -24,13 +25,15 @@ GameplayScreen::~GameplayScreen()
     OnExit();
 }
 
-void GameplayScreen::ConfigCallback(PhysicsStageFactory &factory)
+void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsStageFactory &physicsStageFactory)
 {
     // 注册后才可使用json配置
-    factory.Register("solarStage", []()
-                     { return std::make_unique<SolarStage>(); });
-    factory.Register("collisionStage", []()
-                     { return std::make_unique<CollisionStage>(); });
+    physicsStageFactory.Register("SolarStage", []()
+                                 { return std::make_unique<SolarStage>(); });
+    physicsStageFactory.Register("CollisionStage", []()
+                                 { return std::make_unique<CollisionStage>(); });
+    scriptingFactory.Register("RotatorScript", []()
+                              { return std::make_unique<RotatorScript>(); });
 }
 
 // 当进入游戏场景时调用

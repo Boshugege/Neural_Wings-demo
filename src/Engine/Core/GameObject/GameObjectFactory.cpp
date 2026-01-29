@@ -37,8 +37,7 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
 {
     if (compName == "TransformComponent")
     {
-        gameObject.AddComponent<TransformComponent>();
-        auto &tf = gameObject.GetComponent<TransformComponent>();
+        auto &tf = gameObject.AddComponent<TransformComponent>();
         if (prefab.contains("position"))
             tf.position = JsonParser::ToVector3f(prefab["position"]);
         if (prefab.contains("scale"))
@@ -48,8 +47,7 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
     }
     else if (compName == "RenderComponent")
     {
-        gameObject.AddComponent<RenderComponent>();
-        auto &rd = gameObject.GetComponent<RenderComponent>();
+        auto &rd = gameObject.AddComponent<RenderComponent>();
         auto &rm = gameWorld.GetResourceManager();
         rd.model = rm.GetModel(prefab.value("model", "primitive://cube"));
         if (prefab.contains("tint"))
@@ -64,9 +62,8 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
             std::cerr << "[GameObjectFactory]: RigidbodyComponent requires TransformComponent!!!" << std::endl;
             return;
         }
-        gameObject.AddComponent<RigidbodyComponent>();
+        auto &rb = gameObject.AddComponent<RigidbodyComponent>();
         auto &tf = gameObject.GetComponent<TransformComponent>();
-        auto &rb = gameObject.GetComponent<RigidbodyComponent>();
         rb.mass = prefab.value("mass", 1.0f);
         rb.drag = prefab.value("drag", 0.0f);
         rb.angularDrag = prefab.value("angularDrag", 0.0f);
@@ -85,6 +82,22 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
         else
             std::cerr << "Unknown collider type: " << colliderType << std::endl;
         rb.SetHitbox(tf.scale);
+    }
+    else if (compName == "ScriptComponent")
+    {
+        auto &sc = gameObject.AddComponent<ScriptComponent>();
+        auto &factory = gameWorld.GetScriptingFactory();
+        for (auto &[scriptName, scriptData] : prefab.items())
+        {
+            auto script = factory.Create(scriptName);
+            if (script)
+            {
+                script->owner = &gameObject;
+                script->Initialize(scriptData);
+                script->OnCreate();
+                sc.scripts.push_back(std::move(script));
+            }
+        }
     }
     else
         std::cerr << "Component " << compName << " not implemented" << std::endl;

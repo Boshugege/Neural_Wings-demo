@@ -2,10 +2,10 @@
     "name": "test_scene",
     "physics": {
         "physicsStage": {
-            "collisionStage": {
+            "CollisionStage": {
                 "enable": true
             },
-            "gravityStage": {
+            "GravityStage": {
                 "gravity": [
                     0.0,
                     -9.8,
@@ -15,7 +15,7 @@
                 "e_ground": 0.4,
                 "enable": false
             },
-            "solarStage": {
+            "SolarStage": {
                 "G": 0.1,
                 "enable": true
             }
@@ -23,7 +23,7 @@
     },
     "entities": [
         {
-            "prefab": "assets/prefabs/cube.json",
+            "prefab": "assets/prefabs/rotate_cube.json",
             "position": [
                 0,
                 10,

@@ -4,7 +4,7 @@
 #include "Engine/Graphics/Graphics.h"
 #include <string>
 
-GameWorld::GameWorld(std::function<void(PhysicsStageFactory &)> configCallback,
+GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &)> configCallback,
                      const std::string &cameraConfigPath,
                      const std::string &sceneConfigPath,
                      const std::string &inputConfigPath,
@@ -17,7 +17,10 @@ GameWorld::GameWorld(std::function<void(PhysicsStageFactory &)> configCallback,
     m_physicsSystem = std::make_unique<PhysicsSystem>();
     m_physicsStageFactory = std::make_unique<PhysicsStageFactory>();
     m_resourceManager = std::make_unique<ResourceManager>();
-    configCallback(*m_physicsStageFactory);
+    m_scriptingFactory = std::make_unique<ScriptingFactory>();
+    m_scriptingSystem = std::make_unique<ScriptingSystem>();
+
+    configCallback(*m_scriptingFactory, *m_physicsStageFactory);
 
     m_cameraManager->LoadConfig(cameraConfigPath);
     m_sceneManager->LoadScene(sceneConfigPath, *this, *m_physicsSystem);
@@ -29,6 +32,7 @@ GameWorld::GameWorld(std::function<void(PhysicsStageFactory &)> configCallback,
         m_inputManager->LoadBindings("assets/config/default/input_config.json");
     }
 }
+
 GameObject &GameWorld::CreateGameObject()
 {
     auto newObject = std::make_unique<GameObject>();
@@ -43,6 +47,7 @@ bool GameWorld::FixedUpdate(float fixedDeltaTime)
     // TODO: 更新世界中的所有 GameObject
     // ScriptingSystem->Update(), PhysicsSystem->Update() 等。
     m_physicsSystem->Update(*this, fixedDeltaTime);
+    m_scriptingSystem->FixedUpdate(*this, fixedDeltaTime);
     this->DestroyWaitingObjects();
 
     return true;
@@ -50,7 +55,7 @@ bool GameWorld::FixedUpdate(float fixedDeltaTime)
 
 bool GameWorld::Update(float deltaTime)
 {
-    // TODO
+    m_scriptingSystem->Update(*this, deltaTime);
     return true;
 }
 
