@@ -9,13 +9,17 @@
 #include <iostream>
 using json = nlohmann::json;
 
-GameObject &GameObjectFactory::CreateFromPrefab(const std::string &path, GameWorld &world)
+GameObject &GameObjectFactory::CreateFromPrefab(const std::string &name, const std::string &tag, const std::string &path, GameWorld &world)
 {
     std::ifstream file(path);
     json data = json::parse(file);
     file.close();
 
     GameObject &gameObject = world.CreateGameObject();
+    gameObject.SetName(name);
+
+    gameObject.SetTag(tag);
+
     if (data.contains("components"))
     {
         // 严格顺序，确保transform在rigid前面
@@ -92,6 +96,7 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
             auto script = factory.Create(scriptName);
             if (script)
             {
+                script->world = &gameWorld;
                 script->owner = &gameObject;
                 script->Initialize(scriptData);
                 script->OnCreate();

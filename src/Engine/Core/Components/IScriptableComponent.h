@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 
 class GameObject;
+class GameWorld;
 class IScriptableComponent
 {
 public:
@@ -15,4 +16,5 @@ public:
     virtual void Initialize(const nlohmann::json &json) {};
 
     GameObject *owner = nullptr;
+    GameWorld *world = nullptr;
 };

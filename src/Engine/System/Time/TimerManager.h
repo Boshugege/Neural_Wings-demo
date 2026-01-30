@@ -1,14 +1,15 @@
 #pragma once
 
-#include "Engine/Utils/Timer.h" 
+#include "Timer.h"
 #include <vector>
-#include <memory>       
-#include <functional>   
+#include <memory>
+#include <functional>
 
-class TimerManager {
+class TimerManager
+{
 public:
     void Update(float deltaTime);
-    Timer* AddTimer(float duration, std::function<void()> callback, bool repeat = false);
+    Timer *AddTimer(float duration, std::function<void()> callback, bool repeat = false);
 
 private:
     std::vector<std::unique_ptr<Timer>> m_timers;

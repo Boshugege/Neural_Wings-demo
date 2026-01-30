@@ -167,6 +167,7 @@ void ScreenManager::ChangeScreen(int newState)
     // 1. 删除当前屏幕，释放资源
     if (m_currentScreen)
     {
+        m_currentScreen->OnExit();
         m_currentScreen.reset();
     }
     // 2. 使用工厂创建一个新的屏幕实例
@@ -175,6 +176,7 @@ void ScreenManager::ChangeScreen(int newState)
     // 3. 如果新屏幕创建成功，则通知它进入
     if (m_currentScreen)
     {
+
         m_currentScreen->OnEnter();
     }
     else

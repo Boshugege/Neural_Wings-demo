@@ -8,6 +8,13 @@ const Vector3f Vector3f::UP = Vector3f(0.0f, 1.0f, 0.0f);
 const Vector3f Vector3f::RIGHT = Vector3f(1.0f, 0.0f, 0.0f);
 const Vector3f Vector3f::FORWARD = Vector3f(0.0f, 0.0f, -1.0f);
 const Vector3f Vector3f::ONE = Vector3f(1.0f, 1.0f, 1.0f);
+
+std::ostream &operator<<(std::ostream &os, const Vector3f &v)
+{
+    os << v.m_data[0] << ", " << v.m_data[1] << ", " << v.m_data[2];
+    return os;
+}
+
 Vector3f::Vector3f(const Vector3f &other)
 {
     m_data[0] = other.m_data[0];
@@ -162,7 +169,7 @@ Vector3f Vector3f::RotateByAxixAngle(const Vector3f &axis, float angle)
 
     Vector3f wwv = w ^ wv;
 
-    wv *= cosf(angle)*2;
+    wv *= cosf(angle) * 2;
 
     wwv *= 2;
 

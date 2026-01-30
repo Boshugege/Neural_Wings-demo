@@ -1,4 +1,5 @@
 #include "CollisionStage.h"
+#include "CollisionEvent.h"
 #include "Engine/Core/GameWorld.h"
 #include "Engine/Core/Components/Components.h"
 
@@ -53,6 +54,7 @@ void CollisionStage::Execute(GameWorld &world, float fixedDeltaTime)
 
             if (isColliding)
             {
+                world.GetEventManager().Emit(CollisionEvent(go1.get(), go2.get(), normal, penetration, hitPoint));
                 if (rb1.collisionCallback)
                     rb1.collisionCallback(go2.get());
                 if (rb2.collisionCallback)

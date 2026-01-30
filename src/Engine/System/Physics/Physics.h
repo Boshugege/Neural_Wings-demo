@@ -1,5 +1,6 @@
 #include "Engine/System/Physics/PhysicsSystem.h"
 #include "Engine/System/Physics/IPhysicsStage.h"
 #include "Engine/System/Physics/Stages/CollisionStage.h"
+#include "Engine/System/Physics/Stages/CollisionEvent.h"
 #include "Engine/System/Physics/Stages/GravityStage.h"
 #include "Engine/System/Physics/PhysicsStageFactory.h"

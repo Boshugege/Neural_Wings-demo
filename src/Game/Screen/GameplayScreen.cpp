@@ -2,10 +2,12 @@
 #include "raylib.h"
 #include "Game/Screen/MyScreenState.h"
 #include "Game/Systems/Physics/SolarStage.h"
-#include "Game/Scripts/RotatorScript.h"
+#include "Game/Scripts/Scripts.h"
+
 #include "raymath.h"
 #include "Engine/Engine.h"
 #include <iostream>
+
 GameplayScreen::GameplayScreen()
     : m_nextScreenState(SCREEN_STATE_NONE)
 {
@@ -32,21 +34,32 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
                                  { return std::make_unique<SolarStage>(); });
     physicsStageFactory.Register("CollisionStage", []()
                                  { return std::make_unique<CollisionStage>(); });
+
     scriptingFactory.Register("RotatorScript", []()
                               { return std::make_unique<RotatorScript>(); });
+    scriptingFactory.Register("CollisionListener", []()
+                              { return std::make_unique<CollisionListener>(); });
 }
 
 // 当进入游戏场景时调用
 void GameplayScreen::OnEnter()
 {
     DisableCursor();
+
+    // 监听事件
+    m_world->GetEventManager().Subscribe<CollisionEvent>([](const CollisionEvent &e)
+                                                         { std::cout << "CollisionEvent: " << e.m_object1->GetName() << " and " << e.m_object2->GetName() << std::endl; });
+
+    //     m_world->GetEventManager().Subscribe<CollisionEvent>([](const CollisionEvent &e)
+    //                                                          {
+    // // ParticleSystem::Spawn("Sparks", event.hitpoint);
+    // std::cout<<"ParticleSystem::Spawn at"<< e.hitpoint<<std::endl; });
 }
 
 // 当离开游戏场景时调用
 void GameplayScreen::OnExit()
 {
     EnableCursor();
-    // m_sceneManager->UnloadCurrentScene();
 }
 // TODO:主循环
 
@@ -70,6 +83,7 @@ void GameplayScreen::Update(float deltaTime)
     if (!m_world->Update(deltaTime))
         m_nextScreenState = MAIN_MENU;
 
+    // TODO:操作部分通过脚本实现
     auto &m_inputManager = m_world->GetInputManager();
     auto &m_cameraManager = m_world->GetCameraManager();
     m_inputManager.Update();

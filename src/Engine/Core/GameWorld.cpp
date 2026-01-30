@@ -10,7 +10,7 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
                      const std::string &inputConfigPath,
                      const std::string &renderView)
 {
-
+    m_nextObjectID = 0;
     m_renderer = std::make_unique<Renderer>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
@@ -19,6 +19,7 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_resourceManager = std::make_unique<ResourceManager>();
     m_scriptingFactory = std::make_unique<ScriptingFactory>();
     m_scriptingSystem = std::make_unique<ScriptingSystem>();
+    m_eventManager = std::make_unique<EventManager>();
 
     configCallback(*m_scriptingFactory, *m_physicsStageFactory);
 
@@ -33,9 +34,23 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     }
 }
 
+GameWorld::~GameWorld()
+{
+    OnDestroy();
+}
+void GameWorld::OnDestroy()
+{
+    for (auto &obj : m_gameObjects)
+    {
+        obj->SetIsWaitingDestroy(true);
+    }
+    DestroyWaitingObjects();
+    m_gameObjects.clear();
+}
+
 GameObject &GameWorld::CreateGameObject()
 {
-    auto newObject = std::make_unique<GameObject>();
+    auto newObject = std::make_unique<GameObject>(m_nextObjectID++);
     GameObject *rawPtr = newObject.get();
     m_gameObjects.push_back(std::move(newObject));
     return *rawPtr;
@@ -53,9 +68,9 @@ bool GameWorld::FixedUpdate(float fixedDeltaTime)
     return true;
 }
 
-bool GameWorld::Update(float deltaTime)
+bool GameWorld::Update(float DeltaTime)
 {
-    m_scriptingSystem->Update(*this, deltaTime);
+    m_scriptingSystem->Update(*this, DeltaTime);
     return true;
 }
 
@@ -66,15 +81,27 @@ const std::vector<std::unique_ptr<GameObject>> &GameWorld::GetGameObjects() cons
 
 void GameWorld::DestroyWaitingObjects()
 {
-    m_gameObjects.erase(
-        std::remove_if(
-            m_gameObjects.begin(),
-            m_gameObjects.end(),
-            [](const std::unique_ptr<GameObject> &object)
-            {
-                return object->IsWaitingDestroy();
-            }),
-        m_gameObjects.end());
+    bool anyObjectDestroyed = false;
+    for (auto &obj : m_gameObjects)
+    {
+        if (obj->IsWaitingDestroy())
+        {
+            obj->OnDestroy();
+            anyObjectDestroyed = true;
+        }
+    }
+    if (anyObjectDestroyed)
+    {
+        m_gameObjects.erase(
+            std::remove_if(
+                m_gameObjects.begin(),
+                m_gameObjects.end(),
+                [](const std::unique_ptr<GameObject> &object)
+                {
+                    return object->IsWaitingDestroy();
+                }),
+            m_gameObjects.end());
+    }
 }
 void GameWorld::Render()
 {

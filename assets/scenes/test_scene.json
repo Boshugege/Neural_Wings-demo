@@ -23,6 +23,8 @@
     },
     "entities": [
         {
+            "name": "rotate_cube",
+            "tag": "cube",
             "prefab": "assets/prefabs/rotate_cube.json",
             "position": [
                 0,
@@ -41,6 +43,8 @@
             ]
         },
         {
+            "name": "cube",
+            "tag": "cube",
             "prefab": "assets/prefabs/cube.json",
             "position": [
                 0,
@@ -56,6 +60,20 @@
                 1,
                 1,
                 1
+            ],
+            "scripts": [
+                {
+                    "RotatorScript": {
+                        "angluarVelocity": [
+                            1.0,
+                            -1.0,
+                            0
+                        ]
+                    }
+                },
+                {
+                    "CollisionListener": {}
+                }
             ]
         }
     ]

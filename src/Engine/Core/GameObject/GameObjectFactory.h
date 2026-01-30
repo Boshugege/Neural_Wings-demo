@@ -9,7 +9,7 @@ using json = nlohmann::json;
 class GameObjectFactory
 {
 public:
-    static GameObject &CreateFromPrefab(const std::string &path, GameWorld &world);
+    static GameObject &CreateFromPrefab(const std::string &name, const std::string &tag, const std::string &path, GameWorld &world);
 
 private:
     static void ApplyComponent(GameWorld &world, GameObject &gameObject, const std::string &compName, const json &prefab);

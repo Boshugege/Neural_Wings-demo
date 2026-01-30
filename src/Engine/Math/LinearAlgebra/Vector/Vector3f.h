@@ -78,10 +78,11 @@ public:
     void print() const { std::cout << m_data[0] << ", " << m_data[1] << ", " << m_data[2] << std::endl; };
     operator Vector3() const { return {m_data[0], m_data[1], m_data[2]}; }
 
+    friend std::ostream &operator<<(std::ostream &os, const Vector3f &v);
+
 private:
     float m_data[3];
 };
-
 // 逐分量
 Vector3f operator+(const Vector3f &v0, const Vector3f &v1);
 Vector3f operator-(const Vector3f &v0, const Vector3f &v1);

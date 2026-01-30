@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/GameObject/GameObject.h"
+#include "Engine/Core/Events/Events.h"
 #include "Engine/Graphics/Renderer.h"
 #include "Engine/System/System.h"
 #include <vector>
@@ -18,6 +19,8 @@ public:
               const std::string &sceneConfigPath = "assets/scenes/test_scene.json",
               const std::string &inputConfigPath = "assets/config/input_config.json",
               const std::string &renderView = "assets/view/test_view.json");
+    ~GameWorld();
+    void OnDestroy();
 
     GameObject &CreateGameObject();
     bool FixedUpdate(float fexedDeltaTime);
@@ -36,9 +39,12 @@ public:
     Renderer &GetRenderer() { return *m_renderer; };
     CameraManager &GetCameraManager() { return *m_cameraManager; };
     InputManager &GetInputManager() { return *m_inputManager; };
+    EventManager &GetEventManager() { return *m_eventManager; };
 
 private:
     void DestroyWaitingObjects();
+
+    unsigned m_nextObjectID = 0;
     std::vector<std::unique_ptr<GameObject>> m_gameObjects;
 
     std::unique_ptr<Renderer> m_renderer;
@@ -53,4 +59,6 @@ private:
 
     std::unique_ptr<SceneManager> m_sceneManager;
     std::unique_ptr<ResourceManager> m_resourceManager;
+
+    std::unique_ptr<EventManager> m_eventManager;
 };
