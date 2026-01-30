@@ -67,7 +67,7 @@ void CollisionStage::Execute(GameWorld &world, float fixedDeltaTime)
 }
 float GetInverseMass(const RigidbodyComponent &rb)
 {
-    if (rb.mass <= 0.00001f)
+    if (rb.mass <= 1e-8f)
         return 0.0f;
     return 1.0f / rb.mass;
 }
@@ -88,7 +88,7 @@ void CollisionStage::ResolveCollision(GameObject *a, GameObject *b, const Vector
     auto rA = hitPoint - tfA.position;
     auto rB = hitPoint - tfB.position;
 
-    if (invMassA + invMassB <= 0.0001f)
+    if (invMassA + invMassB <= 1e-8f)
         return;
     Vector3f rV = rbB.velocity + (rbB.angularVelocity ^ rB) - rbA.velocity - (rbA.angularVelocity ^ rA);
     float nrV = rV * normal;
@@ -122,8 +122,9 @@ void CollisionStage::ResolveCollision(GameObject *a, GameObject *b, const Vector
     // if (invMassB > 0.0001f)
     //     rbB.angularMomentum += (rB ^ impulse);
 
-    const float percent = 0.5;
-    const float slop = 0.01;
+    // TODO:精度
+    const float percent = 0.6;
+    const float slop = 0.0001;
     Vector3f correction = std::max(penetration - slop, 0.0f) * percent * normal / (invMassA + invMassB);
     tfA.position -= invMassA * correction;
     tfB.position += invMassB * correction;

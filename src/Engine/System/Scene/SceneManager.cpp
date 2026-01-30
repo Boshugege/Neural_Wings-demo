@@ -73,6 +73,11 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld,
                     rb.SetHitbox(tf.scale);
                 }
             }
+
+            if (entityData.contains("physics"))
+            {
+                AddRigidbody(obj, entityData["physics"]);
+            }
             if (entityData.contains("renderScale") && obj.HasComponent<RenderComponent>())
             {
                 auto &render = obj.GetComponent<RenderComponent>();
@@ -85,6 +90,25 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld,
         }
     }
 }
+
+void SceneManager::AddRigidbody(GameObject &gameObject, const json &rigidData)
+{
+    if (!gameObject.HasComponent<RigidbodyComponent>() || !gameObject.HasComponent<TransformComponent>())
+    {
+        return;
+    }
+    auto &rb = gameObject.GetComponent<RigidbodyComponent>();
+    rb.mass = rigidData.value("mass", rb.mass);
+    rb.drag = rigidData.value("drag", rb.drag);
+    rb.angularDrag = rigidData.value("angularDrag", rb.angularDrag);
+    rb.elasticity = rigidData.value("elasticity", rb.elasticity);
+
+    if (rigidData.contains("velocity"))
+        rb.velocity = JsonParser::ToVector3f(rigidData["velocity"]);
+    if (rigidData.contains("angularVelocity"))
+        rb.angularVelocity = JsonParser::ToVector3f(rigidData["angularVelocity"]);
+}
+
 void SceneManager::AddScripts(GameWorld &gameWorld, GameObject &gameObject, const json &scripts)
 {
 

@@ -86,6 +86,7 @@ void GameWorld::DestroyWaitingObjects()
     {
         if (obj->IsWaitingDestroy())
         {
+            // 先释放脚本等组件，防止析构时先析构其他组件导致脚本崩溃
             obj->OnDestroy();
             anyObjectDestroyed = true;
         }

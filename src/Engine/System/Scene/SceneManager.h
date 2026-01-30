@@ -18,4 +18,6 @@ public:
 
 private:
     void AddScripts(GameWorld &world, GameObject &gameObject, const json &scriptData);
+
+    void AddRigidbody(GameObject &gameObject, const json &rigidData);
 };

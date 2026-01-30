@@ -13,6 +13,7 @@ void RotatorScript::Initialize(const json &data)
         m_angluarVelocity = JsonParser::ToVector3f(data["angluarVelocity"]);
     }
 }
+
 void RotatorScript::OnFixedUpdate(float fixedDeltaTime)
 {
     auto &tf = owner->GetComponent<TransformComponent>();

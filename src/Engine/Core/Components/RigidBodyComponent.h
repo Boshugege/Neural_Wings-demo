@@ -168,9 +168,9 @@ struct RigidbodyComponent : public IComponent
     // 施加冲量
     void AddImpulse(Vector3f impulse, Vector3f r = Vector3f::ZERO)
     {
-        float invMass = mass > 0.01f ? 1.0f / mass : 0.0f;
+        float invMass = mass > 1e-8f ? 1.0f / mass : 0.0f;
         this->velocity += impulse * invMass;
-        if (invMass > 0.01f)
+        if (invMass > 1e-8f)
             this->angularMomentum += r ^ impulse;
     }
     // 施加力

@@ -3,7 +3,7 @@
 #include <string>
 
 GameObject::GameObject(unsigned int s_nextID, std::string name, std::string tag)
-    : m_id(s_nextID), m_name(name), m_tag(tag), m_isWaitingDestroy(false)
+    : m_id(s_nextID), m_name(name), m_tag(tag), m_isWaitingDestroy(false), m_isDestroyed(false)
 {
 }
 GameObject::~GameObject()
@@ -43,8 +43,22 @@ void GameObject::SetOwnerWorld(GameWorld *world)
 }
 
 // 用于删除GameObject
+// 先销毁脚本
 void GameObject::OnDestroy()
 {
+    if (m_isDestroyed)
+        return;
+    m_isDestroyed = true;
+    if (this->HasComponent<ScriptComponent>())
+    {
+        auto &sc = this->GetComponent<ScriptComponent>();
+        for (auto &script : sc.scripts)
+        {
+            if (script)
+                script->OnDestroy();
+        }
+        sc.scripts.clear();
+    }
     m_isWaitingDestroy = true;
 }
 void GameObject::SetIsWaitingDestroy(bool isWaitingDestroy)

@@ -55,6 +55,7 @@ private:
     static unsigned int s_nextID;
 
     bool m_isWaitingDestroy = false;
+    bool m_isDestroyed = false;
 };
 
 template <typename T, typename... TArgs>
@@ -62,7 +63,9 @@ T &GameObject::AddComponent(TArgs &&...args)
 {
     if (HasComponent<T>())
     {
-        throw std::runtime_error("Component already exists.");
+        // throw std::runtime_error("Component already exists.");
+        std::cout << "[GameObject " << this->m_id << "] Component already exists." << std::endl;
+        return GetComponent<T>();
     }
 
     auto newComponent = std::make_unique<T>(std::forward<TArgs>(args)...);
