@@ -23,51 +23,6 @@
         {
             "RenderComponent": {
                 "model": "primitive://cube",
-                "isVisible": true,
-                "showWires": true,
-                "showAxes": false,
-                "showAngVol": false,
-                "showVol": false,
-                "showCenter": false,
-                "defaultMaterial": {
-                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                    "fs": "assets/shaders/default.fs",
-                    "color": [
-                        50,
-                        100,
-                        50,
-                        255
-                    ]
-                },
-                "meshPasses": [
-                    {
-                        "meshIndex": 0,
-                        "name": "Mesh_0",
-                        "passes": [
-                            {
-                                "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                                "fs": "assets/shaders/default.fs",
-                                "color": [
-                                    100,
-                                    100,
-                                    255,
-                                    255
-                                ]
-                            },
-                            {
-                                "vs": "assets/shaders/base.vs",
-                                "fs": "assets/shaders/hologram.fs",
-                                "color": [
-                                    255,
-                                    255,
-                                    255,
-                                    255
-                                ],
-                                "blendMode": "BLEND_ALPHA"
-                            }
-                        ]
-                    }
-                ],
                 "scale": [
                     1,
                     1,

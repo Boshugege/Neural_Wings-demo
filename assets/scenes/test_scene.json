@@ -25,7 +25,7 @@
         {
             "name": "cube",
             "tag": "cube",
-            "prefab": "assets/prefabs/cube.json",
+            "prefab": "assets/prefabs/shader_cube.json",
             "position": [
                 0,
                 10,
@@ -75,7 +75,7 @@
                     1
                 ],
                 "isVisible": true,
-                "showWires": true,
+                "showWires": false,
                 "showAxes": false,
                 "showAngVol": false,
                 "showVol": false,
@@ -88,7 +88,9 @@
                         100,
                         50,
                         255
-                    ]
+                    ],
+                    "depthWrite": true,
+                    "depthTest": true
                 },
                 "meshPasses": [
                     {
@@ -103,29 +105,143 @@
                                     0,
                                     0,
                                     255
-                                ]
+                                ],
+                                "blendMode": "NONE",
+                                "depthWrite": true,
+                                "depthTest": true
                             },
                             {
                                 "vs": "assets/shaders/base.vs",
-                                "fs": "assets/shaders/hologram.fs",
-                                "color": [
-                                    255,
-                                    255,
-                                    255,
-                                    255
-                                ],
-                                "blendMode": "BLEND_ADDITIVE"
-                            },
-                            {
-                                "vs": "assets/shaders/base.fs",
                                 "fs": "assets/shaders/rgbView.fs",
                                 "color": [
-                                    255,
-                                    255,
-                                    255,
+                                    0,
+                                    0,
+                                    0,
                                     255
                                 ],
-                                "blendMode": "BLEND_ADDITIVE"
+                                "blendMode": "NONE",
+                                "depthWrite": false,
+                                "depthTest": true
+                            },
+                            {
+                                "name": "outline(描边需要剔除正面,使用uniforms来自定义传入shader的参数,支持vec3,vec4,float)",
+                                "vs": "assets/shaders/outline/outline.vs",
+                                "fs": "assets/shaders/outline/outline.fs",
+                                "blendMode": "ALPHA",
+                                "cullFace": "FRONT",
+                                "uniforms": {
+                                    "u_outlineWidth": 0.1,
+                                    "u_color": [
+                                        0,
+                                        0,
+                                        0,
+                                        255
+                                    ]
+                                },
+                                "depthWrite": false,
+                                "depthTest": true
+                            }
+                        ]
+                    }
+                ]
+            },
+            "scripts": [
+                {
+                    "RotatorScript": {
+                        "angluarVelocity": [
+                            1.0,
+                            0.0,
+                            0
+                        ]
+                    }
+                },
+                {
+                    "CollisionListener": {}
+                }
+            ]
+        },
+        {
+            "name": "cube",
+            "tag": "cube",
+            "prefab": "assets/prefabs/cube.json",
+            "position": [
+                5,
+                0,
+                5
+            ],
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                3,
+                1,
+                1
+            ],
+            "physics": {
+                "mass": 100,
+                "elasticity": 0.6
+            },
+            "render": {
+                "renderScale": [
+                    1,
+                    1,
+                    1
+                ],
+                "isVisible": true,
+                "showWires": false,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
+                "defaultMaterial": {
+                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                    "fs": "assets/shaders/default.fs",
+                    "color": [
+                        200,
+                        100,
+                        100,
+                        255
+                    ],
+                    "depthWrite": true,
+                    "depthTest": true
+                },
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "name": "Mesh_0",
+                        "passes": [
+                            {
+                                "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                                "fs": "assets/shaders/default.fs",
+                                "color": [
+                                    100,
+                                    255,
+                                    100,
+                                    255
+                                ],
+                                "depthWrite": true,
+                                "depthTest": true,
+                                "blendMode": "ALPHA"
+                            },
+                            {
+                                "name": "outline(描边需要剔除正面,使用uniforms来自定义传入shader的参数,支持vec3,vec4,float)",
+                                "vs": "assets/shaders/outline/outline.vs",
+                                "fs": "assets/shaders/outline/outline.fs",
+                                "blendMode": "ALPHA",
+                                "depthWrite": false,
+                                "depthTest": true,
+                                "cullFace": "FRONT",
+                                "uniforms": {
+                                    "u_outlineWidth": 0.1,
+                                    "u_color": [
+                                        255,
+                                        0,
+                                        0,
+                                        255
+                                    ]
+                                }
                             }
                         ]
                     }

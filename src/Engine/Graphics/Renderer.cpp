@@ -5,6 +5,7 @@
 #include "Engine/Utils/JsonParser.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "rlgl.h"
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -210,11 +211,8 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
                         for (size_t p = 0; p < passes->size(); p++)
                         {
                             const RenderMaterial &pass = (*passes)[p];
-                            if (p > 0)
-                                BeginBlendMode(pass.blendMode);
+
                             RenderSinglePass(mesh, render.model, i, pass, MVP, M, camera, world);
-                            if (p > 0)
-                                EndBlendMode();
                         }
                     }
                     else
@@ -266,6 +264,12 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
 
 void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int &meshIdx, const RenderMaterial &pass, const Matrix4f &MVP, const Matrix4f &M, const mCamera &camera, GameWorld &gameWorld)
 {
+    rlEnableDepthTest();
+    rlEnableDepthMask();
+    rlDisableBackfaceCulling();
+    rlSetCullFace(RL_CULL_FACE_BACK);
+    BeginBlendMode(BLEND_ALPHA);
+
     float gameTime = gameWorld.GetTimeManager().GetGameTime();
     float realTime = gameWorld.GetTimeManager().GetRealTime();
 
@@ -275,6 +279,13 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         Material tempRaylibMaterial = model.materials[matIdex];
 
         pass.shader->Begin();
+        if (pass.blendMode == -1)
+        {
+            rlSetBlendMode(BLEND_CUSTOM);
+            rlSetBlendFactors(RL_ONE, RL_ZERO, RL_FUNC_ADD);
+        }
+        else
+            BeginBlendMode(pass.blendMode);
 
         pass.shader->SetMat4("u_mvp", MVP);
         pass.shader->SetMat4("transform", M);
@@ -284,9 +295,33 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         Vector4f color = pass.baseColor / 255.0f;
         pass.shader->SetVec4("baseColor", color);
 
+        for (auto const &[name, value] : pass.customFloats)
+            pass.shader->SetFloat(name, value);
+        for (auto const &[name, value] : pass.customVector3)
+            pass.shader->SetVec3(name, value);
+        for (auto const &[name, value] : pass.customVector4)
+            pass.shader->SetVec4(name, value);
+
         tempRaylibMaterial.shader = pass.shader->GetShader();
+
+        if (pass.cullFace >= 0)
+        {
+            rlEnableBackfaceCulling();
+            rlSetCullFace(pass.cullFace);
+        }
+        if (!pass.depthTest)
+            rlDisableDepthTest();
+        if (!pass.depthWrite)
+            rlDisableDepthMask();
+
         DrawMesh(mesh, tempRaylibMaterial, M);
 
         pass.shader->End();
+
+        EndBlendMode();
+        rlEnableDepthTest();
+        rlEnableDepthMask();
+        rlDisableBackfaceCulling();
+        rlSetCullFace(RL_CULL_FACE_BACK);
     }
 }

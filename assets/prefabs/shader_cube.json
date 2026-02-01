@@ -1,0 +1,103 @@
+{
+    "name": "Cube",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "primitive://cube",
+                "isVisible": true,
+                "showWires": true,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
+                "defaultMaterial": {
+                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                    "fs": "assets/shaders/default.fs",
+                    "color": [
+                        50,
+                        100,
+                        50,
+                        255
+                    ]
+                },
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "name": "Mesh_0",
+                        "passes": [
+                            {
+                                "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                                "fs": "assets/shaders/default.fs",
+                                "color": [
+                                    100,
+                                    100,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "NONE",
+                                "depthWrite": true,
+                                "depthTest": true
+                            },
+                            {
+                                "vs": "assets/shaders/base.vs",
+                                "fs": "assets/shaders/hologram.fs",
+                                "color": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "ALPHA",
+                                "depthWrite": false,
+                                "depthTest": true
+                            }
+                        ]
+                    }
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "RigidBodyComponent": {
+                "mass": 100,
+                "drag": 0.1,
+                "angularDrag": 0.1,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "colliderType": "BOX"
+            }
+        }
+    ]
+}
