@@ -8,7 +8,7 @@
       "command": "powershell",
       "args": [
         "-Command",
-        "if (-not (Test-Path '${workspaceFolder}/build')) { Write-Host 'Build NOT exists!.' -ForegroundColor Yellow; cmake -B build } else { Write-Host 'Build ready' -ForegroundColor Green }"
+        "if (-not (Test-Path '${workspaceFolder}/build')) { Write-Host 'Build NOT exists!.' -ForegroundColor Yellow; cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug } else { Write-Host 'Build ready' -ForegroundColor Green }"
       ],
       "problemMatcher": "$msCompile"
     },

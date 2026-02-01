@@ -64,16 +64,53 @@ void GameObjectFactory::ParseRenderComponent(GameWorld &gameWorld, GameObject &g
     auto &rd = gameObject.AddComponent<RenderComponent>();
     auto &rm = gameWorld.GetResourceManager();
     rd.model = rm.GetModel(prefab.value("model", "primitive://cube"));
-    if (prefab.contains("material"))
+
+    rd.isVisible = prefab.value("isVisible", true);
+    rd.showWires = prefab.value("showWires", false);
+    rd.showAxes = prefab.value("showAxes", false);
+    rd.showAngVol = prefab.value("showAngVol", false);
+    rd.showVol = prefab.value("showVol", false);
+    rd.showCenter = prefab.value("showCenter", false);
+
+    if (prefab.contains("defaultMaterial"))
     {
-        auto &matData = prefab["material"];
-        if (matData.contains("vs") && matData.contains("fs"))
-        {
-            rd.material.shader = rm.GetShader(matData["vs"], matData["fs"]);
-        }
+        auto &matData = prefab["defaultMaterial"];
+
+        if (matData.contains("fs"))
+            rd.defaultMaterial.shader = rm.GetShader(matData.value("vs", "assets/shaders/default.vs"), matData["fs"]);
         if (matData.contains("color"))
+            rd.defaultMaterial.baseColor = JsonParser::ToVector4f(matData["color"]);
+    }
+
+    if (prefab.contains("meshPasses"))
+    {
+        auto &matData = prefab["meshPasses"];
+        for (const auto &entry : matData)
         {
-            rd.material.baseColor = JsonParser::ToVector4f(matData["color"]);
+            int meshIndex = entry.value("meshIndex", 0);
+            std::vector<RenderMaterial> &passes = rd.meshPasses[meshIndex];
+
+            for (const auto &pData : entry["passes"])
+            {
+                RenderMaterial mat;
+                if (pData.contains("fs"))
+                {
+                    mat.shader = rm.GetShader(pData.value("vs", "assets/shaders/default.vs"), pData["fs"]);
+                }
+                if (pData.contains("color"))
+                    mat.baseColor = JsonParser::ToVector4f(pData["color"]);
+                if (pData.contains("blendMode"))
+                {
+                    std::string blendMode = pData["blendMode"];
+                    if (blendMode == "BLEND_ADDITIVE")
+                        mat.blendMode = BlendMode::BLEND_ADDITIVE;
+                    else if (blendMode == "BLEND_ALPHA")
+                        mat.blendMode = BlendMode::BLEND_ALPHA;
+                    else
+                        std::cerr << "[GameObjectFactory]: Unknown blend mode: " << blendMode << std::endl;
+                }
+                passes.push_back(mat);
+            }
         }
     }
     if (prefab.contains("scale"))

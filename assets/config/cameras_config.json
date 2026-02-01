@@ -21,7 +21,7 @@
       "fovy": 60.0,
       "projection": "PERSPECTIVE",
       "nearPlane": 0.01,
-      "farPlane": 100000.0
+      "farPlane": 10000.0
     },
     {
       "name": "rear_view",

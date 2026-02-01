@@ -23,7 +23,7 @@
     },
     "entities": [
         {
-            "name": "rotate_cube",
+            "name": "cube",
             "tag": "cube",
             "prefab": "assets/prefabs/cube.json",
             "position": [
@@ -46,9 +46,9 @@
             }
         },
         {
-            "name": "cube",
-            "tag": "cube",
-            "prefab": "assets/prefabs/shader_cube.json",
+            "name": "sphere",
+            "tag": "sphere",
+            "prefab": "assets/prefabs/sphere.json",
             "position": [
                 0,
                 0,
@@ -68,11 +68,69 @@
                 "mass": 100,
                 "elasticity": 0.6
             },
-            "renderScale": [
-                1,
-                1,
-                1
-            ],
+            "render": {
+                "renderScale": [
+                    1,
+                    1,
+                    1
+                ],
+                "isVisible": true,
+                "showWires": true,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
+                "defaultMaterial": {
+                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                    "fs": "assets/shaders/default.fs",
+                    "color": [
+                        50,
+                        100,
+                        50,
+                        255
+                    ]
+                },
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "name": "Mesh_0",
+                        "passes": [
+                            {
+                                "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                                "fs": "assets/shaders/default.fs",
+                                "color": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ]
+                            },
+                            {
+                                "vs": "assets/shaders/base.vs",
+                                "fs": "assets/shaders/hologram.fs",
+                                "color": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "BLEND_ADDITIVE"
+                            },
+                            {
+                                "vs": "assets/shaders/base.fs",
+                                "fs": "assets/shaders/rgbView.fs",
+                                "color": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "BLEND_ADDITIVE"
+                            }
+                        ]
+                    }
+                ]
+            },
             "scripts": [
                 {
                     "RotatorScript": {

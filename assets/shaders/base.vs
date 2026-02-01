@@ -9,10 +9,12 @@ uniform mat4 transform;
 out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec3 fragNormal;
+out float v_linearDepth;
 
 void main() {
   fragPosition = vec3(transform * vec4(vertexPosition, 1.0));
   fragTexCoord = vertexTexCoord;
   fragNormal = normalize(vec3(transform * vec4(vertexNormal, 0.0)));
   gl_Position = u_mvp * vec4(vertexPosition, 1.0);
+  v_linearDepth = gl_Position.w;
 }

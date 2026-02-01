@@ -8,6 +8,8 @@ struct RenderMaterial
 
     Vector4f baseColor = Vector4f(255.0, 255.0, 255.0, 255.0);
 
+    int blendMode = 1;
+
     // TODO:动态存储
     // std::unordered_map<std::string,float> customFloats;
 };

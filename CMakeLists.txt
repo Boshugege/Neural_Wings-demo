@@ -10,7 +10,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC)
     # /FS allows concurrent cl.exe processes to share the same PDB
     # (VS generators enable parallel builds by default).
-    set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Od /Zi /EHsc /FS")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Od /Z7 /EHsc /FS")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /DNDEBUG /EHsc /FS")
 endif()
 

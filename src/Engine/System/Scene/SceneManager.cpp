@@ -78,14 +78,71 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld,
             {
                 AddRigidbody(obj, entityData["physics"]);
             }
-            if (entityData.contains("renderScale") && obj.HasComponent<RenderComponent>())
+            if (entityData.contains("render") && obj.HasComponent<RenderComponent>())
             {
-                auto &render = obj.GetComponent<RenderComponent>();
-                render.scale = render.scale & JsonParser::ToVector3f(entityData["renderScale"]);
+                AddShaders(obj, entityData["render"], gameWorld);
             }
             if (entityData.contains("scripts"))
             {
                 AddScripts(gameWorld, obj, entityData["scripts"]);
+            }
+        }
+    }
+}
+
+void SceneManager::AddShaders(GameObject &gameObject, const json &renderData, GameWorld &gameWorld)
+{
+    auto &rd = gameObject.GetComponent<RenderComponent>();
+    auto &rm = gameWorld.GetResourceManager();
+
+    if (renderData.contains("renderScale"))
+        rd.scale = rd.scale & JsonParser::ToVector3f(renderData["renderScale"]);
+
+    rd.isVisible = renderData.value("isVisible", true);
+    rd.showWires = renderData.value("showWires", false);
+    rd.showAxes = renderData.value("showAxes", false);
+    rd.showAngVol = renderData.value("showAngVol", false);
+    rd.showVol = renderData.value("showVol", false);
+    rd.showCenter = renderData.value("showCenter", false);
+
+    if (renderData.contains("defaultMaterial"))
+    {
+        auto &matData = renderData["defaultMaterial"];
+
+        if (matData.contains("fs"))
+            rd.defaultMaterial.shader = rm.GetShader(matData.value("vs", "assets/shaders/default.vs"), matData["fs"]);
+        if (matData.contains("color"))
+            rd.defaultMaterial.baseColor = JsonParser::ToVector4f(matData["color"]);
+    }
+
+    if (renderData.contains("meshPasses"))
+    {
+        auto &matData = renderData["meshPasses"];
+        for (const auto &entry : matData)
+        {
+            int meshIndex = entry.value("meshIndex", 0);
+            std::vector<RenderMaterial> &passes = rd.meshPasses[meshIndex];
+
+            for (const auto &pData : entry["passes"])
+            {
+                RenderMaterial mat;
+                if (pData.contains("fs"))
+                {
+                    mat.shader = rm.GetShader(pData.value("vs", "assets/shaders/default.vs"), pData["fs"]);
+                }
+                if (pData.contains("color"))
+                    mat.baseColor = JsonParser::ToVector4f(pData["color"]);
+                if (pData.contains("blendMode"))
+                {
+                    std::string blendMode = pData["blendMode"];
+                    if (blendMode == "BLEND_ADDITIVE")
+                        mat.blendMode = BlendMode::BLEND_ADDITIVE;
+                    else if (blendMode == "BLEND_ALPHA")
+                        mat.blendMode = BlendMode::BLEND_ALPHA;
+                    else
+                        std::cerr << "[GameObjectFactory]: Unknown blend mode: " << blendMode << std::endl;
+                }
+                passes.push_back(mat);
             }
         }
     }

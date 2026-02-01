@@ -9,8 +9,13 @@
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
+      "symbolSearchPath": "${workspaceFolder}/build/Debug",
       "environment": [],
       "externalConsole": false,
+      "logging": {
+        "moduleLoad": true,
+        "engineLogging": false
+      },
       "preLaunchTask": "Build All (UI + Debug)"
     },
     {

@@ -19,5 +19,6 @@ public:
 private:
     void AddScripts(GameWorld &world, GameObject &gameObject, const json &scriptData);
 
+    void AddShaders(GameObject &gameObject, const json &matData, GameWorld &gameWorld);
     void AddRigidbody(GameObject &gameObject, const json &rigidData);
 };

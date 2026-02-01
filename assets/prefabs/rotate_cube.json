@@ -22,18 +22,63 @@
         },
         {
             "RenderComponent": {
+                "isVisible": true,
+                "showWires": false,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
                 "model": "primitive://cube",
-                "material": {
-                    "vs": "assets/shaders/base.vs",
-                    "fs": "assets/shaders/lighting.fs",
+                "defaultMaterial": {
                     "color": [
                         255,
-                        100,
-                        100,
+                        255,
+                        255,
                         255
-                    ],
-                    "glossiness": 0.8
+                    ]
                 },
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "name": "Mesh_0",
+                        "passes": [
+                            {
+                                "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                                "fs": "assets/shaders/default.fs",
+                                "color": [
+                                    100,
+                                    50,
+                                    50,
+                                    255
+                                ]
+                            },
+                            {
+                                "name": "pass_0",
+                                "vs": "assets/shaders/base.vs",
+                                "fs": "assets/shaders/hologram.fs",
+                                "color": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "BLEND_ADDITIVE"
+                            },
+                            {
+                                "name": "pass_1",
+                                "vs": "assets/shaders/base.vs",
+                                "fs": "assets/shaders/depth.fs",
+                                "color": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "blendMode": "BLEND_ADDITIVE"
+                            }
+                        ]
+                    }
+                ],
                 "scale": [
                     1,
                     1,

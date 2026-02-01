@@ -157,8 +157,6 @@ void DrawVector(Vector3f position, Vector3f direction, float axisLength, float t
 }
 void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &camera, float aspect)
 {
-    float gameTime = world.GetTimeManager().GetGameTime();
-    float realTime = world.GetTimeManager().GetRealTime();
     Matrix4f matView = GetCameraMatrix(rawCamera);
     Matrix4f matProj;
     if (rawCamera.projection == CAMERA_PERSPECTIVE)
@@ -185,7 +183,7 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
             Vector3f axis = rotation.getAxisAngle(&angle);
             angle *= 180.0f / M_PI;
 
-            bool useShader = (render.material.shader != nullptr && render.material.shader->IsValid());
+            bool useShader = (render.defaultMaterial.shader != nullptr && render.defaultMaterial.shader->IsValid());
             if (useShader)
             {
 
@@ -196,32 +194,38 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
 
                 Matrix4f MVP = VP * M;
 
-                render.material.shader->Begin();
-
-                render.material.shader->SetMat4("u_mvp", MVP);
-                render.material.shader->SetMat4("transform", M);
-                render.material.shader->SetVec3("viewPos", rawCamera.position);
-                render.material.shader->SetFloat("realTime", realTime);
-                render.material.shader->SetFloat("gameTime", gameTime);
-                Vector4f color = render.material.baseColor / 255.0f;
-                render.material.shader->SetVec4("baseColor", color);
-
+                // 同模型各个mesh的passes
                 for (int i = 0; i < render.model.meshCount; i++)
                 {
                     Mesh &mesh = render.model.meshes[i];
-                    int matIndex = render.model.meshMaterial[i];
-                    Material tempRaylibMaterial = render.model.materials[matIndex];
-
-                    tempRaylibMaterial.shader = render.material.shader->GetShader();
-                    DrawMesh(mesh, tempRaylibMaterial, M);
+                    const std::vector<RenderMaterial> *passes = nullptr;
+                    auto it = render.meshPasses.find(i);
+                    if (it != render.meshPasses.end())
+                    {
+                        passes = &it->second;
+                    }
+                    if (passes != nullptr && !passes->empty())
+                    {
+                        // 单mesh多pass
+                        for (size_t p = 0; p < passes->size(); p++)
+                        {
+                            const RenderMaterial &pass = (*passes)[p];
+                            if (p > 0)
+                                BeginBlendMode(pass.blendMode);
+                            RenderSinglePass(mesh, render.model, i, pass, MVP, M, camera, world);
+                            if (p > 0)
+                                EndBlendMode();
+                        }
+                    }
+                    else
+                    {
+                        RenderSinglePass(mesh, render.model, i, render.defaultMaterial, MVP, M, camera, world);
+                    }
                 }
-
-                render.material.shader->End();
             }
             else
             {
-                // TODO:web渲染bug
-                Color tint = {render.material.baseColor.x(), render.material.baseColor.y(), render.material.baseColor.z(), 255};
+                Color tint = {render.defaultMaterial.baseColor.x(), render.defaultMaterial.baseColor.y(), render.defaultMaterial.baseColor.z(), render.defaultMaterial.baseColor.w()};
                 DrawModelEx(
                     render.model,
                     tf.position,
@@ -230,25 +234,59 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
                     tf.scale & render.scale,
                     tint);
             }
-            DrawModelWiresEx(
-                render.model,
-                tf.position,
-                axis,
-                angle,
-                tf.scale & render.scale,
-                BLACK);
+            if (render.showWires)
+                DrawModelWiresEx(
+                    render.model,
+                    tf.position,
+                    axis,
+                    angle,
+                    tf.scale & render.scale,
+                    BLACK);
 
-            // TODO: debug
-            DrawCoordinateAxes(tf.position, tf.rotation, 2.0f, 0.05f);
-            DrawSphereEx(tf.position, 0.1f, 8, 8, RED);
-            if (gameObject->HasComponent<RigidbodyComponent>())
+            if (render.showAxes)
+                DrawCoordinateAxes(tf.position, tf.rotation, 2.0f, 0.05f);
+            if (render.showCenter)
+                DrawSphereEx(tf.position, 0.1f, 8, 8, RED);
+            if (render.showAngVol && gameObject->HasComponent<RigidbodyComponent>())
             {
                 const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
                 DrawVector(tf.position, rb.angularVelocity, 1.0f, 0.05f);
+            }
+            if (render.showVol && gameObject->HasComponent<RigidbodyComponent>())
+            {
+                const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
+                DrawVector(tf.position, rb.velocity, 1.0f, 0.05f);
             }
         }
     }
     // TODO: debug
     DrawGrid(20, 10.0f);
     DrawCoordinateAxes(Vector3f(0.0f), Quat4f::IDENTITY, 2.0f, 0.05f);
+}
+
+void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int &meshIdx, const RenderMaterial &pass, const Matrix4f &MVP, const Matrix4f &M, const mCamera &camera, GameWorld &gameWorld)
+{
+    float gameTime = gameWorld.GetTimeManager().GetGameTime();
+    float realTime = gameWorld.GetTimeManager().GetRealTime();
+
+    if (pass.shader != nullptr && pass.shader->IsValid())
+    {
+        int matIdex = model.meshMaterial[meshIdx];
+        Material tempRaylibMaterial = model.materials[matIdex];
+
+        pass.shader->Begin();
+
+        pass.shader->SetMat4("u_mvp", MVP);
+        pass.shader->SetMat4("transform", M);
+        pass.shader->SetVec3("viewPos", camera.Position());
+        pass.shader->SetFloat("realTime", realTime);
+        pass.shader->SetFloat("gameTime", gameTime);
+        Vector4f color = pass.baseColor / 255.0f;
+        pass.shader->SetVec4("baseColor", color);
+
+        tempRaylibMaterial.shader = pass.shader->GetShader();
+        DrawMesh(mesh, tempRaylibMaterial, M);
+
+        pass.shader->End();
+    }
 }

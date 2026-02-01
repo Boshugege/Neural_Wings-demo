@@ -8,6 +8,7 @@
 #include "Matrix2f.h"
 #include "Quat4f.h"
 #include "Engine/Math/LinearAlgebra/Vector/Vector3f.h"
+#include <string.h>
 
 Matrix3f::Matrix3f(float fill)
 {
@@ -18,10 +19,7 @@ Matrix3f::Matrix3f(float fill)
 }
 Matrix3f::Matrix3f(const Vector3f &v)
 {
-	for (int i = 0; i < 9; ++i)
-	{
-		m_data[i] = 0.0f;
-	}
+	memset(m_data, 0, sizeof(m_data));
 	m_data[0] = v.x();
 	m_data[4] = v.y();
 	m_data[8] = v.z();

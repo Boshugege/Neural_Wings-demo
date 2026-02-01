@@ -23,17 +23,6 @@
         {
             "RenderComponent": {
                 "model": "primitive://sphere",
-                "material": {
-                    "vs": "assets/shaders/base.vs",
-                    "fs": "assets/shaders/lighting.fs",
-                    "color": [
-                        100,
-                        255,
-                        255,
-                        255
-                    ],
-                    "glossiness": 0.8
-                },
                 "scale": [
                     1,
                     1,

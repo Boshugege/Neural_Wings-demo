@@ -2,6 +2,8 @@
 #include <cstdio>
 #include "raylib.h"
 #include "raymath.h"
+#include <string.h>
+
 class Matrix2f;
 class Matrix3f;
 class Quat4f;
@@ -23,13 +25,7 @@ public:
 	Matrix4f(const Matrix4f &rm);
 	Matrix4f(const Matrix3f &rm)
 	{
-		m_data[3] = 0.f;
-		m_data[7] = 0.f;
-		m_data[11] = 0.f;
-
-		m_data[12] = 0.f;
-		m_data[13] = 0.f;
-		m_data[14] = 0.f;
+		memset(m_data, 0, sizeof(m_data));
 
 		m_data[15] = 1.f;
 		setSubmatrix3x3(0, 0, rm);
