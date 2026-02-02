@@ -26,5 +26,19 @@
                 180
             ]
         }
+    ],
+    "fullScreenPostProcessChain": [
+        {
+            "name": "HorizontalBlur(默认vs:assets/shaders/process/default.vs)",
+            "vs": "assets/shaders/postprocess/default.vs",
+            "fs": "assets/shaders/postprocess/blur.fs",
+            "uniforms": {
+                "u_radius": 2.0,
+                "u_direction": [
+                    1.0,
+                    0.0
+                ]
+            }
+        }
     ]
 }

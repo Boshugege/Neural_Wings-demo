@@ -89,6 +89,24 @@
                                 "blendMode": "MULTIPLY",
                                 "depthWrite": false,
                                 "depthTest": true
+                            },
+                            {
+                                "name": "outline(描边需要剔除正面,使用uniforms来自定义传入shader的参数,支持vec3,vec4,float)",
+                                "vs": "assets/shaders/outline/outline.vs",
+                                "fs": "assets/shaders/outline/outline.fs",
+                                "blendMode": "ALPHA",
+                                "cullFace": "FRONT",
+                                "uniforms": {
+                                    "u_outlineWidth": 0.1,
+                                    "u_color": [
+                                        255,
+                                        0,
+                                        0,
+                                        255
+                                    ]
+                                },
+                                "depthWrite": false,
+                                "depthTest": true
                             }
                         ]
                     }
@@ -166,7 +184,7 @@
                                 "textures": {
                                     "u_diffuseMap": "assets/textures/test_2.png"
                                 },
-                                "blendMode": "SUBTRACT",
+                                "blendMode": "NONE",
                                 "cullFace": "BACK",
                                 "depthWrite": true,
                                 "depthTest": true

@@ -16,13 +16,13 @@ class Model;
 class Renderer
 {
 public:
-    Renderer() = default;
-
+    Renderer();
+    void Init(int width, int height);
     void AddRenderView(const RenderView &view);
     void ClearRenderViews();
     void RenderScene(GameWorld &world, CameraManager &cameraManager);
 
-    bool LoadViewConfig(const std::string &configPath);
+    bool LoadViewConfig(const std::string &configPath, GameWorld &gameWorld);
 
 private:
     RenderView ParseViews(const json &data);
@@ -30,4 +30,9 @@ private:
 
     void RenderSinglePass(const Mesh &mesh, const Model &model, const int &meshIdx, const RenderMaterial &pass, const Matrix4f &MVP, const Matrix4f &M, const mCamera &camera, GameWorld &gameWorld);
     void DrawWorldObjects(GameWorld &gameWorld, Camera3D &rawCamera, mCamera &camera, float aspect);
+
+    RenderTexture2D m_screenTarget;
+    RenderTexture2D m_pingPongTarget;
+
+    std::vector<PostRenderMaterial> m_fullScreenPostProcessShaders;
 };

@@ -34,6 +34,32 @@ int ShaderWrapper::GetLocation(const std::string &name)
     return loc;
 }
 
+void ShaderWrapper::SetAll(const Matrix4f &MVP, const Matrix4f &M, const Vector3f &viewPos, float realTime, float gameTime, const Vector4f &baseColor,
+
+                           const std::unordered_map<std::string, float> &customFloats,
+                           const std::unordered_map<std::string, Vector2f> &customVector2,
+                           const std::unordered_map<std::string, Vector3f> &customVector3,
+                           const std::unordered_map<std::string, Vector4f> &customVector4)
+{
+    SetMat4("u_mvp", MVP);
+    SetMat4("transform", M);
+    SetVec3("viewPos", viewPos);
+    SetFloat("realTime", realTime);
+    SetFloat("gameTime", gameTime);
+    Vector4f color = baseColor / 255.0f;
+    SetVec4("baseColor", color);
+
+    for (auto const &[name, value] : customFloats)
+        SetFloat(name, value);
+
+    for (auto const &[name, value] : customVector2)
+        SetVec2(name, value);
+    for (auto const &[name, value] : customVector3)
+        SetVec3(name, value);
+    for (auto const &[name, value] : customVector4)
+        SetVec4(name, value);
+}
+
 void ShaderWrapper::SetInt(const std::string &name, int value)
 {
     int loc = GetLocation(name);
@@ -45,6 +71,16 @@ void ShaderWrapper::SetFloat(const std::string &name, float value)
     int loc = GetLocation(name);
     if (loc >= 0)
         SetShaderValue(m_shader, loc, &value, SHADER_UNIFORM_FLOAT);
+}
+
+void ShaderWrapper::SetVec2(const std::string &name, const Vector2f &value)
+{
+    int loc = GetLocation(name);
+    if (loc >= 0)
+    {
+        float valueArr[2] = {value.x(), value.y()};
+        SetShaderValue(m_shader, loc, valueArr, SHADER_UNIFORM_VEC2);
+    }
 }
 void ShaderWrapper::SetVec3(const std::string &name, const Vector3f &value)
 {

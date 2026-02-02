@@ -29,7 +29,7 @@ void SceneManager::ParsePhysics(const json &sceneData, GameWorld &gameWorld)
     }
 }
 
-bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld, PhysicsSystem &physicsSystem)
+bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
 {
     std::ifstream file(scenePath);
     if (!file.is_open())
@@ -37,6 +37,7 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld,
         std::cerr << "[SceneManager]: Failed to open scene file: " << scenePath << std::endl;
         return false;
     }
+    PhysicsSystem &physicsSystem = gameWorld.GetPhysicsSystem();
     json sceneData = json::parse(file);
     if (sceneData.contains("physics"))
     {
@@ -184,6 +185,8 @@ void SceneManager::AddShaders(GameObject &gameObject, const json &renderData, Ga
                     {
                         if (uValue.is_number())
                             mat.customFloats[uName] = uValue;
+                        else if (uValue.is_array() && uValue.size() == 2)
+                            mat.customVector2[uName] = JsonParser::ToVector2f(uValue);
                         else if (uValue.is_array() && uValue.size() == 3)
                             mat.customVector3[uName] = JsonParser::ToVector3f(uValue);
                         else if (uValue.is_array() && uValue.size() == 4)

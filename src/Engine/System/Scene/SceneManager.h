@@ -14,7 +14,7 @@ public:
 
     void ParsePhysics(const json &sceneData, GameWorld &gameWorld);
 
-    bool LoadScene(const std::string &scenePath, GameWorld &gameWorld, PhysicsSystem &physicsSystem);
+    bool LoadScene(const std::string &scenePath, GameWorld &gameWorld);
 
 private:
     void AddScripts(GameWorld &world, GameObject &gameObject, const json &scriptData);

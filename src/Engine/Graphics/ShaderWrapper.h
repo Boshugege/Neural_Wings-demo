@@ -19,6 +19,8 @@ public:
     // Uniform 接口
     void SetInt(const std::string &name, int value);
     void SetFloat(const std::string &name, float value);
+
+    void SetVec2(const std::string &name, const Vector2f &value);
     void SetVec3(const std::string &name, const Vector3f &value);
     void SetVec4(const std::string &name, const Vector4f &value);
     void SetMat4(const std::string &name, const Matrix4f &value);
@@ -26,6 +28,12 @@ public:
 
     bool IsValid() const { return m_shader.id > 0; };
     Shader GetShader() const { return m_shader; }
+
+    void SetAll(const Matrix4f &MVP, const Matrix4f &M, const Vector3f &viewPos, float realTime, float gameTime, const Vector4f &baseColor,
+                const std::unordered_map<std::string, float> &customFloats,
+                const std::unordered_map<std::string, Vector2f> &customVector2,
+                const std::unordered_map<std::string, Vector3f> &customVector3,
+                const std::unordered_map<std::string, Vector4f> &customVector4);
 
 private:
     int GetLocation(const std::string &name);

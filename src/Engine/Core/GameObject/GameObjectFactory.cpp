@@ -160,6 +160,8 @@ void GameObjectFactory::ParseRenderComponent(GameWorld &gameWorld, GameObject &g
                     {
                         if (uValue.is_number())
                             mat.customFloats[uName] = uValue;
+                        else if (uValue.is_array() && uValue.size() == 2)
+                            mat.customVector2[uName] = JsonParser::ToVector2f(uValue);
                         else if (uValue.is_array() && uValue.size() == 3)
                             mat.customVector3[uName] = JsonParser::ToVector3f(uValue);
                         else if (uValue.is_array() && uValue.size() == 4)

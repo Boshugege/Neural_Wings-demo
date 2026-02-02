@@ -13,7 +13,6 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_timeManager = std::make_unique<TimeManager>();
 
     m_nextObjectID = 0;
-    m_renderer = std::make_unique<Renderer>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
     m_physicsSystem = std::make_unique<PhysicsSystem>();
@@ -22,12 +21,14 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_scriptingFactory = std::make_unique<ScriptingFactory>();
     m_scriptingSystem = std::make_unique<ScriptingSystem>();
     m_eventManager = std::make_unique<EventManager>();
+    m_renderer = std::make_unique<Renderer>();
 
     configCallback(*m_scriptingFactory, *m_physicsStageFactory);
 
     m_cameraManager->LoadConfig(cameraConfigPath);
-    m_sceneManager->LoadScene(sceneConfigPath, *this, *m_physicsSystem);
-    m_renderer->LoadViewConfig(renderView);
+    m_sceneManager->LoadScene(sceneConfigPath, *this);
+    m_renderer->LoadViewConfig(renderView, *this);
+    m_renderer->Init(GetScreenWidth(), GetScreenHeight());
 
     if (!m_inputManager->LoadBindings(inputConfigPath))
     {
