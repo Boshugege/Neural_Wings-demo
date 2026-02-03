@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
     PostProcessConfig,
     Pass,
+    port,
     UniformValue,
     AllNodeData,
     PassNodeData,
@@ -21,21 +22,6 @@ const hslToHex = (h: number, s: number, l: number) => {
     };
     return `#${f(0)}${f(8)}${f(4)}`;
 };
-const getCandyColor = () => {
-    const hue = Math.floor(Math.random() * 360);
-    const sat = 85; // 固定高饱和
-    const light = 65; // 固定高亮度
-    return hslToHex(hue, sat, light);
-};
-const getMorandiColor = () => {
-    // 色相 0-360 全随机
-    const hue = Math.floor(Math.random() * 360);
-    // 饱和度 20-40% (低饱和)
-    const sat = Math.floor(Math.random() * 20) + 20;
-    // 亮度 60-70%
-    const light = Math.floor(Math.random() * 10) + 60;
-    return hslToHex(hue, sat, light);
-};
 const getTechColor = () => {
     // 色相限制在 160(青绿) 到 320(洋红) 之间，避开红橙黄
     const hue = Math.floor(Math.random() * 160) + 160;
@@ -43,12 +29,6 @@ const getTechColor = () => {
     const sat = Math.floor(Math.random() * 20) + 70;
     // 亮度 55-65% (适中，保证文字清晰)
     const light = Math.floor(Math.random() * 10) + 55;
-    return hslToHex(hue, sat, light);
-};
-const getRadomThemeColor = () => {
-    const hue = Math.floor(Math.random() * 140) + 180; // 范围 180(青) - 320(粉)
-    const sat = 75; // 固定饱和度
-    const light = 60; // 固定亮度
     return hslToHex(hue, sat, light);
 };
 
@@ -80,6 +60,8 @@ interface State {
 
     postProcessName: string; // 全局后处理名字
     setPostProcessName: (name: string) => void;
+
+    importJSON: (jsonStr: string) => void;
 }
 
 function getTopologicalSort(nodes: Node<AllNodeData>[], edges: Edge[]): string[] {
@@ -133,6 +115,190 @@ export const useStore = create<State>((set, get) => ({
     ],
     edges: [],
     postProcessName: "后处理蓝图", // 默认名
+
+
+
+    importJSON: (jsonStr: string) => {
+        try {
+            const parsed = JSON.parse(jsonStr) as PostProcessConfig;
+            const data = parsed.postProcess;
+            const graph = data.postProcessGraph;
+
+            // 1. 重置画布：保留 Start/End 节点，或者完全重绘
+            // 这里建议保留 Start/End 的 ID 不变，方便逻辑处理
+            const startNodeId = 'START_NODE';
+            const endNodeId = 'END_NODE';
+
+            const newNodes: Node[] = [];
+            const newEdges: Edge[] = [];
+
+            // 2. 创建基础节点 (InputNode & OutputNode)
+            // 这里的 ID 必须固定，或者你需要用变量记录
+            newNodes.push({
+                id: startNodeId,
+                type: 'inputNode',
+                position: { x: 50, y: 300 }, // 初始位置
+                data: { label: '源: inScreen', output: 'inScreen' }
+            });
+
+            // 3. 准备映射表
+            // rtMap: 记录 "RT名称" 对应的 "节点ID" (用于 RT 连线)
+            const rtMap = new Map<string, string>();
+            rtMap.set('inScreen', startNodeId);
+
+            // textureMap: 记录 "图片路径" 对应的 "节点ID" (防止重复创建相同的贴图节点)
+            const textureMap = new Map<string, string>();
+
+            // 4. 遍历 JSON 生成 PassNode
+            let currentX = 450; // 自动布局的起始 X 坐标
+            const startY = 100;
+
+            graph.forEach((pass, index) => {
+                const nodeId = generateId(); // 为当前 Pass 生成新 ID
+
+                // 4.1 重建 Input Ports (带稳定 ID)
+                // JSON: inputs: [ ["u_tex0", "inScreen"], ... ]
+                const inputPorts: port[] = [];
+                const inputConnections: { portId: string, sourceRt: string }[] = [];
+
+                pass.inputs.forEach(([portName, sourceRt]) => {
+                    const portId = `in_${generateId()}`; // 生成内部连线用的 ID
+                    inputPorts.push({ id: portId, name: portName });
+                    // 暂存连线关系，等所有节点创建完再连
+                    inputConnections.push({ portId, sourceRt });
+                });
+
+                // 4.2 重建 Texture Ports & Texture Nodes
+                // JSON: textures: { "u_tex0": "path/to/img.png" }
+                const texturePorts: port[] = [];
+                const textureConnections: { portId: string, textureNodeId: string }[] = [];
+
+                if (pass.textures) {
+                    Object.entries(pass.textures).forEach(([portName, path]) => {
+                        const portId = `tex_${generateId()}`;
+                        texturePorts.push({ id: portId, name: portName });
+
+                        // 检查该图片是否已经创建过节点，如果没有则创建
+                        let texNodeId = textureMap.get(path);
+                        if (!texNodeId) {
+                            texNodeId = generateId();
+                            textureMap.set(path, texNodeId);
+
+                            // 创建贴图节点
+                            newNodes.push({
+                                id: texNodeId,
+                                type: 'textureNode',
+                                position: { x: currentX - 200, y: startY + 300 + (Math.random() * 100) }, // 放在 Pass 下方或左侧
+                                data: {
+                                    name: 'Texture',
+                                    path: path,
+                                    output: path,
+                                    themeColor: '#3a8ee6' // 默认颜色或随机
+                                }
+                            });
+                        }
+
+                        // 记录连线关系
+                        textureConnections.push({ portId, textureNodeId: texNodeId });
+                    });
+                }
+
+                // 4.3 记录该节点的输出 RT，供后续节点查找
+                if (pass.output && pass.output !== 'outScreen') {
+                    rtMap.set(pass.output, nodeId);
+                }
+
+                // 如果直接输出到屏幕，记录一下，稍后连线到 END_NODE
+                const isOutputToScreen = pass.output === 'outScreen';
+
+                // 4.4 创建 PassNode 对象
+                newNodes.push({
+                    id: nodeId,
+                    type: 'passNode',
+                    position: { x: currentX, y: startY + (index % 2) * 50 }, // 简单的错位布局
+                    data: {
+                        name: pass.name,
+                        vs: pass.vs,
+                        fs: pass.fs,
+                        inputPorts: inputPorts,
+                        texturePorts: texturePorts,
+                        uniforms: pass.uniforms || {},
+                        output: pass.output,
+                        baseColor: pass.baseColor,
+                        // 使用之前的随机颜色生成逻辑，或者从 JSON 读取(如果 JSON 有存的话)
+                        themeColor: getTechColor()
+                    }
+                });
+
+                // 5. 生成连线 (Edges)
+
+                // 5.1 输入端口连线
+                inputConnections.forEach(({ portId, sourceRt }) => {
+                    const sourceNodeId = rtMap.get(sourceRt);
+                    if (sourceNodeId) {
+                        newEdges.push({
+                            id: `edge_${sourceNodeId}_${nodeId}_${portId}`,
+                            source: sourceNodeId,
+                            sourceHandle: 'output', // 假设所有源节点的输出 Handle ID 都是 'output'
+                            target: nodeId,
+                            targetHandle: portId, // 关键：连接到刚才生成的稳定 ID
+                            animated: true,
+                            style: { stroke: '#999' }
+                        });
+                    }
+                });
+
+                // 5.2 贴图端口连线
+                textureConnections.forEach(({ portId, textureNodeId }) => {
+                    newEdges.push({
+                        id: `edge_${textureNodeId}_${nodeId}_${portId}`,
+                        source: textureNodeId,
+                        sourceHandle: 'output',
+                        target: nodeId,
+                        targetHandle: portId,
+                        style: { stroke: '#3a8ee6' } // 蓝色线
+                    });
+                });
+
+                // 5.3 如果是最终输出，连接到 EndNode
+                if (isOutputToScreen) {
+                    newEdges.push({
+                        id: `edge_${nodeId}_${endNodeId}`,
+                        source: nodeId,
+                        sourceHandle: 'output',
+                        target: endNodeId,
+                        targetHandle: 'input', // 假设 EndNode 的输入 Handle ID 是 input
+                        animated: true,
+                        style: { stroke: '#e84855', strokeWidth: 2 }
+                    });
+                }
+
+                // 布局步进
+                currentX += 450;
+            });
+
+            // 6. 添加 OutputNode (放在最后)
+            newNodes.push({
+                id: endNodeId,
+                type: 'outputNode',
+                position: { x: currentX, y: 300 },
+                data: { label: '输出: outScreen' }
+            });
+
+            // 7. 更新 Store
+            set({
+                nodes: newNodes,
+                edges: newEdges,
+                postProcessName: data.name || 'Imported Graph'
+            });
+
+        } catch (e) {
+            console.error("Import JSON failed:", e);
+            alert("导入失败，JSON 格式错误");
+        }
+    },
+
+
     setPostProcessName: (name: string) => set({ postProcessName: name }),
     setNodeThemeColor: (nodeId, color) => {
         const { nodes } = get();

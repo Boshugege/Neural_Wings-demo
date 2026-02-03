@@ -8,6 +8,7 @@ import TextureNode from './nodes/TextureNode';
 import ReactFlow, { Background, Controls, Panel } from 'reactflow';
 import type { Connection, Edge } from 'reactflow';
 
+import { useRef } from 'react';
 import type { PassNodeData } from './types';
 
 // 1. 移到组件外部，作为一个纯工具函数
@@ -42,8 +43,27 @@ export default function App() {
   const {
     nodes, edges, onNodesChange, onEdgesChange, onConnect,
     addPassNode, addTextureNode, generateJSON,
-    postProcessName, setPostProcessName
+    postProcessName, setPostProcessName,
+    importJSON
   } = useStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const jsonStr = event.target?.result as string;
+      if (jsonStr) {
+        importJSON(jsonStr);
+      }
+      // 清空 input 允许重复导入同名文件
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  };
 
   const isValidConnection = (connection: Connection) => {
     if (connection.source === connection.target) return false;
@@ -94,6 +114,14 @@ export default function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#121212' }}>
+      {/* 隐藏的文件输入框 */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".json"
+        onChange={handleFileChange}
+      />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -125,6 +153,12 @@ export default function App() {
 
         {/* 顶部右侧：操作按钮 */}
         <Panel position="top-right" style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{ ...btnStyle, borderColor: '#e6a23c', color: '#e6a23c' }}
+          >
+            📂 导入 JSON
+          </button>
           <button onClick={addPassNode} style={btnStyle}>+ 添加 Pass 节点</button>
 
           {/* 新增：添加贴图节点的按钮 */}
