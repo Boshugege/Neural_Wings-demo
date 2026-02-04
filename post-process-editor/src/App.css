@@ -1,0 +1,89 @@
+/* 彻底清除默认边距，防止出现滑动条 */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* 禁止系统级滚动条 */
+  background-color: #121212;
+}
+
+/* 修复 Vite 默认居中布局导致编辑器偏移的问题 */
+#root {
+  max-width: none !important;
+  text-align: left !important;
+}
+
+/* --- 下面是修复连线变红问题的 CSS --- */
+
+/* 1. 基础连线样式 (正在拖拽但还没悬停到 Handle 上时) */
+.react-flow__connection-path {
+  stroke: #b1b1b7 !important;
+  /* 默认灰色 */
+  stroke-width: 2.5;
+  transition: stroke 0.2s;
+}
+
+/* 2. 当 isValidConnection 返回 true (绿色) */
+/* 增加 .react-flow__connection 类名来提高优先级 */
+.react-flow__connection.valid .react-flow__connection-path {
+  stroke: #3fb950 !important;
+}
+
+/* 3. 当 isValidConnection 返回 false (红色 + 闪烁) */
+/* 增加 .react-flow__connection 类名来提高优先级 */
+.react-flow__connection.invalid .react-flow__connection-path {
+  stroke: #ff4d4f !important;
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  from {
+    stroke-dashoffset: 10;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 4. Handle 状态反馈 */
+.react-flow__handle-valid {
+  background-color: #3fb950 !important;
+  box-shadow: 0 0 10px #3fb950;
+}
+
+.react-flow__handle-invalid {
+  background-color: #ff4d4f !important;
+  box-shadow: 0 0 10px #ff4d4f;
+  cursor: not-allowed !important;
+}
+
+.texture-node {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 鼠标悬停时轻微放大 */
+.texture-node:hover {
+  transform: scale(1.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.pass-node:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.pass-node {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+
+/* 拖拽文件经过时改变边框颜色 */
+.texture-node:active {
+  border-color: #fff !important;
+}

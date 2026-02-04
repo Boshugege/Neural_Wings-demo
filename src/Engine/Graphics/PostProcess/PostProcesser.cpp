@@ -5,11 +5,11 @@ void PostProcesser::AddPostProcessPass(const PostProcessPass &pass)
 {
     if (pass.outputTarget.empty())
     {
-        std::cerr << "[Renderer]: Post process pass missing output target: " << pass.name << std::endl;
+        std::cerr << "[PostProcesser]: Post process pass missing output target: " << pass.name << std::endl;
         return;
     }
     m_postProcessPasses.push_back(pass);
-    std::cout << "[Renderer]: Post process pass added: " << pass.name << " output target -> " << pass.outputTarget << std::endl;
+    std::cout << "[PostProcesser]: Post process pass added: " << pass.name << " output target -> " << pass.outputTarget << std::endl;
 }
 void PostProcesser::SetUpRTPool(const std::vector<std::string> &names, int width, int height)
 {
@@ -24,10 +24,10 @@ void PostProcesser::SetUpRTPool(const std::vector<std::string> &names, int width
         }
         else
         {
-            std::cerr << "[Renderer]: Failed to create render texture: " << name << std::endl;
+            std::cerr << "[PostProcesser]: Failed to create render texture: " << name << std::endl;
         }
     }
-    std::cout << "[Renderer]: Render texture pool set up with " << names.size() << " render targets" << std::endl;
+    std::cout << "[PostProcesser]: Render texture pool set up with " << names.size() << " render targets" << std::endl;
 }
 void PostProcesser::UnloadRTPool()
 {
@@ -40,19 +40,19 @@ void PostProcesser::UnloadRTPool()
     }
     m_RTPool.clear();
     m_postProcessPasses.clear();
-    std::cout << "[Renderer]: Unloaded " << count << " render targets" << std::endl;
+    std::cout << "[PostProcesser]: Unloaded " << count << " render targets" << std::endl;
 }
 
 void PostProcesser::ParsePostProcessPasses(const json &data, GameWorld &gameWorld)
 {
     if (!data.contains("rtPool"))
     {
-        std::cerr << "[Renderer]: Post process config file missing 'rtPool' field" << std::endl;
+        std::cerr << "[PostProcesser]: Post process config file missing 'rtPool' field" << std::endl;
         return;
     }
     if (!data.contains("postProcessGraph"))
     {
-        std::cerr << "[Renderer]: Post process config file missing 'postProcessGraph' field" << std::endl;
+        std::cerr << "[PostProcesser]: Post process config file missing 'postProcessGraph' field" << std::endl;
         return;
     }
     const std::vector<std::string> &rtNames = data["rtPool"].get<std::vector<std::string>>();
@@ -73,7 +73,7 @@ void PostProcesser::ParsePostProcessPasses(const json &data, GameWorld &gameWorl
                 if (inputItem.size() == 2)
                     pass.inputs.push_back({inputItem[0], inputItem[1]});
                 else
-                    std::cerr << "[Renderer]: Post process pass: " << pass.name << " input item size not equal to 2" << std::endl;
+                    std::cerr << "[PostProcesser]: Post process pass: " << pass.name << " input item size not equal to 2" << std::endl;
             }
         // 解析shader
         PostRenderMaterial &mat = pass.material;
@@ -96,7 +96,7 @@ void PostProcesser::ParsePostProcessPasses(const json &data, GameWorld &gameWorl
                 else if (uValue.is_array() && uValue.size() == 4)
                     mat.customVector4[uName] = JsonParser::ToVector4f(uValue);
                 else
-                    std::cerr << "[Renderer]:ParsePostProcessPasses Unknown uniform type: " << uName << std::endl;
+                    std::cerr << "[PostProcesser]:ParsePostProcessPasses Unknown uniform type: " << uName << std::endl;
             }
         }
         // 解析外部纹理

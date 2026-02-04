@@ -56,7 +56,13 @@
                 "output": "RTBright",
                 "uniforms": {
                     "u_threshold": 0.5
-                }
+                },
+                "baseColor": [
+                    255,
+                    255,
+                    255,
+                    255
+                ]
             },
             {
                 "name": "BlurPass1",
@@ -92,6 +98,10 @@
                         1.0,
                         -1.0
                     ]
+                },
+                "textures": {
+                    "u_test1": "assets/textures/test_1.png",
+                    "u_test2": "assets/textures/test_2.png"
                 }
             },
             {
