@@ -31,6 +31,22 @@ void SceneManager::ParsePhysics(const json &sceneData, GameWorld &gameWorld)
 
 bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
 {
+
+    // test
+    std::vector<std::string> varyings =
+        {
+            "outPosition",
+            "outVelocity",
+            "outAcceleration",
+            "outColor",
+            "outSize",
+            "outRotation",
+            "outLife",
+            "outRandomID"};
+    auto particleShader = std::make_unique<ShaderWrapper>(
+        "assets/shaders/particles/update.vs",
+        varyings);
+
     std::ifstream file(scenePath);
     if (!file.is_open())
     {

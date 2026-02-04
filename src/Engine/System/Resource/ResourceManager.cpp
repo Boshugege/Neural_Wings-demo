@@ -16,6 +16,18 @@ std::shared_ptr<ShaderWrapper> ResourceManager::GetShader(const std::string &vsP
     m_shaders[key] = shader;
     return shader;
 }
+
+std::shared_ptr<ShaderWrapper> ResourceManager::GetTFBShader(const std::string &vsPath, const std::vector<std::string> &varyings)
+{
+    std::string key = vsPath + "_tfb_";
+    for (const auto &varying : varyings)
+        key += varying;
+    if (m_shaders.count(key))
+        return m_shaders[key];
+    auto shader = std::make_shared<ShaderWrapper>(vsPath, varyings);
+    m_shaders[key] = shader;
+    return shader;
+}
 Model ResourceManager::GetModel(const std::string &path)
 {
 

@@ -97,27 +97,27 @@ src/
 # TODO List
 
 #### Milestone 1: Shader 系统底层升级 (基础)
-*   [ ] **修改 `ShaderWrapper`**：支持在 `Link` 阶段之前调用 `glTransformFeedbackVaryings`。
-*   [ ] **扩展 `ResourceManager`**：增加 `GetShaderWithFeedback` 接口，支持传入需要捕获的变量名列表。
+*   [ ✔] **修改 `ShaderWrapper`**：支持在 `Link` 阶段之前调用 `glTransformFeedbackVaryings`。
+*   [ ✔] **扩展 `ResourceManager`**：增加 `GetShaderWithFeedback` 接口，支持传入需要捕获的变量名列表。
 
 #### Milestone 2: GPU 乒乓缓冲管理器 (数据)
-*   [ ] **创建 `GPUParticleBuffer` 类**：
-    *   [ ] 可实例化，每个该类分配双 VBO对 (Buffer A/B)。
-    *   [ ] 设置 VAO 映射，确保 Shader 能识别位置、速度等 layout。
-    *   [ ] 实现 `Swap()` 函数。
-    *   [ ] 实现 `UpdateSubData()` 用于 CPU 注入新生粒子。
+*   [ ✔] **创建 `GPUParticleBuffer` 类**：
+    *   [ ✔] 可实例化，每个该类分配双 VBO对 (Buffer A/B)。
+    *   [ ✔] 设置 VAO 映射，确保 Shader 能识别位置、速度等 layout。
+    *   [ ✔] 实现 `Swap()` 函数。
+    *   [ ✔] 实现 `UpdateSubData()` 用于 CPU 注入新生粒子。
 
 #### Milestone 3: TFB 模拟驱动器 (模拟)
-*   [ ] **实现 `TFBManager`**：
-    *   [ ] 封装 `BeginFeedback()` 和 `EndFeedback()`。
-    *   [ ] 编写第一个 GPU 物理 Shader：`simple_physics.vs`（处理位移和寿命衰减）。
+*   [ ✔] **实现 `TFBManager`**：
+    *   [ ✔] 封装 `BeginFeedback()` 和 `EndFeedback()`。
+    *   [ ✔] 编写第一个 GPU 物理 Shader：`simple_physics.vs`（处理位移和寿命衰减）。
 
 #### Milestone 4: 粒子发射器与 CPU 注入 (逻辑)
-*   [ ] **实现 `ParticleEmitter`**：
+*   [✔ ] **实现 `ParticleEmitter`**：
     *   [ ] 区分局部坐标与世界坐标（粒子可以只在局部坐标中产生，如固定在物体上的粒子等，也可以在世界坐标中产生，如轨迹等）。
-    *   [ ] 管理粒子的索引池（哪些位置是死的，可以覆盖）。
-    *   [ ] 实现“放射状”、“球体”、“圆锥”等初速度生成算法。
-    *   [ ] 实现 `glBufferSubData` 的批量注入逻辑。
+    *   [ ✔] 管理粒子的索引池（哪些位置是死的，可以覆盖）。
+    *   [ ✔] 实现“放射状”、“球体”、“圆锥”等初速度生成算法。
+    *   [✔ ] 实现 `glBufferSubData` 的批量注入逻辑。
 
 #### Milestone 5: 高性能实例化渲染器 (渲染)
 *   [ ] **实现 `InstancedParticleRenderer`**：

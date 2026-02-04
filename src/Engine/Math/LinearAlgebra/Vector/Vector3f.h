@@ -75,6 +75,10 @@ public:
 
     static Vector3f Min(const Vector3f &a, const Vector3f &b);
     static Vector3f Max(const Vector3f &a, const Vector3f &b);
+
+    static Vector3f RandomSphere(float radius = 1.0f);
+    static Vector3f RandomCycle(const Vector3f &normal, float radius = 1.0f);
+
     void print() const { std::cout << m_data[0] << ", " << m_data[1] << ", " << m_data[2] << std::endl; };
     operator Vector3() const { return {m_data[0], m_data[1], m_data[2]}; }
 

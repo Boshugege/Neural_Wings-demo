@@ -8,6 +8,10 @@ class ShaderWrapper
 {
 public:
     ShaderWrapper(const std::string &vsPath, const std::string &fsPath);
+
+    // 用于TFB
+    // varyings: 从 Vertex Shader 捕获并写回 Buffer 的变量（如 "out_position", "out_velocity"）
+    ShaderWrapper(const std::string &vsPath, const std::vector<std::string> &varyings);
     ~ShaderWrapper();
 
     ShaderWrapper(const ShaderWrapper &) = delete;
@@ -37,6 +41,8 @@ public:
 
 private:
     int GetLocation(const std::string &name);
+
+    std::string LoadVSText(const std::string &path);
     Shader m_shader;
     std::unordered_map<std::string, int> m_locationCache;
 };

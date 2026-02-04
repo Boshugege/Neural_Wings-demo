@@ -3,3 +3,5 @@
 #include "Renderer.h"
 #include "RenderView/RenderViewer.h"
 #include "ShaderWrapper.h"
+
+#include "ParticleSystem/ParticleSystem.h"

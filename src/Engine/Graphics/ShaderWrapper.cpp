@@ -14,6 +14,83 @@ ShaderWrapper::ShaderWrapper(const std::string &vsPath, const std::string &fsPat
         std::cerr << "[ShaderWrapper] Failed to load shader: " << vsPath << ", " << fsPath << std::endl;
     }
 }
+
+// TFB
+#ifdef GL_INTERLEAVED_ATTRIBS
+#define GL_INTERLEAVED_ATTRIBS 0x8C8C
+#endif
+#if defined(PLATFORM_WEB)
+#include <GLES3/gl3.h>
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#else
+#include "external/glad.h"
+#endif
+
+#include "rlgl.h"
+#include <vector>
+ShaderWrapper::ShaderWrapper(const std::string &vsPath, const std::vector<std::string> &varyings)
+{
+    m_shader.id = 0;
+    std::string vsCode = LoadVSText(vsPath);
+    if (vsCode.empty())
+    {
+        std::cerr << "[ShaderWrapper] TFB VS Source empty: " << vsPath << std::endl;
+        return;
+    }
+    unsigned int vShaderId = rlCompileShader(vsCode.c_str(), RL_VERTEX_SHADER);
+    if (vShaderId == 0)
+        return;
+
+    // raylib源码修改：插入varyings
+    // rlLoadShaderProgram();
+    unsigned int programId = glCreateProgram();
+    glAttachShader(programId, vShaderId);
+
+    // 编写shader时规范，顶点着色器包含这些变量
+    glBindAttribLocation(programId, 0, "pPosition");     // vec3
+    glBindAttribLocation(programId, 1, "pVelocity");     // vec3
+    glBindAttribLocation(programId, 2, "pAcceleration"); // vec3
+
+    glBindAttribLocation(programId, 3, "pColor");    // vec4
+    glBindAttribLocation(programId, 4, "pSize");     // vec2
+    glBindAttribLocation(programId, 5, "pRotation"); // float
+    glBindAttribLocation(programId, 6, "pLife");     // vec2: (totalLife,remainingLife )
+    glBindAttribLocation(programId, 7, "pRandomID"); // 随机数种子
+
+    // glLinkProgram前注入varyings
+    std::vector<const char *> varyingsRaw;
+    for (const auto &s : varyings)
+        varyingsRaw.push_back(s.c_str());
+    glTransformFeedbackVaryings(programId, (int)varyings.size(), varyingsRaw.data(), GL_INTERLEAVED_ATTRIBS);
+
+    glLinkProgram(programId);
+
+    int success = 0;
+    glGetProgramiv(programId, GL_LINK_STATUS, &success);
+
+    if (success == GL_FALSE)
+    {
+        int maxLength = 0;
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &maxLength);
+
+        if (maxLength > 0)
+        {
+            char *infoLog = new char[maxLength];
+            glGetProgramInfoLog(programId, maxLength, NULL, infoLog);
+            std::cerr << "[ShaderWrapper] TFB link shader: " << vsPath << ", " << infoLog << std::endl;
+            delete[] infoLog;
+        }
+
+        glDeleteProgram(programId);
+        programId = 0;
+    }
+    else
+        std::cout << "[ShaderWrapper] TFB Program ID: " << programId << " linked successfully" << std::endl;
+    glDeleteShader(vShaderId);
+    m_shader.id = programId;
+}
+
 ShaderWrapper::~ShaderWrapper()
 {
     if (m_shader.id > 0)
@@ -23,17 +100,6 @@ ShaderWrapper::~ShaderWrapper()
 }
 void ShaderWrapper::Begin() const { BeginShaderMode(m_shader); }
 void ShaderWrapper::End() const { EndShaderMode(); }
-int ShaderWrapper::GetLocation(const std::string &name)
-{
-    auto it = m_locationCache.find(name);
-    if (it != m_locationCache.end())
-        return it->second;
-
-    int loc = GetShaderLocation(m_shader, name.c_str());
-    m_locationCache[name] = loc;
-    return loc;
-}
-
 // TODO:使用模板实现自定义参数上传
 void ShaderWrapper::SetAll(const Matrix4f &MVP, const Matrix4f &M, const Vector3f &viewPos, float realTime, float gameTime, const Vector4f &baseColor,
 
@@ -121,4 +187,31 @@ void ShaderWrapper::SetTexture(const std::string &name, Texture2D texture, int u
         rlActiveTextureSlot(unit);
         rlEnableTexture(texture.id);
     }
+}
+
+// private:
+int ShaderWrapper::GetLocation(const std::string &name)
+{
+    auto it = m_locationCache.find(name);
+    if (it != m_locationCache.end())
+        return it->second;
+
+    int loc = GetShaderLocation(m_shader, name.c_str());
+    m_locationCache[name] = loc;
+    return loc;
+}
+
+#include <fstream>
+#include <sstream>
+std::string ShaderWrapper::LoadVSText(const std::string &path)
+{
+    std::ifstream file(path);
+    if (!file.is_open())
+    {
+        std::cerr << "[ShaderWrapper] Failed to open file: " << path << std::endl;
+        return "";
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
 }

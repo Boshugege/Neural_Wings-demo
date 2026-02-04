@@ -290,3 +290,40 @@ Vector3f Vector3f::Max(const Vector3f &a, const Vector3f &b)
 {
     return Vector3f(std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z()));
 }
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+Vector3f Vector3f::RandomSphere(float radius)
+{
+    float theta = static_cast<float>(rand()) / RAND_MAX * 2.0f * M_PI;
+    float phi = acos(2.0f * static_cast<float>(rand()) / RAND_MAX - 1.0f);
+
+    float x = sin(phi) * cos(theta);
+    float y = sin(phi) * sin(theta);
+    float z = cos(phi);
+
+    return radius * Vector3f(x, y, z);
+}
+Vector3f Vector3f::RandomCycle(const Vector3f &normal, float radius)
+{
+}
+Vector3f Vector3f::RandomCycle(const Vector3f &normal, float radius)
+{
+    float theta = static_cast<float>(rand()) / RAND_MAX * 2.0f * M_PI;
+
+    float x = cos(theta);
+    float y = sin(theta);
+
+    Vector3f tangent1, tangent2;
+    if (fabs(normal.x()) > fabs(normal.z()))
+    {
+        tangent1 = Vector3f(-normal.y(), normal.x(), 0).Normalized();
+    }
+    else
+    {
+        tangent1 = Vector3f(0, -normal.z(), normal.y()).Normalized();
+    }
+    tangent2 = normal ^ tangent1;
+
+    return (tangent1 * x + tangent2 * y + normal) * radius;
+}
