@@ -82,7 +82,7 @@ void ScreenManager::ApplySettings(const EngineConfig &newConfig)
         }
     }
 #endif
-    SetTargetFPS(newConfig.targetFPS);
+    SetTargetFPS((int)newConfig.targetFPS);
 
     // Persist the last applied settings and sync to the actual runtime window.
     m_activeConfig = newConfig;
@@ -131,16 +131,16 @@ bool ScreenManager::UpdateFrame()
         m_uiLayer->Update();
     }
 
+    BeginDrawing();
+    ClearBackground(BLACK);
+    m_currentScreen->Draw();
+    EndDrawing();
+
     int nextState = m_currentScreen->GetNextScreenState();
     if (nextState != SCREEN_STATE_NONE)
     {
         ChangeScreen(nextState);
     }
-
-    BeginDrawing();
-    ClearBackground(BLACK);
-    m_currentScreen->Draw();
-    EndDrawing();
 
     return true;
 }

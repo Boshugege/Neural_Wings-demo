@@ -22,6 +22,9 @@ private:
     void AddPostProcessPass(const PostProcessPass &pass);
     void SetUpRTPool(const std::vector<std::string> &names, int width, int height);
     void UnloadRTPool();
+
+    RenderTexture2D PostProcesser::LoadRT(int width, int height);
+
     std::unordered_map<std::string, RenderTexture2D> m_RTPool;
     std::vector<PostProcessPass> m_postProcessPasses;
 };

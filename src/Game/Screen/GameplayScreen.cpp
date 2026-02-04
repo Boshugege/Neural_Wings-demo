@@ -99,30 +99,24 @@ void GameplayScreen::Update(float deltaTime)
 
         if (m_inputManager.IsActionDown("Forward"))
         {
-            DrawText("Forward!", 200, 200, 20, GREEN);
             mainPos += mainCam->Direction() * 0.3f;
         }
         if (m_inputManager.IsActionDown("Backward"))
         {
-            DrawText("Backward!", 200, 200, 20, GREEN);
             mainPos -= mainCam->Direction() * 0.1f;
         }
         if (m_inputManager.IsActionDown("Left"))
         {
-            DrawText("Left!", 200, 200, 20, GREEN);
             mainPos -= mainCam->Right() * 0.1f;
         }
         if (m_inputManager.IsActionDown("Right"))
         {
-            DrawText("Right!", 200, 200, 20, GREEN);
             mainPos += mainCam->Right() * 0.1f;
         }
         mainCam->UpdateFromDirection(mainPos, mainCam->Direction(), mainCam->Up());
 
         float lookHorizontal = -m_inputManager.GetAxisValue("LookHorizontal") * PI / 180;
         float lookVertical = m_inputManager.GetAxisValue("LookVertical") * PI / 180;
-        DrawText(TextFormat("LookHorizontal: %f", lookHorizontal), 200, 300, 20, GREEN);
-        DrawText(TextFormat("LookVertical: %f", lookVertical), 200, 350, 20, GREEN);
         mainCam->Rotate(lookHorizontal, lookVertical);
 
         if (auto *rearCam = m_cameraManager.GetCamera("rear_view"))
@@ -141,13 +135,9 @@ void GameplayScreen::Draw()
 {
     ClearBackground(RAYWHITE); // 设置一个浅灰色背景
 
-    // m_renderer->RenderScene(*m_world, *m_cameraManager);
     m_world->Render();
     // 在3D内容之上绘制一些2D的调试信息
-    DrawText("Welcome to the 3D World!", 10, 40, 20, DARKGRAY);
     DrawText("Press ESC to return.", 10, GetScreenHeight() - 30, 20, DARKGRAY);
-    // m_worldRenderer->Draw(*m_world, *m_cameraManager);
-    // m_uiManager->Draw(*m_world, *m_cameraManager);
 }
 
 // 向 ScreenManager 报告下一个状态
