@@ -50,6 +50,8 @@ bool Renderer::LoadViewConfig(const std::string &configPath, GameWorld &gameWorl
 
 void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
 {
+    rlEnableDepthMask();
+    ClearBackground(BLACK);
     for (const auto &view : m_renderViewer->GetRenderViews())
     {
         mCamera *camera = cameraManager.GetCamera(view.cameraName);
@@ -91,9 +93,12 @@ void Renderer::RenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
     }
 
     BeginTextureMode(itScene->second);
-    ClearBackground(BLACK);
     RawRenderScene(gameWorld, cameraManager);
     EndTextureMode();
+
+    // 深度图
+    Texture2D sceneDepth = m_RTPool["inScreen"].depth;
+    // TODO: 粒子渲染
 
     m_postProcesser->PostProcess(gameWorld);
 
@@ -221,7 +226,6 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
     rlDisableBackfaceCulling();
     rlSetCullFace(RL_CULL_FACE_BACK);
     rlEnableColorBlend();
-
     float gameTime = gameWorld.GetTimeManager().GetGameTime();
     float realTime = gameWorld.GetTimeManager().GetRealTime();
 
@@ -236,17 +240,22 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         {
         case BLEND_OPIQUE:
             rlDisableColorBlend();
+            break;
         case BLEND_MULTIPLIED:
             rlSetBlendMode(BLEND_CUSTOM);
             rlSetBlendFactors(RL_DST_COLOR, RL_ZERO, RL_FUNC_ADD);
+            break;
         case BLEND_SCREEN:
             rlSetBlendMode(BLEND_CUSTOM);
             rlSetBlendFactors(RL_ONE, RL_ONE_MINUS_SRC_COLOR, RL_FUNC_ADD);
+            break;
         case BLEND_SUBTRACT:
             rlSetBlendMode(BLEND_CUSTOM);
             rlSetBlendFactors(RL_ONE, RL_ONE, RL_FUNC_REVERSE_SUBTRACT);
+            break;
         default:
             BeginBlendMode(pass.blendMode);
+            break;
         }
 
         pass.shader->SetAll(MVP, M, camera.Position(), realTime, gameTime, pass.baseColor, pass.customFloats, pass.customVector2, pass.customVector3, pass.customVector4);
@@ -277,16 +286,15 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
             rlDisableDepthMask();
 
         DrawMesh(mesh, tempRaylibMaterial, M);
-
+        rlDrawRenderBatchActive();
         pass.shader->End();
-
         EndBlendMode();
-        rlEnableColorBlend();
-        rlEnableDepthTest();
-        rlEnableDepthMask();
-        rlDisableBackfaceCulling();
-        rlSetCullFace(RL_CULL_FACE_BACK);
     }
+    rlEnableColorBlend();
+    rlEnableDepthTest();
+    rlEnableDepthMask();
+    rlDisableBackfaceCulling();
+    rlSetCullFace(RL_CULL_FACE_BACK);
 }
 
 // Debug

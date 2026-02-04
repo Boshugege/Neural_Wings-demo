@@ -20,8 +20,8 @@
       ],
       "fovy": 60.0,
       "projection": "PERSPECTIVE",
-      "nearPlane": 0.01,
-      "farPlane": 10000.0
+      "nearPlane": 0.1,
+      "farPlane": 1000.0
     },
     {
       "name": "rear_view",
