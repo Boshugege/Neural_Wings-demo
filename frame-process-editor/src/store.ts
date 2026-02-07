@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { addEdge, applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import { addEdge, applyNodeChanges, applyEdgeChanges, MarkerType } from 'reactflow';
 import type { Connection, Edge, EdgeChange, Node, NodeChange } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid';
 import type {
@@ -68,6 +68,9 @@ interface State {
     importJSON: (jsonStr: string) => void;
 
     isRTNameDuplicate: (nodeId: string, name: string) => { error: boolean; msg?: string };
+    showDepthLines: boolean;
+    toggleDepthLines: () => void;
+    disconnectHandle: (nodeId: string, handleId: string) => void;
 }
 
 function getTopologicalSort(nodes: Node<AllNodeData>[], edges: Edge[]): string[] {
@@ -105,6 +108,21 @@ function getTopologicalSort(nodes: Node<AllNodeData>[], edges: Edge[]): string[]
 
 
 export const useStore = create<State>((set, get) => ({
+    showDepthLines: true, // 默认为显示
+    toggleDepthLines: () => set({ showDepthLines: !get().showDepthLines }),
+    disconnectHandle: (nodeId: string, handleId: string) => {
+        const { edges } = get();
+        const newEdges = edges.filter(edge =>
+            // 过滤掉 连接到该节点 且 连接到该插槽 的线
+            !((edge.target === nodeId && edge.targetHandle === handleId) ||
+                (edge.source === nodeId && edge.sourceHandle === handleId))
+        );
+
+        // 只有当数量发生变化时才更新，避免不必要的重渲染
+        if (newEdges.length !== edges.length) {
+            set({ edges: newEdges });
+        }
+    },
     nodes: [
         {
             id: 'START_NODE',
@@ -140,124 +158,119 @@ export const useStore = create<State>((set, get) => ({
             ],
         });
     },
-
     importJSON: (jsonStr: string) => {
         try {
             const parsed = JSON.parse(jsonStr) as PostProcessConfig;
             const data = parsed.postProcess;
             const graph = data.postProcessGraph;
 
-            // 1. 重置画布：保留 Start/End 节点，或者完全重绘
-            // 这里建议保留 Start/End 的 ID 不变，方便逻辑处理
+            // 1. 重置画布
             const startNodeId = 'START_NODE';
             const endNodeId = 'END_NODE';
 
-            const newNodes: Node[] = [];
+            const newNodes: Node<AllNodeData>[] = []; // 使用泛型确保类型安全
             const newEdges: Edge[] = [];
 
-            // 2. 创建基础节点 (InputNode & OutputNode)
-            // 这里的 ID 必须固定，或者你需要用变量记录
+            // 2. 创建基础节点
             newNodes.push({
                 id: startNodeId,
                 type: 'inputNode',
-                position: { x: 50, y: 300 }, // 初始位置
-                data: { label: '源: inScreen', output: 'inScreen' }
+                position: { x: 50, y: 300 },
+                data: { name: 'Input', output: 'inScreen', inputPorts: [], texturePorts: [], isStatic: true, uniforms: {} } as PassNodeData
             });
 
             // 3. 准备映射表
-            // rtMap: 记录 "RT名称" 对应的 "节点ID" (用于 RT 连线)
             const rtMap = new Map<string, string>();
             rtMap.set('inScreen', startNodeId);
-            const passOutputs = new Set(graph.map(p => p.output));
-            const particleRTs = data.rtPool.filter(rt =>
-                rt !== 'inScreen' && rt !== 'outScreen' && !passOutputs.has(rt)
-            );
+            const textureMap = new Map<string, string>();
 
-            particleRTs.forEach((rtName, index) => {
+            // === 【修改点 1：更严谨的粒子节点识别】 ===
+            const passOutputs = new Set(graph.map(p => p.output));
+
+            // 收集所有可能的粒子 RT：rtPool 中的 + depthLinks 的目标中的
+            const potentialParticleRTs = new Set<string>();
+
+            // 1. 从 rtPool 收集
+            data.rtPool.forEach(rt => {
+                if (rt !== 'inScreen' && rt !== 'outScreen' && !passOutputs.has(rt)) {
+                    potentialParticleRTs.add(rt);
+                }
+            });
+
+            // 2. 从 depthLinks 收集 (防止漏网之鱼导致无法连线)
+            if (data.depthLinks) {
+                data.depthLinks.forEach(link => {
+                    link.targets.forEach(t => {
+                        if (t !== 'inScreen' && t !== 'outScreen' && !passOutputs.has(t)) {
+                            potentialParticleRTs.add(t);
+                        }
+                    });
+                });
+            }
+
+            // 创建粒子节点
+            Array.from(potentialParticleRTs).forEach((rtName, index) => {
                 const particleNodeId = generateId();
-                const color = getTechColor();
-                rtMap.set(rtName, particleNodeId); // 存入映射表，供后续 PassNode 寻找 sourceNodeId
+                rtMap.set(rtName, particleNodeId);
                 newNodes.push({
                     id: particleNodeId,
                     type: 'particleNode',
-                    position: { x: 50, y: 450 + index * 110 }, // 布局在 InputNode 下方
-                    data: {
-                        name: rtName,
-                        output: rtName,
-                        themeColor: color
-                    }
+                    position: { x: 50, y: 450 + index * 120 },
+                    data: { name: rtName, output: rtName, themeColor: getTechColor() } as ParticleNodeData
                 });
             });
-            // textureMap: 记录 "图片路径" 对应的 "节点ID" (防止重复创建相同的贴图节点)
-            const textureMap = new Map<string, string>();
+            // ==========================================
 
             // 4. 遍历 JSON 生成 PassNode
-            let currentX = 450; // 自动布局的起始 X 坐标
+            let currentX = 450;
             const startY = 100;
 
             graph.forEach((pass, index) => {
-                const nodeId = generateId(); // 为当前 Pass 生成新 ID
+                const nodeId = generateId();
+                // 记录 Output RT
+                if (pass.output && pass.output !== 'outScreen') {
+                    rtMap.set(pass.output, nodeId);
+                }
 
-                // 4.1 重建 Input Ports (带稳定 ID)
-                // JSON: inputs: [ ["u_tex0", "inScreen"], ... ]
+                // 4.1 Input Ports
                 const inputPorts: port[] = [];
                 const inputConnections: { portId: string, sourceRt: string }[] = [];
 
                 pass.inputs.forEach(([portName, sourceRt]) => {
-                    const portId = `in_${generateId()}`; // 生成内部连线用的 ID
+                    const portId = portName; // 【建议】直接用名字做 ID，防止 ID 错乱
                     inputPorts.push({ id: portId, name: portName });
-                    // 暂存连线关系，等所有节点创建完再连
                     inputConnections.push({ portId, sourceRt });
                 });
 
-                // 4.2 重建 Texture Ports & Texture Nodes
-                // JSON: textures: { "u_tex0": "path/to/img.png" }
+                // 4.2 Texture Ports
                 const texturePorts: port[] = [];
                 const textureConnections: { portId: string, textureNodeId: string }[] = [];
 
                 if (pass.textures) {
                     Object.entries(pass.textures).forEach(([portName, path]) => {
-                        const portId = `tex_${generateId()}`;
+                        const portId = portName; // 【建议】直接用名字做 ID
                         texturePorts.push({ id: portId, name: portName });
 
-                        // 检查该图片是否已经创建过节点，如果没有则创建
                         let texNodeId = textureMap.get(path);
                         if (!texNodeId) {
                             texNodeId = generateId();
                             textureMap.set(path, texNodeId);
-
-                            // 创建贴图节点
                             newNodes.push({
                                 id: texNodeId,
                                 type: 'textureNode',
-                                position: { x: currentX - 200, y: startY + 300 + (Math.random() * 100) }, // 放在 Pass 下方或左侧
-                                data: {
-                                    name: 'Texture',
-                                    path: path,
-                                    output: path,
-                                    themeColor: '#3a8ee6' // 默认颜色或随机
-                                }
+                                position: { x: currentX, y: startY + 500 + (index % 2) * 150 },
+                                data: { name: 'Texture', path: path, output: path, themeColor: '#3a8ee6' } as TextureNodeData
                             });
                         }
-
-                        // 记录连线关系
                         textureConnections.push({ portId, textureNodeId: texNodeId });
                     });
                 }
 
-                // 4.3 记录该节点的输出 RT，供后续节点查找
-                if (pass.output && pass.output !== 'outScreen') {
-                    rtMap.set(pass.output, nodeId);
-                }
-
-                // 如果直接输出到屏幕，记录一下，稍后连线到 END_NODE
-                const isOutputToScreen = pass.output === 'outScreen';
-
-                // 4.4 创建 PassNode 对象
+                // 4.3 创建 PassNode
                 newNodes.push({
                     id: nodeId,
                     type: 'passNode',
-                    position: { x: currentX, y: startY + (index % 2) * 50 }, // 简单的错位布局
+                    position: { x: currentX, y: startY + (index % 2) * 60 },
                     data: {
                         name: pass.name,
                         vs: pass.vs,
@@ -267,67 +280,94 @@ export const useStore = create<State>((set, get) => ({
                         uniforms: pass.uniforms || {},
                         output: pass.output,
                         baseColor: pass.baseColor,
-                        // 使用之前的随机颜色生成逻辑，或者从 JSON 读取(如果 JSON 有存的话)
                         themeColor: getTechColor()
-                    }
+                    } as PassNodeData
                 });
 
-                // 5. 生成连线 (Edges)
-
-                // 5.1 输入端口连线
+                // 5. 生成连线 (Inputs & Textures)
                 inputConnections.forEach(({ portId, sourceRt }) => {
                     const sourceNodeId = rtMap.get(sourceRt);
                     if (sourceNodeId) {
                         newEdges.push({
-                            id: `edge_${sourceNodeId}_${nodeId}_${portId}`,
+                            id: `edge_rt_${uuidv4()}`,
                             source: sourceNodeId,
-                            sourceHandle: 'output', // 假设所有源节点的输出 Handle ID 都是 'output'
+                            sourceHandle: 'output',
                             target: nodeId,
-                            targetHandle: portId, // 关键：连接到刚才生成的稳定 ID
-                            animated: true,
-                            style: { stroke: '#999' }
+                            targetHandle: portId,
+                            style: { stroke: '#999', strokeWidth: 2 }
                         });
                     }
                 });
 
-                // 5.2 贴图端口连线
                 textureConnections.forEach(({ portId, textureNodeId }) => {
                     newEdges.push({
-                        id: `edge_${textureNodeId}_${nodeId}_${portId}`,
+                        id: `edge_tex_${uuidv4()}`,
                         source: textureNodeId,
                         sourceHandle: 'output',
                         target: nodeId,
                         targetHandle: portId,
-                        style: { stroke: '#3a8ee6' } // 蓝色线
+                        style: { stroke: '#3a8ee6', strokeWidth: 2 }
                     });
                 });
 
-                // 5.3 如果是最终输出，连接到 EndNode
-                if (isOutputToScreen) {
+                if (pass.output === 'outScreen') {
                     newEdges.push({
-                        id: `edge_${nodeId}_${endNodeId}`,
+                        id: `edge_out_${uuidv4()}`,
                         source: nodeId,
                         sourceHandle: 'output',
                         target: endNodeId,
-                        targetHandle: 'input', // 假设 EndNode 的输入 Handle ID 是 input
+                        targetHandle: 'input',
                         animated: true,
-                        style: { stroke: '#e84855', strokeWidth: 2 }
+                        style: { stroke: '#e84855', strokeWidth: 2.5 }
                     });
                 }
 
-                // 布局步进
                 currentX += 450;
             });
 
-            // 6. 添加 OutputNode (放在最后)
+            // 6. Output Node
             newNodes.push({
                 id: endNodeId,
                 type: 'outputNode',
                 position: { x: currentX, y: 300 },
-                data: { label: '输出: outScreen' }
+                data: { label: '输出: outScreen', output: 'outScreen', isStatic: true, inputPorts: [], texturePorts: [], uniforms: {} } as PassNodeData
             });
 
-            // 7. 更新 Store
+            // === 【新增点：深度共享连线 (Depth Links)】 ===
+            // 这部分逻辑在你提供的代码中是缺失的，必须补上才能看到连线
+            if (data.depthLinks) {
+                data.depthLinks.forEach(link => {
+                    const sourceNodeId = rtMap.get(link.source);
+
+                    if (sourceNodeId) {
+                        // 遍历 targets 数组，为每一个目标创建一条独立的连线
+                        link.targets.forEach(targetRT => {
+                            const targetNodeId = rtMap.get(targetRT);
+
+                            if (targetNodeId) {
+                                newEdges.push({
+                                    id: `edge_depth_${uuidv4()}`, // 确保 ID 唯一
+                                    source: sourceNodeId,
+                                    sourceHandle: 'depth-out', // 固定 ID
+                                    target: targetNodeId,
+                                    targetHandle: 'depth-in',  // 固定 ID
+                                    className: 'depth-edge',   // 样式类名
+                                    style: { stroke: '#a855f7', strokeWidth: 2, strokeDasharray: '5,5' },
+                                    animated: true,
+                                    // 确保引入了 MarkerType，或者直接写字符串 'arrowclosed'
+                                    markerEnd: { type: 'arrowclosed', color: '#a855f7' } as any
+                                });
+                            } else {
+                                console.warn(`深度连线目标未找到: ${targetRT}`);
+                            }
+                        });
+                    } else {
+                        console.warn(`深度连线源未找到: ${link.source}`);
+                    }
+                });
+            }
+            // ==========================================
+
             set({
                 nodes: newNodes,
                 edges: newEdges,
@@ -339,8 +379,6 @@ export const useStore = create<State>((set, get) => ({
             alert("导入失败，JSON 格式错误");
         }
     },
-
-
     setPostProcessName: (name: string) => set({ postProcessName: name }),
     setNodeThemeColor: (nodeId, color) => {
         const { nodes } = get();
@@ -365,26 +403,95 @@ export const useStore = create<State>((set, get) => ({
 
     onEdgesChange: (changes) => set({ edges: applyEdgeChanges(changes, get().edges) }),
     onConnect: (connection: Connection) => {
-        const { edges } = get();
+        const { edges, nodes } = get();
 
+        // 1. 端口占用检查（一对一逻辑）：
+        // 如果目标节点的该插槽（targetHandle）已经有连线，则先过滤掉旧线
         const filteredEdges = edges.filter(
             (edge) => !(edge.target === connection.target && edge.targetHandle === connection.targetHandle)
         );
 
+        // 2. 获取源节点以确定连线类型
+        const sourceNode = nodes.find((n) => n.id === connection.source);
+
+        // 3. 构造符合 Edge 类型的对象（不使用 any）
+        const newEdge: Edge = {
+            id: `e-${uuidv4()}`,
+            source: connection.source,
+            target: connection.target,
+            sourceHandle: connection.sourceHandle,
+            targetHandle: connection.targetHandle,
+            // 默认样式（RT 连线）
+            style: { stroke: '#999', strokeWidth: 2 },
+            animated: false,
+        };
+
+        // 4. 根据业务逻辑分配特殊样式
+
+        // 情况 A: 深度共享连线 (紫色虚线 + 箭头)
+        const isDepth = connection.sourceHandle === 'depth-out' || connection.targetHandle === 'depth-in';
+        if (isDepth) {
+            newEdge.style = { stroke: '#a855f7', strokeWidth: 2, strokeDasharray: '5,5' };
+            newEdge.animated = true;
+            newEdge.className = 'depth-edge'; // 对应 CSS 动画类名
+            newEdge.markerEnd = {
+                type: MarkerType.ArrowClosed,
+                color: '#a855f7',
+            };
+        }
+        // 情况 B: 材质节点连线 (蓝色线)
+        else if (sourceNode?.type === 'textureNode') {
+            newEdge.style = { stroke: '#3a8ee6', strokeWidth: 2 };
+        }
+        // 情况 C: 最终输出到屏幕 (通常连向 END_NODE)
+        else if (connection.target === 'END_NODE') {
+            newEdge.style = { stroke: '#f87171', strokeWidth: 2.5 };
+            newEdge.animated = true;
+        }
+
+        // 5. 使用 React Flow 的 addEdge 工具合并状态
         set({
-            edges: addEdge(connection, filteredEdges)
+            edges: addEdge(newEdge, filteredEdges)
         });
     },
     isRTNameDuplicate: (nodeId: string, name: string) => {
+        // 1. 检查保留关键字
         if (name === 'inScreen') return { error: true, msg: 'inScreen 是保留输入名，不可作为输出' };
-        const nodes = get().nodes;
-        const exists = nodes.some(n =>
-            n.id !== nodeId &&
-            n.type === 'passNode' &&
-            (n.data as PassNodeData).output === name
-        );
+        if (name === 'outScreen') return { error: true, msg: 'outScreen 是保留输出名，自动生成的' };
+        if (!name || name.trim() === '') return { error: true, msg: '名字不能为空' };
 
-        return exists ? { error: true, msg: `RT名称 "${name}" 已存在，请使用唯一名称` } : { error: false };
+        const { nodes } = get();
+
+        // 2. 遍历全局节点检查冲突
+        const duplicateNode = nodes.find(n => {
+            // A. 跳过正在编辑的这个节点自己
+            if (n.id === nodeId) return false;
+
+            // B. 检查 Pass 节点的输出 RT
+            if (n.type === 'passNode') {
+                const d = n.data as PassNodeData;
+                return d.output === name;
+            }
+
+            // C. 检查 粒子 节点的输出 RT
+            // (这一步同时覆盖了：Pass改名撞粒子、粒子改名撞Pass、粒子改名撞粒子)
+            if (n.type === 'particleNode') {
+                const d = n.data as ParticleNodeData;
+                return d.output === name;
+            }
+
+            return false;
+        });
+
+        if (duplicateNode) {
+            const typeName = duplicateNode.type === 'passNode' ? 'Pass节点' : '粒子节点';
+            return {
+                error: true,
+                msg: `命名冲突：RT名称 "${name}" 已被另一个${typeName}使用`
+            };
+        }
+
+        return { error: false };
     },
 
     updateNodeData: (nodeId, newData) => set({
@@ -554,7 +661,7 @@ export const useStore = create<State>((set, get) => ({
             position,
             data: {
                 name: 'New Pass',
-                inputPorts: [{ id: `in_${generateId()}`, name: 'u_tex0' }],
+                inputPorts: [{ id: `in_${generateId()}`, name: 'u_rt0' }],
                 texturePorts: [],
                 uniforms: {},
                 output: newRTName,
@@ -569,11 +676,50 @@ export const useStore = create<State>((set, get) => ({
         const sortedIds = getTopologicalSort(nodes, edges);
         const sortedPasses: Pass[] = [];
         const rtPoolSet = new Set<string>(['inScreen', 'outScreen']);
+
         nodes.forEach(n => {
             if (n.type === 'particleNode') {
                 rtPoolSet.add((n.data as ParticleNodeData).output);
             }
+            // 注意：这里没有添加 textureNode 的输出
         });
+
+        // === 【新增点 2】：提取深度绑定逻辑 ===
+        const depthLinksMap = new Map<string, Set<string>>();
+        edges.forEach(e => {
+            if (e.sourceHandle === 'depth-out' && e.targetHandle === 'depth-in') {
+                const srcNode = nodes.find(n => n.id === e.source);
+                const tarNode = nodes.find(n => n.id === e.target);
+
+                if (srcNode && tarNode) {
+                    // 类型安全地获取 RT 名称
+                    let srcRT = '';
+                    if (srcNode.type === 'inputNode' || srcNode.type === 'passNode') {
+                        srcRT = (srcNode.data as PassNodeData).output;
+                    } else if (srcNode.type === 'particleNode') {
+                        srcRT = (srcNode.data as ParticleNodeData).output;
+                    }
+
+                    let tarRT = '';
+                    if (tarNode.type === 'passNode') {
+                        tarRT = (tarNode.data as PassNodeData).output;
+                    } else if (tarNode.type === 'particleNode') {
+                        tarRT = (tarNode.data as ParticleNodeData).output;
+                    }
+
+                    if (srcRT && tarRT) {
+                        if (!depthLinksMap.has(srcRT)) depthLinksMap.set(srcRT, new Set());
+                        depthLinksMap.get(srcRT)!.add(tarRT);
+                    }
+                }
+            }
+        });
+
+        const depthLinks = Array.from(depthLinksMap.entries()).map(([source, targets]) => ({
+            source,
+            targets: Array.from(targets)
+        }));
+
         sortedIds.forEach(id => {
             const node = nodes.find(n => n.id === id);
             if (!node || node.type !== 'passNode') return;
@@ -588,11 +734,15 @@ export const useStore = create<State>((set, get) => ({
                     const sourceNode = nodes.find(n => n.id === e.source);
                     if (!sourceNode) return [port.name, ''] as [string, string];
 
-                    const output = sourceNode.type === 'textureNode'
-                        ? (sourceNode.data as TextureNodeData).output
-                        : (sourceNode.data as PassNodeData).output;
-
-                    return [port.name || 'u_texture', output] as [string, string];
+                    let sourceOutput = '';
+                    if (sourceNode.type === 'textureNode') {
+                        sourceOutput = (sourceNode.data as TextureNodeData).output;
+                    } else if (sourceNode.type === 'particleNode') {
+                        sourceOutput = (sourceNode.data as ParticleNodeData).output;
+                    } else {
+                        sourceOutput = (sourceNode.data as PassNodeData).output;
+                    }
+                    return [port.name || 'u_texture', sourceOutput] as [string, string];
                 }).filter((item): item is [string, string] => item !== null);
 
             const textures: Record<string, string> = {};
@@ -622,6 +772,6 @@ export const useStore = create<State>((set, get) => ({
             });
         });
 
-        return { postProcess: { name: postProcessName, rtPool: Array.from(rtPoolSet), hint: "拓扑序", postProcessGraph: sortedPasses } };
+        return { postProcess: { name: postProcessName, rtPool: Array.from(rtPoolSet), depthLinks: depthLinks, hint: "拓扑序", postProcessGraph: sortedPasses } };
     }
 }));

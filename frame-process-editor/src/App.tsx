@@ -45,7 +45,7 @@ export default function App() {
   const {
     nodes, edges, onNodesChange, onEdgesChange, onConnect,
     addPassNode, addTextureNode, generateJSON, addParticleNode,
-    postProcessName, setPostProcessName,
+    postProcessName, setPostProcessName, showDepthLines, toggleDepthLines,
     importJSON
   } = useStore();
 
@@ -69,7 +69,9 @@ export default function App() {
 
   const isValidConnection = (connection: Connection) => {
     if (connection.source === connection.target) return false;
-
+    if (connection.sourceHandle === 'depth-out' || connection.targetHandle === 'depth-in') {
+      return connection.sourceHandle === 'depth-out' && connection.targetHandle === 'depth-in';
+    }
     // 1. 环路检查
     if (checkCycle(connection, edges)) return false;
 
@@ -124,64 +126,75 @@ export default function App() {
         accept=".json"
         onChange={handleFileChange}
       />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        isValidConnection={isValidConnection}
-        selectionOnDrag={true}
-        selectionMode={SelectionMode.Partial}
-        deleteKeyCode={['Backspace', 'Delete']}
-        selectionKeyCode="Shift"
-        fitView
-      >
-        <Background color="#333" gap={20} />
-        <Controls />
+      <div className={showDepthLines ? "" : "depth-line-hidden"} style={{ width: '100vw', height: '100vh' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          isValidConnection={isValidConnection}
+          selectionOnDrag={true}
+          selectionMode={SelectionMode.Partial}
+          deleteKeyCode={['Backspace', 'Delete']}
+          selectionKeyCode="Shift"
+          fitView
+        >
+          <Background color="#333" gap={20} />
+          <Controls />
 
-        {/* 顶部左侧：修改全局名字 */}
-        <Panel position="top-left" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <h2 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>帧合成编辑器</h2>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: '#666', fontSize: '9px' }}>FrameProcess Name:</span>
-            <input
-              value={postProcessName}
-              onChange={(e) => setPostProcessName(e.target.value)}
-              style={{
-                background: '#1a1a1a', border: '1px solid #444', color: '#3fb950',
-                padding: '4px 8px', borderRadius: '4px', outline: 'none', fontWeight: 'bold'
-              }}
-            />
-          </div>
-        </Panel>
+          {/* 顶部左侧：修改全局名字 */}
+          <Panel position="top-left" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <h2 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>帧合成编辑器</h2>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ color: '#666', fontSize: '9px' }}>FrameProcess Name:</span>
+              <input
+                value={postProcessName}
+                onChange={(e) => setPostProcessName(e.target.value)}
+                style={{
+                  background: '#1a1a1a', border: '1px solid #444', color: '#3fb950',
+                  padding: '4px 8px', borderRadius: '4px', outline: 'none', fontWeight: 'bold'
+                }}
+              />
+            </div>
 
-        {/* 顶部右侧：操作按钮 */}
-        <Panel position="top-right" style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{ ...btnStyle, borderColor: '#e6a23c', color: '#e6a23c' }}
-          >
-            📂 导入 JSON
-          </button>
-          <button onClick={addParticleNode} style={{ ...btnStyle, borderColor: '#e67e22', color: '#e67e22' }}>
-            + 粒子节点
-          </button>
+            <div style={{ display: 'flex', alignItems: 'bottom', gap: '8px' }}>
+              <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: 'bold' }}>显示深度线</span>
+              <input
+                type="checkbox"
+                checked={showDepthLines}
+                onChange={toggleDepthLines}
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+          </Panel>
 
-          <button onClick={addTextureNode} style={{ ...btnStyle, borderColor: '#3a8ee6', color: '#3a8ee6' }}>
-            + 添加 贴图节点
-          </button>
-          <button onClick={addPassNode} style={{ ...btnStyle, borderColor: '#409eff' }}>+ 添加 Pass 节点</button>
+          {/* 顶部右侧：操作按钮 */}
+          <Panel position="top-right" style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{ ...btnStyle, borderColor: '#e6a23c', color: '#e6a23c' }}
+            >
+              📂 导入 JSON
+            </button>
+            <button onClick={addParticleNode} style={{ ...btnStyle, borderColor: '#e67e22', color: '#e67e22' }}>
+              + 粒子节点
+            </button>
+
+            <button onClick={addTextureNode} style={{ ...btnStyle, borderColor: '#3a8ee6', color: '#3a8ee6' }}>
+              + 添加 贴图节点
+            </button>
+            <button onClick={addPassNode} style={{ ...btnStyle, borderColor: '#409eff' }}>+ 添加 Pass 节点</button>
 
 
 
-          <button onClick={onExport} style={{ ...btnStyle, background: '#3fb950', color: '#fff', border: 'none' }}>
-            导出 JSON
-          </button>
-        </Panel>
-      </ReactFlow>
-    </div >
+            <button onClick={onExport} style={{ ...btnStyle, background: '#3fb950', color: '#fff', border: 'none' }}>
+              导出 JSON
+            </button>
+          </Panel>
+        </ReactFlow>
+      </div ></div>
   );
 }
 

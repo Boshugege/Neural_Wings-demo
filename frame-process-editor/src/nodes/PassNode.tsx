@@ -3,31 +3,28 @@ import type { NodeProps } from 'reactflow';
 import { useStore } from '../store';
 import type { PassNodeData } from '../types';
 import { UniformItem } from './UniformItem';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 
-
-const RTNameInput = ({ nodeId, value }: { nodeId: string, value: string }) => {
+// 定义在 PassNode.tsx 外部或单独的文件中
+const RTNameInput = ({ nodeId, value, disabled }: { nodeId: string, value: string, disabled: boolean }) => {
     const [localValue, setLocalValue] = React.useState(value);
     const { updateNodeData, isRTNameDuplicate } = useStore();
 
-    // 当外部值改变（比如导入时），同步内部值
+    // 同步外部值
     React.useEffect(() => {
         setLocalValue(value);
     }, [value]);
 
     const handleCommit = () => {
-        // 如果没改名字，直接返回
+        if (disabled) return; // 禁用时不处理提交
         if (localValue === value) return;
 
-        // 检查是否重名
         const check = isRTNameDuplicate(nodeId, localValue);
-
         if (check.error) {
             alert(check.msg);
-            setLocalValue(value); // 校验失败，回退到原始值
+            setLocalValue(value);
         } else {
-            // 校验通过，正式写入 Store
             updateNodeData(nodeId, { output: localValue });
         }
     };
@@ -35,25 +32,27 @@ const RTNameInput = ({ nodeId, value }: { nodeId: string, value: string }) => {
     return (
         <input
             className="nodrag"
-            value={localValue}
-            onChange={(e) => setLocalValue(e.target.value)} // 输入中只改变本地状态，不弹窗
-            onBlur={handleCommit} // 失去焦点时判断
-            onKeyDown={(e) => e.key === 'Enter' && handleCommit()} // 按回车时判断
+            // 如果禁用，强制显示 "outScreen"，否则显示当前编辑的值
+            value={disabled ? "outScreen" : localValue}
+            disabled={disabled}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={handleCommit}
+            onKeyDown={(e) => e.key === 'Enter' && handleCommit()}
             style={{
-                background: '#111',
-                border: '1px solid #3d3d3d',
+                background: disabled ? '#222' : '#111',       // 禁用变深色
+                border: `1px solid ${disabled ? '#333' : '#3d3d3d'}`,
                 borderRadius: '4px',
-                color: '#fff',
+                color: disabled ? '#555' : '#fff',            // 禁用变灰色
                 fontSize: '11px',
                 width: '90px',
                 textAlign: 'right',
                 padding: '2px 6px',
-                outline: 'none'
+                outline: 'none',
+                cursor: disabled ? 'not-allowed' : 'text'     // 禁用显示禁止符号
             }}
         />
     );
 };
-
 
 // 颜色转换工具函数
 const rgbaToHex = (r: number, g: number, b: number) => {
@@ -96,8 +95,10 @@ const EditablePortLabel: React.FC<EditablePortLabelProps> = ({ value, onSave, st
     );
 };
 export default function PassNode({ id, data }: NodeProps<PassNodeData>) {
+
     // 从 Store 获取所有操作方法
     const renameInputPort = useStore((s) => s.renameInputPort);
+    const disconnectHandle = useStore((s) => s.disconnectHandle);
     const removeInputPort = useStore((s) => s.removeInputPort);
     const addUniform = useStore((s) => s.addUniform);
     const updateBaseColor = useStore((s) => s.updateBaseColor);
@@ -115,6 +116,15 @@ export default function PassNode({ id, data }: NodeProps<PassNodeData>) {
     const isThemeLight = isLightColor(theme);
     const titleTextColor = isThemeLight ? '#000' : '#fff';
     const labelColor = '#999';
+    const isFinalPass = useStore(useCallback((store) =>
+        store.edges.some(e => e.source === id && e.target === 'END_NODE'),
+        [id]));
+    useEffect(() => {
+        if (isFinalPass) {
+            disconnectHandle(id, 'depth-in');
+        }
+    }, [isFinalPass, id, disconnectHandle]);
+
 
     return (
         <div className="pass-node" style={{
@@ -235,7 +245,7 @@ export default function PassNode({ id, data }: NodeProps<PassNodeData>) {
                         </div>
                     ))}
                     <button className="nodrag" onClick={() => {
-                        const newPort = { id: `in_${Date.now()}`, name: `u_tex${data.inputPorts.length}` };
+                        const newPort = { id: `in_${Date.now()}`, name: `u_rt${data.inputPorts.length}` };
                         updateNodeData(id, { inputPorts: [...(data.inputPorts || []), newPort] });
                     }} style={{ fontSize: '9px', color: '#888', background: '#353535', border: '1px solid #444', borderRadius: '4px', padding: '2px' }}>
                         + Add Input
@@ -285,10 +295,53 @@ export default function PassNode({ id, data }: NodeProps<PassNodeData>) {
 
                 {/* 6. 输出端口 */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', position: 'relative', marginTop: '12px', borderTop: '1px solid #3d3d3d', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '10px', marginRight: '6px', color: theme, fontWeight: 'bold' }}>RT:</span>
-                    <RTNameInput nodeId={id} value={data.output} /> <Handle type="source" position={Position.Right} id="output" style={{ background: theme, width: '10px', height: '10px', right: '-15px', border: '2px solid #2d2d2d' }} />
+
+                    {/* 标签 */}
+                    <span style={{ fontSize: '10px', marginRight: '6px', color: isFinalPass ? '#666' : theme, fontWeight: 'bold' }}>
+                        {isFinalPass ? 'OUT:' : 'RT:'}
+                    </span>
+
+                    {/* 使用自定义组件，传入 disabled 状态 */}
+                    <RTNameInput
+                        nodeId={id}
+                        value={data.output}
+                        disabled={isFinalPass}
+                    />
+
+                    <Handle
+                        type="source"
+                        position={Position.Right}
+                        id="output"
+                        style={{ background: theme, width: '10px', height: '10px', right: '-15px', border: '2px solid #2d2d2d' }}
+                    />
                 </div>
 
+
+
+
+                {!isFinalPass ? (
+                    <div style={{ position: 'absolute', bottom: '-5px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <Handle
+                            type="target"
+                            position={Position.Bottom}
+                            id="depth-in"
+                            style={{ background: theme, width: '10px', height: '10px', border: '2px solid #2d2d2d' }}
+                        />
+                        <span style={{
+                            fontSize: '7px',
+                            color: theme,
+                            bottom: '-10px',
+                            left: '14px', // 调整文字位置，使其不重叠
+                            position: 'absolute',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 'bold'
+                        }}>
+                            DEPTH
+                        </span>
+                    </div>
+                ) : (
+                    <div />
+                )}
             </div>
         </div >
     );

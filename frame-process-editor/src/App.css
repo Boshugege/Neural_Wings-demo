@@ -51,6 +51,37 @@ body,
   }
 }
 
+/* 深度线动画 */
+.depth-edge .react-flow__edge-path {
+  stroke: #a855f7 !important;
+  stroke-dasharray: 5;
+}
+
+.depth-edge.animated .react-flow__edge-path {
+  animation: depth-flow 0.5s linear infinite;
+}
+
+@keyframes depth-flow {
+  from {
+    stroke-dashoffset: 10;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 隐藏深度线（当开关关闭时） */
+.depth-line-hidden .depth-edge {
+  display: none !important;
+}
+
+
+/* 修改箭头颜色 */
+.react-flow__marker path {
+  fill: #a855f7;
+}
+
 /* 4. Handle 状态反馈 */
 .react-flow__handle-valid {
   background-color: #3fb950 !important;
