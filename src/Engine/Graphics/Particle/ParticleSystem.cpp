@@ -19,7 +19,8 @@ GPUParticleBuffer *ParticleSystem::GetOrCreateBuffer(std::shared_ptr<ParticleEmi
     auto it = m_emitterBuffers.find(emitter);
     if (it == m_emitterBuffers.end())
     {
-        auto buff = std::make_unique<GPUParticleBuffer>(emitter->GetMaxParticles(), *emitter->GetRenderMaterial().shader);
+        // auto a = GPUParticleBuffer(emitter->GetMaxParticles());
+        auto buff = std::make_unique<GPUParticleBuffer>(emitter->GetMaxParticles(), emitter->GetRenderPasses());
         GPUParticleBuffer *buffPtr = buff.get();
         m_emitterBuffers[emitter] = std::move(buff);
         return buffPtr;
@@ -28,7 +29,7 @@ GPUParticleBuffer *ParticleSystem::GetOrCreateBuffer(std::shared_ptr<ParticleEmi
     if (it->second->GetMaxParticles() != emitter->GetMaxParticles())
     {
         std::cout << "[ParticleSystem]: Resize GPU Buffer: " << it->second->GetMaxParticles() << " -> " << emitter->GetMaxParticles() << std::endl;
-        it->second = std::make_unique<GPUParticleBuffer>(emitter->GetMaxParticles(), *emitter->GetRenderMaterial().shader);
+        it->second = std::make_unique<GPUParticleBuffer>(emitter->GetMaxParticles(), emitter->GetRenderPasses());
         emitter->ResetInsertionIndex();
     }
     return it->second.get();

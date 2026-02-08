@@ -65,8 +65,18 @@ void ParticleEmitter::LoadFromConfig(const json &config, const ParticleFactory &
             }
         }
     }
-    if (config.contains("renderMaterial"))
-        m_renderMaterial.LoadFromConfig(config["renderMaterial"], rm);
+    if (config.contains("passes"))
+    {
+        m_passes.clear();
+        auto &matData = config["passes"];
+        for (const auto &pass : matData)
+        {
+            RenderMaterial mat;
+            mat.LoadFromConfig(pass, rm);
+            m_passes.push_back(mat);
+        }
+    }
+    // m_renderMaterial.LoadFromConfig(config["renderMaterial"], rm);
 }
 void ParticleEmitter::Update(float deltaTime, const TransformComponent &ownerTf, GPUParticleBuffer &particleBuffer)
 {
@@ -166,9 +176,9 @@ std::shared_ptr<ShaderWrapper> ParticleEmitter::GetUpdateShader() const
     return m_updateShader;
 }
 
-RenderMaterial &ParticleEmitter::GetRenderMaterial()
+std::vector<RenderMaterial> &ParticleEmitter::GetRenderPasses()
 {
-    return m_renderMaterial;
+    return m_passes;
 }
 
 #include "rlgl.h"
@@ -182,60 +192,64 @@ RenderMaterial &ParticleEmitter::GetRenderMaterial()
 #endif
 #include <string>
 
-void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
-                             const Vector3f &viewPos, float realTime, float gameTime,
-                             const Matrix4f &VP, const mCamera &camera)
+void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &pass, std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
+                                       const Vector3f &viewPos, float realTime, float gameTime,
+                                       const Matrix4f &VP, const mCamera &camera)
 {
-    if (!m_renderMaterial.shader || !m_renderMaterial.shader->IsValid())
+    if (!pass.shader || !pass.shader->IsValid())
         return;
 
-    std::string outputRT = m_renderMaterial.outputRT;
-    BeginTextureMode(RTPool[outputRT]);
+    std::string outputRT = pass.outputRT;
+    auto itRT = RTPool.find(pass.outputRT);
+    if (itRT == RTPool.end())
+        return;
+
+    BeginTextureMode(itRT->second);
     {
         rlClearColor(0, 0, 0, 0);
         rlDrawRenderBatchActive();
         rlEnableVertexArray(0);
         rlSetTexture(0);
-        m_renderMaterial.shader->Begin();
+        pass.shader->Begin();
 
         Vector3f right = camera.Right();
         Vector3f up = camera.Up();
 
         int texUnit = 0;
-        for (const auto &[name, texture] : m_renderMaterial.customTextures)
+        for (const auto &[name, texture] : pass.customTextures)
         {
             if (texture.id > 0)
             {
-                m_renderMaterial.shader->SetTexture(name, texture, texUnit);
+                pass.shader->SetTexture(name, texture, texUnit);
                 texUnit++;
             }
         }
         if (sceneDepth.id > 0)
         {
-            m_renderMaterial.shader->SetTexture("u_sceneDepth", sceneDepth, texUnit);
+            pass.shader->SetTexture("u_sceneDepth", sceneDepth, texUnit);
             texUnit++;
         }
 
-        m_renderMaterial.shader->SetVec2("u_resolution", Vector2f(GetScreenWidth(), GetScreenHeight()));
-        m_renderMaterial.shader->SetFloat("u_near", camera.getNearPlane());
-        m_renderMaterial.shader->SetFloat("u_far", camera.getFarPlane());
+        pass.shader->SetVec2("u_resolution", Vector2f(GetScreenWidth(), GetScreenHeight()));
+        pass.shader->SetFloat("u_near", camera.getNearPlane());
+        pass.shader->SetFloat("u_far", camera.getFarPlane());
 
-        m_renderMaterial.shader->SetVec3("u_cameraRight", right);
-        m_renderMaterial.shader->SetVec3("u_cameraUp", up);
-        m_renderMaterial.shader->SetMat4("u_vp", VP);
-        m_renderMaterial.shader->SetMat4("u_model", modelMat);
-        m_renderMaterial.shader->SetAll(Matrix4f::identity(), Matrix4f::identity(), viewPos, realTime, gameTime,
-                                        m_renderMaterial.baseColor,
-                                        m_renderMaterial.customFloats,
-                                        m_renderMaterial.customVector2,
-                                        m_renderMaterial.customVector3,
-                                        m_renderMaterial.customVector4);
+        pass.shader->SetVec3("u_cameraRight", right);
+        pass.shader->SetVec3("u_cameraUp", up);
+        pass.shader->SetMat4("u_vp", VP);
+        pass.shader->SetMat4("u_model", modelMat);
+        pass.shader->SetAll(Matrix4f::identity(), Matrix4f::identity(), viewPos, realTime, gameTime,
+                            pass.baseColor,
+                            pass.customFloats,
+                            pass.customVector2,
+                            pass.customVector3,
+                            pass.customVector4);
 
         rlDisableBackfaceCulling();
         rlEnableDepthTest();
         rlDisableDepthMask();
 
-        switch (m_renderMaterial.blendMode)
+        switch (pass.blendMode)
         {
         case BLEND_OPIQUE:
             rlDisableColorBlend();
@@ -253,11 +267,11 @@ void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &R
             rlSetBlendFactors(RL_ONE, RL_ONE, RL_FUNC_REVERSE_SUBTRACT);
             break;
         default:
-            BeginBlendMode(m_renderMaterial.blendMode);
+            BeginBlendMode(pass.blendMode);
             break;
         }
 
-        gpuBuffer.BindForRender();
+        gpuBuffer.BindForRender(passIndex);
 
         glDisable(GL_RASTERIZER_DISCARD);
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)m_maxParticles);
@@ -273,7 +287,7 @@ void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &R
         rlEnableDepthMask();
         EndBlendMode();
 
-        m_renderMaterial.shader->End();
+        pass.shader->End();
         rlEnableColorBlend();
     }
     EndTextureMode();
@@ -281,6 +295,15 @@ void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &R
     while ((err = glGetError()) != GL_NO_ERROR)
     {
         std::cerr << "OpenGL error: " << err << std::endl;
+    }
+}
+void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
+                             const Vector3f &viewPos, float realTime, float gameTime,
+                             const Matrix4f &VP, const mCamera &camera)
+{
+    for (size_t i = 0; i < m_passes.size(); ++i)
+    {
+        RenderSignlePass(i, m_passes[i], RTPool, gpuBuffer, sceneDepth, modelMat, viewPos, realTime, gameTime, VP, camera);
     }
 }
 

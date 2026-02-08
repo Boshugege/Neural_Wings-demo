@@ -1,5 +1,7 @@
 import { create } from 'zustand';
+// @ts-expect-error - bala
 import { addEdge, applyNodeChanges, applyEdgeChanges, MarkerType } from 'reactflow';
+// @ts-expect-error - bala
 import type { Connection, Edge, EdgeChange, Node, NodeChange } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid';
 import type {
@@ -330,7 +332,7 @@ export const useStore = create<State>((set, get) => ({
                 id: endNodeId,
                 type: 'outputNode',
                 position: { x: currentX, y: 300 },
-                data: { label: '输出: outScreen', output: 'outScreen', isStatic: true, inputPorts: [], texturePorts: [], uniforms: {} } as PassNodeData
+                data: { name: "Output", label: '输出: outScreen', output: 'outScreen', isStatic: true, inputPorts: [], texturePorts: [], uniforms: {} } as PassNodeData
             });
 
             // === 【新增点：深度共享连线 (Depth Links)】 ===
@@ -355,7 +357,7 @@ export const useStore = create<State>((set, get) => ({
                                     style: { stroke: '#a855f7', strokeWidth: 2, strokeDasharray: '5,5' },
                                     animated: true,
                                     // 确保引入了 MarkerType，或者直接写字符串 'arrowclosed'
-                                    markerEnd: { type: 'arrowclosed', color: '#a855f7' } as any
+                                    markerEnd: { type: MarkerType.ArrowClosed, color: '#a855f7' }
                                 });
                             } else {
                                 console.warn(`深度连线目标未找到: ${targetRT}`);

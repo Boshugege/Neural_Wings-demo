@@ -1,3 +1,4 @@
+// @ts-expect-error - bala
 import { Handle, Position } from 'reactflow';
 
 export default function InputNode() {

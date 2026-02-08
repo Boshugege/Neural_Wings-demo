@@ -105,15 +105,15 @@
         {
             "name": "cube",
             "tag": "cube",
-            "prefab": "assets/prefabs/particle_cube.json",
+            "prefab": "assets/prefabs/cube.json",
             "position": [
-                20,
                 0,
-                0
+                0,
+                30
             ],
             "rotation": [
                 0,
-                0,
+                45,
                 0
             ],
             "scale": [
@@ -157,7 +157,7 @@
                             {
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
                                 "textures": {
-                                    "u_diffuseMap": "assets/textures/test_3.png"
+                                    "u_diffuseMap": "assets/textures/test_2.png"
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,
@@ -169,18 +169,77 @@
             },
             "scripts": [
                 {
-                    "RotatorScript": {
-                        "angluarVelocity": [
-                            1.0,
-                            0.0,
-                            0
-                        ]
-                    }
-                },
-                {
                     "CollisionListener": {}
                 }
-            ]
+            ],
+            "particles": {
+                "activate": true,
+                "emitters": [
+                    {
+                        "name": "Core_Thrust",
+                        "maxParticles": 1090,
+                        "emissionRate": 20.0,
+                        "maxLife": 15,
+                        "space": "WORLD",
+                        "updateShader": "assets/shaders/particles/compute/test_update.vs",
+                        "initializers": [
+                            {
+                                "name": "SphereDir",
+                                "params": {
+                                    "offset": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "minSpeed": 0.0,
+                                    "maxSpeed": 2.0,
+                                    "size": [
+                                        0.4,
+                                        0.4
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "RandomLife",
+                                "params": {
+                                    "minLife": 0.5,
+                                    "maxLife": 1.5
+                                }
+                            }
+                        ],
+                        "passes": [
+                            {
+                                "name": "直接输出size",
+                                "vs": "assets/shaders/particles/render/billboard.vs",
+                                "fs": "assets/shaders/particles/render/soft.fs",
+                                "blendMode": "NONE",
+                                "hint": "粒子没有深度写入功能，仅深度测试",
+                                "textures": {
+                                    "tex": "assets/textures/test_2.png"
+                                },
+                                "uniforms": {
+                                    "u_softness": 1.0
+                                },
+                                "outputRT": "RTTest1"
+                            },
+                            {
+                                "name": "直接输出size",
+                                "vs": "assets/shaders/particles/render/billboard.vs",
+                                "fs": "assets/shaders/particles/render/soft.fs",
+                                "blendMode": "NONE",
+                                "hint": "粒子没有深度写入功能，仅深度测试",
+                                "textures": {
+                                    "tex": "assets/textures/test_3.png"
+                                },
+                                "uniforms": {
+                                    "u_softness": 1.0
+                                },
+                                "outputRT": "RTTest2"
+                            }
+                        ]
+                    }
+                ]
+            }
         }
     ]
 }
