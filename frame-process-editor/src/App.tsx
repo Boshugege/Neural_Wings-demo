@@ -6,7 +6,9 @@ import InputNode from './nodes/InputNode';
 import OutputNode from './nodes/OutputNode';
 import TextureNode from './nodes/TextureNode';
 import ParticleNode from './nodes/ParticleNode';
+// @ts-expect-error - bala
 import ReactFlow, { Background, Controls, Panel, SelectionMode } from 'reactflow';
+// @ts-expect-error - bala
 import type { Connection, Edge } from 'reactflow';
 
 import { useRef } from 'react';

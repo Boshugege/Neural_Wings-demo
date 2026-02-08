@@ -189,7 +189,7 @@ void SceneManager::AddScripts(GameWorld &gameWorld, GameObject &gameObject, cons
 }
 void SceneManager::AddParticle(GameWorld &gameWorld, GameObject &gameObject, const json &data)
 {
-    if (gameObject.HasComponent<ParticleEmitterComponent>())
+    if (!gameObject.HasComponent<ParticleEmitterComponent>())
         gameObject.AddComponent<ParticleEmitterComponent>();
     auto &ec = gameObject.GetComponent<ParticleEmitterComponent>();
     ec.activate = data.value("activate", true);

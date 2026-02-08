@@ -46,7 +46,7 @@ public:
 
     Matrix4f GetRenderMatrix(const TransformComponent &parentTf) const;
 
-    RenderMaterial &GetRenderMaterial();
+    std::vector<RenderMaterial> &GetRenderPasses();
 
 private:
     float m_maxLife = 5.0f;       // 粒子最大生命周期
@@ -63,5 +63,10 @@ private:
     std::vector<std::shared_ptr<IParticleInitializer>> m_initializers;
     std::vector<GPUParticle> m_spawnBuffer; // 临时缓冲，传给GPU前组装数据
 
-      RenderMaterial m_renderMaterial;
+    // RenderMaterial m_renderMaterial;
+    std::vector<RenderMaterial> m_passes;
+
+    void RenderSignlePass(size_t passIndex, const RenderMaterial &pass, std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
+                          const Vector3f &viewPos, float realTime, float gameTime,
+                          const Matrix4f &VP, const mCamera &camera);
 };

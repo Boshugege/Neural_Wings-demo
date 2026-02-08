@@ -8,12 +8,24 @@
 #else
 #include "external/glad.h"
 #endif
+#include "Engine/Graphics/RenderMaterial.h"
 
-GPUParticleBuffer::GPUParticleBuffer(size_t maxParticles, const ShaderWrapper &shader)
+GPUParticleBuffer::GPUParticleBuffer(size_t maxParticles, const std::vector<RenderMaterial> &passes)
 {
     m_maxParticles = maxParticles;
     SetupBuffers();
-    SetupRenderVBO(shader.GetShader());
+    SetupQuadVBO();
+    // 为每个shader生成vao
+    for (const auto &mat : passes)
+    {
+        if (mat.shader && mat.shader->IsValid())
+            AddRenderVAO(mat.shader->GetShader());
+        else
+        {
+            m_multiRenderVAOs.push_back({0, 0});
+            std::cerr << "[GPUParticleBuffer] Warning: Pass has invalid shader, VAO 0 created." << std::endl;
+        }
+    }
 }
 
 GPUParticleBuffer::~GPUParticleBuffer()
@@ -21,7 +33,22 @@ GPUParticleBuffer::~GPUParticleBuffer()
     glDeleteBuffers(2, m_vbos);
     glDeleteVertexArrays(2, m_vaos);
 }
-
+void GPUParticleBuffer::SetupQuadVBO()
+{
+    if (m_quadVBO != 0)
+        return;
+    float quadVertices[] = {
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f};
+    glGenBuffers(1, &m_quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 #define BIND_ATTRIB(loc, member, type, count) \
     glEnableVertexAttribArray(loc);           \
     glVertexAttribPointer(loc, count, type, GL_FALSE, sizeof(GPUParticle), (void *)offsetof(GPUParticle, member))
@@ -99,97 +126,111 @@ void GPUParticleBuffer::UpdateSubData(const std::vector<GPUParticle> &newParticl
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void GPUParticleBuffer::SetupRenderVBO(const Shader &renderShader)
-
+void GPUParticleBuffer::AddRenderVAO(const Shader &renderShader)
 {
+    std::array<unsigned int, 2> newVAOs = {0, 0};
+    glGenVertexArrays(2, newVAOs.data());
+    size_t stride = sizeof(GPUParticle);
 
-    // 格式 Pos(3)+UV(2)
-    // XY平面，两个三角形组成
-    /*
-    0 3
-    1 2
-    */
-    float quadVertices[] =
-        {
-            //
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // 1
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,  // 2
-            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,  // 0
-                                            //
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,  // 2
-            0.5f, 0.5f, 0.0f, 1.0f, 1.0f,   // 3
-            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f   // 0
-        };
-    if (m_quadVBO == 0)
-        glGenBuffers(1, &m_quadVBO);
-    if (m_renderVAOS[0] == 0)
-        glGenVertexArrays(2, m_renderVAOS);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     for (int i = 0; i < 2; ++i)
     {
-        glBindVertexArray(m_renderVAOS[i]);
+        glBindVertexArray(newVAOs[i]);
         // 绑定顶点属性
         glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-
-        // // loc 0: vertexPosition
-        // glEnableVertexAttribArray(0);
-        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-        // // loc 1: vertexTexCoord
-        // glEnableVertexAttribArray(1);
-        // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-
-        // // 绑定粒子数据
-        // glBindBuffer(GL_ARRAY_BUFFER, m_vbos[i]);
-        // size_t stride = sizeof(GPUParticle);
-
-        // BIND_ATTRIB(2, position, GL_FLOAT, 3);
-        // glVertexAttribDivisor(2, 1);
-        // BIND_ATTRIB(3, velocity, GL_FLOAT, 3);
-        // glVertexAttribDivisor(3, 1);
-        // BIND_ATTRIB(4, acceleration, GL_FLOAT, 3);
-        // glVertexAttribDivisor(4, 1);
-        // BIND_ATTRIB(5, color, GL_FLOAT, 4);
-        // glVertexAttribDivisor(5, 1);
-        // BIND_ATTRIB(6, size, GL_FLOAT, 2);
-        // glVertexAttribDivisor(6, 1);
-        // BIND_ATTRIB(7, rotation, GL_FLOAT, 1);
-        // glVertexAttribDivisor(7, 1);
-        // BIND_ATTRIB(8, life, GL_FLOAT, 2);
-        // glVertexAttribDivisor(8, 1);
-
-        // glEnableVertexAttribArray(9);
-        // glVertexAttribIPointer(9, 1, GL_UNSIGNED_INT, stride, (void *)offsetof(GPUParticle, randomID));
-        // glVertexAttribDivisor(9, 1);
-        int vPosLoc = GetShaderLocationAttrib(renderShader, "vertexPosition");
-        if (vPosLoc >= 0)
         {
-            glEnableVertexAttribArray(vPosLoc);
-            glVertexAttribPointer(vPosLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-        }
-        int vTexLoc = GetShaderLocationAttrib(renderShader, "vertexTexCoord");
-        if (vTexLoc >= 0)
-        {
-            glEnableVertexAttribArray(vTexLoc);
-            glVertexAttribPointer(vTexLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-        }
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbos[i]);
 
-        BIND_ATTRIB_SAFE(renderShader, "pPosition", position, GL_FLOAT, 3, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pVelocity", velocity, GL_FLOAT, 3, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pAcceleration", acceleration, GL_FLOAT, 3, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pColor", color, GL_FLOAT, 4, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pSize", size, GL_FLOAT, 2, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pRotation", rotation, GL_FLOAT, 1, 1);
-        BIND_ATTRIB_SAFE(renderShader, "pLife", life, GL_FLOAT, 2, 1);
-        BIND_ATTRIB_I_SAFE(renderShader, "pRandomID", randomID, 1);
+            int vPosLoc = GetShaderLocationAttrib(renderShader, "vertexPosition");
+            if (vPosLoc >= 0)
+            {
+                glEnableVertexAttribArray(vPosLoc);
+                glVertexAttribPointer(vPosLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+            }
+            int vTexLoc = GetShaderLocationAttrib(renderShader, "vertexTexCoord");
+            if (vTexLoc >= 0)
+            {
+                glEnableVertexAttribArray(vTexLoc);
+                glVertexAttribPointer(vTexLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbos[i]);
 
-        glBindVertexArray(0);
+            BIND_ATTRIB_SAFE(renderShader, "pPosition", position, GL_FLOAT, 3, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pVelocity", velocity, GL_FLOAT, 3, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pAcceleration", acceleration, GL_FLOAT, 3, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pColor", color, GL_FLOAT, 4, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pSize", size, GL_FLOAT, 2, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pRotation", rotation, GL_FLOAT, 1, 1);
+            BIND_ATTRIB_SAFE(renderShader, "pLife", life, GL_FLOAT, 2, 1);
+            BIND_ATTRIB_I_SAFE(renderShader, "pRandomID", randomID, 1);
+
+            glBindVertexArray(0);
+        }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+    m_multiRenderVAOs.push_back(newVAOs);
 }
-void GPUParticleBuffer::BindForRender()
+// void GPUParticleBuffer::SetupRenderVBO(const Shader &renderShader)
+
+// {
+
+//     // 格式 Pos(3)+UV(2)
+//     // XY平面，两个三角形组成
+//     /*
+//     0 3
+//     1 2
+//     */
+//     float quadVertices[] =
+//         {
+//             //
+//             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // 1
+//             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,  // 2
+//             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,  // 0
+//                                             //
+//             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,  // 2
+//             0.5f, 0.5f, 0.0f, 1.0f, 1.0f,   // 3
+//             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f   // 0
+//         };
+//     if (m_quadVBO == 0)
+//         glGenBuffers(1, &m_quadVBO);
+//     if (m_renderVAOS[0] == 0)
+//         glGenVertexArrays(2, m_renderVAOS);
+
+//     glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+//     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+//     for (int i = 0; i < 2; ++i)
+//     {
+//         glBindVertexArray(m_renderVAOS[i]);
+//         // 绑定顶点属性
+//         glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+
+//         int vPosLoc = GetShaderLocationAttrib(renderShader, "vertexPosition");
+//         if (vPosLoc >= 0)
+//         {
+//             glEnableVertexAttribArray(vPosLoc);
+//             glVertexAttribPointer(vPosLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+//         }
+//         int vTexLoc = GetShaderLocationAttrib(renderShader, "vertexTexCoord");
+//         if (vTexLoc >= 0)
+//         {
+//             glEnableVertexAttribArray(vTexLoc);
+//             glVertexAttribPointer(vTexLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+//         }
+//         glBindBuffer(GL_ARRAY_BUFFER, m_vbos[i]);
+
+//         BIND_ATTRIB_SAFE(renderShader, "pPosition", position, GL_FLOAT, 3, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pVelocity", velocity, GL_FLOAT, 3, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pAcceleration", acceleration, GL_FLOAT, 3, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pColor", color, GL_FLOAT, 4, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pSize", size, GL_FLOAT, 2, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pRotation", rotation, GL_FLOAT, 1, 1);
+//         BIND_ATTRIB_SAFE(renderShader, "pLife", life, GL_FLOAT, 2, 1);
+//         BIND_ATTRIB_I_SAFE(renderShader, "pRandomID", randomID, 1);
+
+//         glBindVertexArray(0);
+//         glBindBuffer(GL_ARRAY_BUFFER, 0);
+//     }
+// }
+void GPUParticleBuffer::BindForRender(size_t passIndex)
 {
-    glBindVertexArray(m_renderVAOS[m_readIdx]);
+    if (passIndex < m_multiRenderVAOs.size())
+        glBindVertexArray(m_multiRenderVAOs[passIndex][m_readIdx]);
 }

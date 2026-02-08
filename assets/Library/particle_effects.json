@@ -42,19 +42,22 @@
                 }
             }
         ],
-        "renderMaterial": {
-            "vs": "assets/shaders/particles/render/billboard.vs",
-            "fs": "assets/shaders/particles/render/soft.fs",
-            "blendMode": "NONE",
-            "hint": "粒子没有深度写入功能，仅深度测试",
-            "textures": {
-                "tex": "assets/textures/test_4.png"
-            },
-            "uniforms": {
-                "u_softness": 1.0
-            },
-            "outputRT": "Sparks",
-            "depthTest": true
-        }
+        "passes": [
+            {
+                "name": "深度写入RT",
+                "vs": "assets/shaders/particles/render/billboard.vs",
+                "fs": "assets/shaders/particles/render/soft.fs",
+                "blendMode": "NONE",
+                "hint": "粒子没有深度写入功能，仅深度测试",
+                "textures": {
+                    "tex": "assets/textures/test_4.png"
+                },
+                "uniforms": {
+                    "u_softness": 1.0
+                },
+                "outputRT": "Sparks",
+                "depthTest": true
+            }
+        ]
     }
 }
