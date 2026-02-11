@@ -225,6 +225,17 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
             if (texture.id > 0)
             {
                 pass.shader->SetTexture(name, texture, texUnit);
+                if (pass.isAnimated.at(name))
+                {
+                    pass.shader->SetInt(name + "_frameCount", pass.frameCount.at(name));
+                    pass.shader->SetFloat(name + "_animSpeed", pass.animSpeed.at(name));
+                }
+                else
+                {
+                    pass.shader->SetInt(name + "_frameCount", 1);
+                    pass.shader->SetFloat(name + "_animSpeed", 0.0f);
+                }
+
                 texUnit++;
             }
         }

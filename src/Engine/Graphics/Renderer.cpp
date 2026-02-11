@@ -340,12 +340,32 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         if (pass.useDiffuseMap)
         {
             pass.shader->SetTexture("u_diffuseMap", pass.diffuseMap, texUnit);
+            if (pass.diffuseIsAnimated)
+            {
+                pass.shader->SetInt("u_diffuseMap_frameCount", pass.diffuseframeCount);
+                pass.shader->SetFloat("u_diffuseMap_animSpeed", pass.diffuseanimSpeed);
+            }
+            else
+            {
+                pass.shader->SetInt("u_diffuseMap_frameCount", 1);
+                pass.shader->SetFloat("u_diffuseMap_animSpeed", 0.0f);
+            }
             tempRaylibMaterial.maps[MATERIAL_MAP_DIFFUSE].texture = pass.diffuseMap;
             texUnit++;
         }
         for (auto const &[name, text] : pass.customTextures)
         {
             pass.shader->SetTexture(name, text, texUnit);
+            if (pass.isAnimated.at(name))
+            {
+                pass.shader->SetInt(name + "_frameCount", pass.frameCount.at(name));
+                pass.shader->SetFloat(name + "_animSpeed", pass.animSpeed.at(name));
+            }
+            else
+            {
+                pass.shader->SetInt(name + "_frameCount", 1);
+                pass.shader->SetFloat(name + "_animSpeed", 0.0f);
+            }
             texUnit++;
         }
 

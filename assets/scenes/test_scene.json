@@ -67,7 +67,10 @@
                             {
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
                                 "textures": {
-                                    "u_diffuseMap": "assets/textures/test_1.png"
+                                    "u_diffuseMap": [
+                                        "assets/textures/gif/1.gif",
+                                        10
+                                    ]
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,
@@ -146,8 +149,12 @@
                         "passes": [
                             {
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                                "hints": "[path,animeSpeed]",
                                 "textures": {
-                                    "u_diffuseMap": "assets/textures/test_2.png"
+                                    "u_diffuseMap": [
+                                        "assets/textures/gif/2.gif",
+                                        10
+                                    ]
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,
@@ -214,7 +221,10 @@
                                 "blendMode": "NONE",
                                 "hint": "粒子没有深度写入功能，仅深度测试",
                                 "textures": {
-                                    "tex": "assets/textures/test_4.png"
+                                    "tex": [
+                                        "assets/textures/gif/3.gif",
+                                        1
+                                    ]
                                 },
                                 "uniforms": {},
                                 "outputRT": "inScreen"
@@ -279,7 +289,10 @@
                             {
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
                                 "textures": {
-                                    "u_diffuseMap": "assets/textures/test_3.png"
+                                    "u_diffuseMap": [
+                                        "assets/textures/gif/3.gif",
+                                        10
+                                    ]
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,

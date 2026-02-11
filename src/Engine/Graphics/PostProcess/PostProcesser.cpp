@@ -170,11 +170,13 @@ void PostProcesser::ParsePostProcessPasses(const json &data, GameWorld &gameWorl
             }
         }
         // 解析外部纹理
+        // TODO:支持动态纹理
         if (passData.contains("textures"))
         {
             auto &texData = passData["textures"];
             for (auto &[texName, texPath] : texData.items())
             {
+
                 Texture2D tex = rm.GetTexture2D(texPath);
                 if (tex.id > 0)
                     mat.customTextures[texName] = tex;
@@ -253,6 +255,16 @@ void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManag
             if (texUnit == 0)
                 firstInputId = text.id;
             mat.shader->SetTexture(name, text, texUnit);
+
+            // TODO:后处理加入动态纹理
+            // mat.shader->SetTexture(name, text, texUnit);
+            // if (mat.isAnimated.find(name) != mat.isAnimated.end())
+            // {
+            //     mat.shader->SetInt(name + "_frameCount", mat.frameCount.at(name));
+            //     mat.shader->SetFloat(name + "_animSpeed", mat.animSpeed.at(name));
+            // }
+            // texUnit++;
+
             texUnit++;
         }
         // 上传参数
