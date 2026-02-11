@@ -8,10 +8,11 @@
 using json = nlohmann::json;
 
 class GameWorld;
+class CameraManager;
 class PostProcesser
 {
 public:
-    void PostProcess(GameWorld &gameWorld);
+    void PostProcess(GameWorld &gameWorld, CameraManager &cameraManager);
 
     void ParsePostProcessPasses(const json &data, GameWorld &gameWorld);
     std::unordered_map<std::string, RenderTexture2D> &GetRTPool() { return m_RTPool; }
@@ -26,7 +27,7 @@ private:
     void SetUpRTPool(const std::vector<std::string> &names, int width, int height);
     void UnloadRTPool();
 
-    RenderTexture2D PostProcesser::LoadRT(int width, int height);
+    RenderTexture2D PostProcesser::LoadRT(int width, int height, PixelFormat format);
 
     std::unordered_map<std::string, RenderTexture2D> m_RTPool;
     std::vector<PostProcessPass> m_postProcessPasses;

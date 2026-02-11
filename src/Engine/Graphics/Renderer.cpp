@@ -92,7 +92,7 @@ void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager
     auto &itScene = m_RTPool["inScreen"];
     BeginTextureMode(itScene);
     {
-        ClearBackground(BLUE);
+        // ClearBackground(BLUE);
         for (const auto &view : m_renderViewer->GetRenderViews())
         {
             mCamera *camera = cameraManager.GetCamera(view.cameraName);
@@ -119,7 +119,7 @@ void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager
 }
 void Renderer::RawRenderParticle(GameWorld &gameWorld, CameraManager &cameraManager)
 {
-    rlDisableDepthMask();
+    // rlDisableDepthMask();
     // 粒子的BeginTextureMode在每个emitter，每个emitter有自己的输出RT，最后到后处理中处理
     for (const auto &view : m_renderViewer->GetRenderViews())
     {
@@ -172,7 +172,7 @@ void Renderer::RenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
     RawRenderScene(gameWorld, cameraManager);
     RawRenderParticle(gameWorld, cameraManager);
 
-    m_postProcesser->PostProcess(gameWorld);
+    m_postProcesser->PostProcess(gameWorld, cameraManager);
 
     // 最终输出
     ClearBackground(BLACK);
@@ -336,7 +336,7 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
 
         tempRaylibMaterial.shader = pass.shader->GetShader();
 
-        int texUnit = 0;
+        int texUnit = 1;
         if (pass.useDiffuseMap)
         {
             pass.shader->SetTexture("u_diffuseMap", pass.diffuseMap, texUnit);
@@ -392,7 +392,7 @@ void Renderer::DrawParticle(GameWorld &gameWorld, mCamera &camera, float aspect)
         matProj = MatrixOrtho(-right, right, -top, top, camera.getNearPlane(), camera.getFarPlane());
     }
     Matrix4f VP = matProj * matView;
-    particleSys.Render(m_RTPool, realTime, gameTime, VP, gameWorld, camera);
+    particleSys.Render(m_RTPool, realTime, gameTime, VP, matProj, gameWorld, camera);
 }
 // Debug
 #include <iostream>

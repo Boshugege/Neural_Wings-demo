@@ -59,7 +59,7 @@
                         "emissionRate": 20.0,
                         "maxLife": 15,
                         "space": "WORLD",
-                        "updateShader": "assets/shaders/particles/compute/test_update.vs",
+                        "updateShader": "assets/shaders/particles/compute/default.vs",
                         "initializers": [
                             {
                                 "name": "SphereDir",
@@ -95,9 +95,7 @@
                                 "textures": {
                                     "tex": "assets/textures/test_4.png"
                                 },
-                                "uniforms": {
-                                    "u_softness": 1.0
-                                },
+                                "uniforms": {},
                                 "outputRT": "inScreen"
                             }
                         ]

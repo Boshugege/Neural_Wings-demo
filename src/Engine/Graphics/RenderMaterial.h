@@ -74,18 +74,18 @@ struct RenderMaterial
             baseColor = JsonParser::ToVector4f(config["color"]);
         if (config.contains("blendMode"))
         {
-            std::string blendMode = config["blendMode"];
-            if (blendMode == "ADDITIVE")
+            std::string blend = config["blendMode"];
+            if (blend == "ADDITIVE")
                 blendMode = BlendMode::BLEND_ADDITIVE;
-            else if (blendMode == "ALPHA")
+            else if (blend == "ALPHA")
                 blendMode = BlendMode::BLEND_ALPHA;
-            else if (blendMode == "NONE")
+            else if (blend == "NONE")
                 blendMode = BLEND_OPIQUE;
-            else if (blendMode == "MULTIPLY")
+            else if (blend == "MULTIPLY")
                 blendMode = BLEND_MULTIPLIED;
-            else if (blendMode == "SCREEN")
+            else if (blend == "SCREEN")
                 blendMode = BLEND_SCREEN;
-            else if (blendMode == "SUBTRACT")
+            else if (blend == "SUBTRACT")
                 blendMode = BLEND_SUBTRACT;
             else
                 std::cerr << "[RenderMaterial]: Unknown blend mode: " << blendMode << std::endl;

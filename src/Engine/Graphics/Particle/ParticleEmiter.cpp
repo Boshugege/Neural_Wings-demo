@@ -76,7 +76,6 @@ void ParticleEmitter::LoadFromConfig(const json &config, const ParticleFactory &
             m_passes.push_back(mat);
         }
     }
-    // m_renderMaterial.LoadFromConfig(config["renderMaterial"], rm);
 }
 void ParticleEmitter::Update(float deltaTime, const TransformComponent &ownerTf, GPUParticleBuffer &particleBuffer)
 {
@@ -195,7 +194,7 @@ std::vector<RenderMaterial> &ParticleEmitter::GetRenderPasses()
 
 void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &pass, std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                                        const Vector3f &viewPos, float realTime, float gameTime,
-                                       const Matrix4f &VP, const mCamera &camera)
+                                       const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera)
 {
     if (!pass.shader || !pass.shader->IsValid())
         return;
@@ -207,7 +206,6 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
 
     BeginTextureMode(itRT->second);
     {
-        rlClearColor(0, 0, 0, 0);
         rlDrawRenderBatchActive();
         rlEnableVertexArray(0);
         rlSetTexture(0);
@@ -215,8 +213,9 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
 
         Vector3f right = camera.Right();
         Vector3f up = camera.Up();
+        Vector3f dir = camera.Direction();
 
-        int texUnit = 0;
+        int texUnit = 1;
 
         pass.shader->SetTexture("dataTex", m_dataTexture, texUnit++);
         pass.shader->SetInt("maxParticles", m_maxParticles);
@@ -239,9 +238,11 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
         pass.shader->SetFloat("near", camera.getNearPlane());
         pass.shader->SetFloat("far", camera.getFarPlane());
 
+        pass.shader->SetVec3("cameraDir", dir);
         pass.shader->SetVec3("cameraRight", right);
         pass.shader->SetVec3("cameraUp", up);
         pass.shader->SetMat4("vp", VP);
+        pass.shader->SetMat4("proj", matProj);
         pass.shader->SetMat4("model", modelMat);
         pass.shader->SetAll(Matrix4f::identity(), Matrix4f::identity(), viewPos, realTime, gameTime,
                             pass.baseColor,
@@ -251,28 +252,45 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
                             pass.customVector4);
 
         rlDisableBackfaceCulling();
-        rlEnableDepthTest();
-        rlDisableDepthMask();
 
+        if (pass.depthTest)
+        {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LEQUAL);
+        }
+        else
+            glDisable(GL_DEPTH_TEST);
+
+        if (pass.depthWrite)
+            glDepthMask(GL_TRUE);
+        else
+            glDepthMask(GL_FALSE);
+
+        glEnable(GL_BLEND);
         switch (pass.blendMode)
         {
         case BLEND_OPIQUE:
-            rlDisableColorBlend();
+            glDisable(GL_BLEND);
             break;
         case BLEND_MULTIPLIED:
-            rlSetBlendMode(BLEND_CUSTOM);
-            rlSetBlendFactors(RL_DST_COLOR, RL_ZERO, RL_FUNC_ADD);
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            glBlendEquation(GL_FUNC_ADD);
             break;
         case BLEND_SCREEN:
-            rlSetBlendMode(BLEND_CUSTOM);
-            rlSetBlendFactors(RL_ONE, RL_ONE_MINUS_SRC_COLOR, RL_FUNC_ADD);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+            glBlendEquation(GL_FUNC_ADD);
             break;
         case BLEND_SUBTRACT:
-            rlSetBlendMode(BLEND_CUSTOM);
-            rlSetBlendFactors(RL_ONE, RL_ONE, RL_FUNC_REVERSE_SUBTRACT);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+            break;
+        case BLEND_ADDITIVE:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glBlendEquation(GL_FUNC_ADD);
             break;
         default:
-            BeginBlendMode(pass.blendMode);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
             break;
         }
 
@@ -280,6 +298,9 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
 
         glDisable(GL_RASTERIZER_DISCARD);
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)m_maxParticles);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
 
         glBindVertexArray(0);
 
@@ -304,11 +325,11 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
 }
 void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                              const Vector3f &viewPos, float realTime, float gameTime,
-                             const Matrix4f &VP, const mCamera &camera)
+                             const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera)
 {
     for (size_t i = 0; i < m_passes.size(); ++i)
     {
-        RenderSignlePass(i, m_passes[i], RTPool, gpuBuffer, sceneDepth, modelMat, viewPos, realTime, gameTime, VP, camera);
+        RenderSignlePass(i, m_passes[i], RTPool, gpuBuffer, sceneDepth, modelMat, viewPos, realTime, gameTime, VP, matProj, camera);
     }
 }
 

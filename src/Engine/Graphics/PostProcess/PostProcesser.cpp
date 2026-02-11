@@ -13,7 +13,7 @@ void PostProcesser::AddPostProcessPass(const PostProcessPass &pass)
 }
 // raylib源码修改，深度不再不可采样
 #include "rlgl.h"
-RenderTexture2D PostProcesser::LoadRT(int width, int height)
+RenderTexture2D PostProcesser::LoadRT(int width, int height, PixelFormat format)
 {
     RenderTexture2D target = {0};
 
@@ -24,10 +24,10 @@ RenderTexture2D PostProcesser::LoadRT(int width, int height)
         rlEnableFramebuffer(target.id);
 
         // Create color texture (default to RGBA)
-        target.texture.id = rlLoadTexture(NULL, width, height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+        target.texture.id = rlLoadTexture(NULL, width, height, format, 1);
         target.texture.width = width;
         target.texture.height = height;
-        target.texture.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+        target.texture.format = format;
         target.texture.mipmaps = 1;
 
         // Create depth renderbuffer/texture
@@ -61,14 +61,23 @@ void PostProcesser::SetUpRTPool(const std::vector<std::string> &names, int width
     UnloadRTPool();
     for (const auto &name : names)
     {
-
+        std::string processName = name;
+        const std::string &prefix = "accuracy_";
         // RenderTexture2D rt = LoadRenderTexture(width, height); 原raylib实现
-        RenderTexture2D rt = LoadRT(width, height);
+        size_t pos = processName.find(prefix);
+        PixelFormat format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+        TextureFilter filter = TEXTURE_FILTER_BILINEAR;
+        if (pos == 0)
+        {
+            processName = processName.substr(prefix.length());
+            format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;
+        }
+        RenderTexture2D rt = LoadRT(width, height, format);
         if (rt.id > 0)
         {
-            m_RTPool[name] = rt;
-            SetTextureFilter(m_RTPool[name].texture, TEXTURE_FILTER_BILINEAR);
-            SetTextureFilter(m_RTPool[name].depth, TEXTURE_FILTER_BILINEAR);
+            m_RTPool[processName] = rt;
+            SetTextureFilter(m_RTPool[processName].texture, filter);
+            SetTextureFilter(m_RTPool[processName].depth, filter);
         }
         else
         {
@@ -204,8 +213,8 @@ void PostProcesser::DrawTextureQuad(float width, float height, bool flipY)
     }
     rlEnd();
 }
-
-void PostProcesser::PostProcess(GameWorld &gameWorld)
+#include "Engine/Graphics/Camera/CameraManager.h"
+void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManager)
 {
     for (auto &pass : m_postProcessPasses)
     {
@@ -251,6 +260,14 @@ void PostProcesser::PostProcess(GameWorld &gameWorld)
         mat.shader->SetFloat("realTime", gameWorld.GetTimeManager().GetRealTime());
         mat.shader->SetFloat("deltaRealTime", gameWorld.GetTimeManager().GetDeltaTime());
         mat.shader->SetFloat("deltaGameTime", gameWorld.GetTimeManager().GetFixedDeltaTime());
+
+        mat.shader->SetVec3("cameraPosition", cameraManager.GetMainCamera()->Position());
+        mat.shader->SetVec3("cameraDir", cameraManager.GetMainCamera()->Direction());
+        mat.shader->SetVec3("cameraUp", cameraManager.GetMainCamera()->Up());
+        mat.shader->SetVec3("cameraRight", cameraManager.GetMainCamera()->Right());
+        mat.shader->SetFloat("cameraFov", cameraManager.GetMainCamera()->Fovy());
+        mat.shader->SetFloat("cameraNear", cameraManager.GetMainCamera()->getNearPlane());
+        mat.shader->SetFloat("cameraFar", cameraManager.GetMainCamera()->getFarPlane());
 
         Vector2f screenRes((float)itOut->second.texture.width, (float)itOut->second.texture.height);
         mat.shader->SetVec2("screenResolution", screenRes);

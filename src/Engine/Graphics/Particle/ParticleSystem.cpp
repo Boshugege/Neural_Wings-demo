@@ -170,11 +170,12 @@ void ParticleSystem::RegisterOrphan(std::shared_ptr<ParticleEmitter> emitter, co
 #include "external/glad.h"
 #endif
 #include "string"
-void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, float realTime, float gameTime, const Matrix4f &VP, GameWorld &gameWorld, mCamera &camera)
+void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, float realTime, float gameTime,
+                            const Matrix4f &VP, const Matrix4f &matProj, GameWorld &gameWorld, mCamera &camera)
 {
     rlDrawRenderBatchActive();
     rlEnableDepthTest();
-    rlDisableDepthMask();
+    rlEnableDepthMask();
     rlDisableBackfaceCulling();
 
     auto &sceneDepth = RTPool["inScreen"].depth;
@@ -196,7 +197,7 @@ void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RT
             emitter->EnsureDataTextureSize(emitter->GetMaxParticles());
             buffer->SyncPrticleDataToTexture(emitter->GetDataTextureID());
             emitter->Render(RTPool, *buffer, sceneDepth, renderModelMat, camera.Position(),
-                            realTime, gameTime, VP, camera);
+                            realTime, gameTime, VP, matProj, camera);
         }
     }
     // 遗留粒子
@@ -211,7 +212,7 @@ void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RT
         orphan.emitter->EnsureDataTextureSize(orphan.emitter->GetMaxParticles());
         buffer->SyncPrticleDataToTexture(orphan.emitter->GetDataTextureID());
         orphan.emitter->Render(RTPool, *buffer, sceneDepth, renderModelMat, camera.Position(),
-                               realTime, gameTime, VP, camera);
+                               realTime, gameTime, VP, matProj, camera);
     }
     glDepthMask(GL_TRUE);
 }

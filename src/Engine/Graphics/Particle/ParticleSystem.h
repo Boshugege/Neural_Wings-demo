@@ -17,7 +17,7 @@ public:
     ~ParticleSystem();
 
     void Update(GameWorld &gameWorld, float dt);
-    void Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, float realTime, float gameTime, const Matrix4f &VP, GameWorld &gameWorld, mCamera &camera);
+    void Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, float realTime, float gameTime, const Matrix4f &VP, const Matrix4f &matProj, GameWorld &gameWorld, mCamera &camera);
     // 若gameobject销毁，保留world发射器，并记录其最后位置
     void RegisterOrphan(std::shared_ptr<ParticleEmitter> emitter, const TransformComponent &lastTransform);
 

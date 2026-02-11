@@ -3,13 +3,17 @@
 in vec2 fragTexCoord;
 in vec4 fragColor;
 in float fragLifeRatio;
-
+in vec3 vViewPos;
 in vec3 vPosition;
 flat in uint vID;
 in float vRemainingLife;
-
+in vec3 vDir;
+in float vRadius;
+in float vNear;
+in float vFar;
 out vec4 finalColor;
 
+uniform mat4 proj;
 uniform sampler2D dataTex;
 uniform int maxParticles;
 vec4 GetPos(int id) {
@@ -57,8 +61,17 @@ void main() {
     //     t = min(a, t);
     // }
     t = length(GetVel(int(vID)));
+    float s = GetSize(int(vID)).r;
+    s = clamp((s - 0.04) * 1.5, 0.0, 1.0);
     t = clamp(t / 10, 0, 1);
     vec4 texColor = texture(tex, fragTexCoord);
-    finalColor = (texColor * (1 - t) + vec4(1, 0, 0, 1) * t);
+
+    vec3 view = vPosition - vViewPos;
+    float centerViewZ = dot(view, vDir);
+    float pixelViewZ = centerViewZ - 1 * vRadius;
+    vec4 clipPos = proj * vec4(0.0, 0.0, -pixelViewZ, 1.0);
+    gl_FragDepth = (clipPos.z / clipPos.w) * 0.5 + 0.5;
+    vec4 velColor = texColor * (1 - t) + vec4(1) * t;
+    finalColor = velColor;
 
 }

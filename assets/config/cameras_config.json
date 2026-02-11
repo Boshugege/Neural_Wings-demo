@@ -18,7 +18,7 @@
         1.0,
         0.0
       ],
-      "fovy": 60.0,
+      "fovy": 45.0,
       "projection": "PERSPECTIVE",
       "nearPlane": 0.1,
       "farPlane": 1000.0

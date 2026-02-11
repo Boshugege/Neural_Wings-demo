@@ -130,7 +130,6 @@ void mCamera::UpdatemCamera(const CameraMode &mode)
     m_rawCamera.up = m_up;
     m_rawCamera.fovy = m_fovy;
     m_rawCamera.projection = m_projection;
-
     UpdateCamera(&m_rawCamera, mode);
 }
 void mCamera::Rotate(float lookHorizontal, float lookVertical)
