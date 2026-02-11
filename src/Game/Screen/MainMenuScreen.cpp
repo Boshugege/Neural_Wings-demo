@@ -17,6 +17,9 @@ void MainMenuScreen::OnEnter()
     {
         screenManager->GetUILayer()->SetVisible(true);
         screenManager->GetUILayer()->LoadRoute(MAIN_MENU);
+        screenManager->GetUILayer()->ExecuteScript(
+            "window.vueAppState = window.vueAppState || {};"
+            "window.vueAppState.nextScreen = '';");
     }
 }
 void MainMenuScreen::OnExit()
@@ -37,6 +40,14 @@ void MainMenuScreen::Update(float deltaTime)
     // 检查 Vue 路由是否已变化
     if (screenManager && screenManager->GetUILayer())
     {
+        std::string nextScreen = screenManager->GetUILayer()->GetAppState("nextScreen");
+        if (nextScreen == GAMEPLAY.getName())
+        {
+            screenManager->GetUILayer()->ExecuteScript("window.vueAppState.nextScreen = '';");
+            m_nextScreenState = GAMEPLAY;
+            return;
+        }
+
         std::string currentRoute = screenManager->GetUILayer()->GetCurrentRoute();
 
         if (currentRoute == "#/" + GAMEPLAY.getName())

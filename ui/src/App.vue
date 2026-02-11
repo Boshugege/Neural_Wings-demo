@@ -9,6 +9,7 @@ import StartScreen from "./pages/StartScreen.vue";
 window.vueAppState = window.vueAppState || {};
 window.vueAppState.vueAppReady = false;
 window.vueAppState.settingsSaveRequested = false;
+window.vueAppState.nextScreen = window.vueAppState.nextScreen || "";
 
 const resolutions = [
   { label: "1280x720", value: "1280x720" },

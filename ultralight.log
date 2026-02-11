@@ -34,6 +34,6 @@
     is_accelerated: 0
 
 > Initializing Thread Pool with the following configuration:
-    physical processors (detected): 16
-    num threads: 15
+    physical processors (detected): 24
+    num threads: 23
 

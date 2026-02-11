@@ -153,6 +153,7 @@ a {
   border-radius: 10px;
   background: var(--accent);
   color: #07100a;
+  font-family: inherit;
   font-weight: 700;
   border: none;
   cursor: pointer;

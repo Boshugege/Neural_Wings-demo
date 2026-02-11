@@ -48,7 +48,21 @@ public:
         emscripten_run_script_string(script.c_str());
 #endif
     }
-    std::string GetAppState(const std::string &key) const override { return ""; };
+    std::string GetAppState(const std::string &key) const override
+    {
+#if defined(PLATFORM_WEB)
+        std::string js = "JSON.stringify(window.vueAppState && window.vueAppState." + key + ")";
+        const char *result = emscripten_run_script_string(js.c_str());
+        std::string resultStr = result ? result : "";
+        if (resultStr.length() >= 2 && resultStr.front() == '"' && resultStr.back() == '"')
+        {
+            resultStr = resultStr.substr(1, resultStr.length() - 2);
+        }
+        return resultStr;
+#else
+        return "";
+#endif
+    };
 
     void Resize(uint32_t width, uint32_t height) override
     {
