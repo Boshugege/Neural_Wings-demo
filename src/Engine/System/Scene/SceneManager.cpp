@@ -51,6 +51,7 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
             ParseEntity(entityData, gameWorld, nullptr);
         }
     }
+    gameWorld.GetCameraManager().ResolveMounts(gameWorld);
     gameWorld.UpdateTransforms();
     return true;
 }

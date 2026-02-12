@@ -3,6 +3,10 @@
 #include "raymath.h"
 #include <fstream>
 #include <iostream>
+#include "Engine/Utils/JsonParser.h"
+#include <nlohmann/json.hpp>
+#include "Engine/Core/GameWorld.h"
+using json = nlohmann::json;
 
 mCamera &CameraManager::CreateCamera(const std::string &name)
 {
@@ -12,7 +16,10 @@ mCamera &CameraManager::CreateCamera(const std::string &name)
 bool CameraManager::CreateCameraFromConfig(const json &configData)
 {
     if (!configData.contains("name"))
+    {
+        std::cerr << "[CameraManager]: Missing 'name' field in camera config" << std::endl;
         return false;
+    }
 
     std::string name = configData["name"];
     auto &cam = m_cameras[name];
@@ -42,7 +49,32 @@ bool CameraManager::CreateCameraFromConfig(const json &configData)
         SetMainCamera(name);
     }
 
+    if (configData.contains("mountTarget"))
+    {
+        std::string targetName = configData["mountTarget"];
+        Vector3f posOffset = JsonParser::ToVector3f(configData["posOffset"]);
+        Vector3f lookAtOffset = JsonParser::ToVector3f(configData["lookAtOffset"]);
+        cam.SetMountIntent(targetName, posOffset, lookAtOffset);
+    }
     return true;
+}
+void CameraManager::ResolveMounts(GameWorld &world)
+{
+    for (auto &pair : m_cameras)
+    {
+        mCamera &cam = pair.second;
+        std::string targetName = cam.GetMountTargetName();
+        if (!targetName.empty())
+        {
+            GameObject *targetObj = world.FindEntityByName(targetName);
+            if (targetObj)
+            {
+                cam.SetMountTarget(targetObj);
+                std::cout << "[CameraManager]: Camera '" << pair.first
+                          << "' mounted to '" << targetName << "'" << std::endl;
+            }
+        }
+    }
 }
 
 bool CameraManager::RemoveCamera(const std::string &name)

@@ -112,7 +112,6 @@ void GameplayScreen::Update(float deltaTime)
         m_nextScreenState = MAIN_MENU;
     }
 
-    // TODO:Camera更新
     if (auto *mainCam = m_cameraManager.GetMainCamera())
     {
         Vector3f mainPos = mainCam->Position();
@@ -147,6 +146,15 @@ void GameplayScreen::Update(float deltaTime)
             direction.Normalize();
 
             rearCam->UpdateFromDirection(mainPos, -direction, mainCam->Up());
+        }
+        if (auto *follow = m_cameraManager.GetCamera("follow"))
+        {
+            Vector3f dir = follow->getLocalLookAtOffset();
+            Vector3f up = Vector3f::UP;
+            float lookHorizontal = -m_inputManager.GetAxisValue("LookHorizontal") * PI / 180;
+            float lookVertical = m_inputManager.GetAxisValue("LookVertical") * PI / 180;
+            follow->Rotate(lookHorizontal, lookVertical);
+            // follow->UpdateFixed(dir, up);
         }
     }
 }

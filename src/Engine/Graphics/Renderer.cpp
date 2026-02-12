@@ -86,34 +86,78 @@ Renderer::~Renderer()
 // }
 void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
 {
-    rlEnableDepthMask();
 
     auto &m_RTPool = m_postProcesser->GetRTPool();
     auto &itScene = m_RTPool["inScreen"];
     BeginTextureMode(itScene);
     {
+
+        rlEnableDepthMask();
         // ClearBackground(BLUE);
         for (const auto &view : m_renderViewer->GetRenderViews())
         {
             mCamera *camera = cameraManager.GetCamera(view.cameraName);
             if (camera)
             {
-                BeginScissorMode((int)view.viewport.x, (int)view.viewport.y, (int)view.viewport.width, (int)view.viewport.height);
-                //  透明底？
+
+                int x1 = (int)view.viewport.x;
+                int y1 = (int)view.viewport.y;
+                int x2 = (int)view.viewport.width;
+                int y2 = (int)view.viewport.height;
+
+                int vx = x1;
+                int vy = y1;
+                int vw = x2 - x1;
+                int vh = y2 - y1;
+
+                BeginScissorMode(vx, vy, vw, vh); //  透明底？
                 if (view.clearBackground)
                 {
                     ClearBackground(view.backgroundColor);
                 }
+                float aspect = (float)vw / (float)vh;
+
                 Camera3D rawCamera = camera->GetRawCamera();
                 BeginMode3D(rawCamera);
-                DrawWorldObjects(gameWorld, rawCamera, *camera, view.viewport.width / view.viewport.height);
+
+                rlViewport(vx, itScene.texture.height - (vy + vh), vw, vh);
+
+                rlMatrixMode(RL_PROJECTION);
+                rlLoadIdentity();
+                if (rawCamera.projection == CAMERA_PERSPECTIVE)
+                {
+                    double top = 0.01 * tan(rawCamera.fovy * 0.5 * DEG2RAD);
+                    double right = top * aspect;
+                    rlFrustum(-right, right, -top, top, 0.01, 1000.0);
+                }
+                else
+                {
+                    float top = rawCamera.fovy * 0.5f;
+                    float right = top * aspect;
+                    rlOrtho(-right, right, -top, top, 0.01, 1000.0);
+                }
+                rlMatrixMode(RL_MODELVIEW);
+
+                DrawWorldObjects(gameWorld, rawCamera, *camera, aspect);
+
+                // debug
+                // for (const auto &view1 : m_renderViewer->GetRenderViews())
+                // {
+                //     if (view1.cameraName != view.cameraName)
+                //     {
+                //         mCamera *camera = cameraManager.GetCamera(view1.cameraName);
+                //         if (camera->GetMountTarget() != nullptr)
+                //             DrawVector(camera->getPosition(), camera->getDirection(), 1.0f, 0.05f);
+                //     }
+                // }
                 EndMode3D();
 
                 // （debug）为视口绘制边框
-                DrawRectangleLinesEx(view.viewport, 2, GRAY);
+                // DrawRectangleLinesEx(view.viewport, 2, GRAY);
                 EndScissorMode();
             }
         }
+        rlViewport(0, 0, itScene.texture.width, itScene.texture.height);
     }
     EndTextureMode();
 }
@@ -288,6 +332,7 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
     }
     // TODO: debug
     DrawGrid(20, 10.0f);
+
     DrawCoordinateAxes(Vector3f(0.0f), Quat4f::IDENTITY, 2.0f, 0.05f);
 }
 
@@ -464,6 +509,6 @@ void Renderer::DrawVector(Vector3f position, Vector3f direction, float axisLengt
 
     Vector3f end = position + direction * cylinderLen;
     Vector3f tip = position + direction * axisLength;
-    DrawCylinderEx(position, end, thickness, thickness, sides, BLUE);
-    DrawCylinderEx(end, tip, coneRadius, 0.0f, sides, BLACK);
+    DrawCylinderEx(position, end, thickness, thickness, sides, RED);
+    DrawCylinderEx(end, tip, coneRadius, 0.0f, sides, WHITE);
 }

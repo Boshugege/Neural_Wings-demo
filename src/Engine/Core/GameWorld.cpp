@@ -151,3 +151,13 @@ void GameWorld::Render()
 {
     m_renderer->RenderScene(*this, *m_cameraManager);
 }
+
+GameObject *GameWorld::FindEntityByName(const std::string &name) const
+{
+    for (auto &obj : m_gameObjects)
+    {
+        if (obj->GetName() == name)
+            return obj.get();
+    }
+    return nullptr;
+}

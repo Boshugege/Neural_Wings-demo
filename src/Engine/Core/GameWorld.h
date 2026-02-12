@@ -64,6 +64,7 @@ public:
         }
         return results;
     }
+    GameObject *FindEntityByName(const std::string &name) const;
 
 private:
     void UpdateHierarchyLogic(GameObject *obj, const Matrix4f &parentWorldMatrix);
