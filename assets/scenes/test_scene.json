@@ -41,23 +41,9 @@
                     1,
                     1
                 ],
-                "isVisible": true,
-                "showWires": false,
-                "showAxes": false,
-                "showAngVol": false,
-                "showVol": false,
-                "showCenter": false,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                    "fs": "assets/shaders/default.fs",
-                    "color": [
-                        50,
-                        100,
-                        50,
-                        255
-                    ],
-                    "depthWrite": true,
-                    "depthTest": true
+                    "fs": "assets/shaders/default.fs"
                 },
                 "meshPasses": [
                     {
@@ -89,9 +75,6 @@
                             1.0
                         ]
                     }
-                },
-                {
-                    "CollisionListener": {}
                 }
             ]
         },
@@ -100,47 +83,18 @@
             "tag": "cube",
             "prefab": "assets/prefabs/cube.json",
             "position": [
-                0,
-                -20,
-                0
-            ],
-            "rotation": [
-                0,
+                20,
                 0,
                 0
-            ],
-            "scale": [
-                1,
-                1,
-                1
             ],
             "physics": {
                 "mass": 100,
-                "elasticity": 0.6
+                "elasticity": 0.9
             },
             "render": {
-                "renderScale": [
-                    1,
-                    1,
-                    1
-                ],
-                "isVisible": true,
-                "showWires": false,
-                "showAxes": false,
-                "showAngVol": false,
-                "showVol": false,
-                "showCenter": false,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                    "fs": "assets/shaders/default.fs",
-                    "color": [
-                        200,
-                        100,
-                        100,
-                        255
-                    ],
-                    "depthWrite": true,
-                    "depthTest": true
+                    "fs": "assets/shaders/default.fs"
                 },
                 "meshPasses": [
                     {
@@ -168,9 +122,9 @@
                 {
                     "RotatorScript": {
                         "angluarVelocity": [
-                            1.0,
                             0.0,
-                            0
+                            1.0,
+                            1.0
                         ]
                     }
                 },
@@ -178,142 +132,90 @@
                     "CollisionListener": {}
                 }
             ],
-            "particles": {
-                "activate": true,
-                "emitters": [
-                    {
-                        "name": "Core_Thrust",
-                        "maxParticles": 1090,
-                        "emissionRate": 20.0,
-                        "maxLife": 15,
-                        "space": "WORLD",
-                        "updateShader": "assets/shaders/particles/compute/default.vs",
-                        "initializers": [
-                            {
-                                "name": "SphereDir",
-                                "params": {
-                                    "offset": [
-                                        0.0,
-                                        0.0,
-                                        0.0
-                                    ],
-                                    "minSpeed": 1.0,
-                                    "maxSpeed": 5.0,
-                                    "size": [
-                                        0.5,
-                                        0.5
-                                    ]
-                                }
-                            },
-                            {
-                                "name": "RandomLife",
-                                "params": {
-                                    "minLife": 0.5,
-                                    "maxLife": 1.0
-                                }
-                            }
-                        ],
-                        "passes": [
-                            {
-                                "name": "inScreenRT",
-                                "vs": "assets/shaders/particles/render/billboard.vs",
-                                "fs": "assets/shaders/particles/render/soft.fs",
-                                "blendMode": "NONE",
-                                "hint": "粒子没有深度写入功能，仅深度测试",
-                                "textures": {
-                                    "tex": [
-                                        "assets/textures/gif/3.gif",
-                                        1
-                                    ]
-                                },
-                                "uniforms": {},
-                                "outputRT": "inScreen"
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        {
-            "name": "cube",
-            "tag": "cube",
-            "prefab": "assets/prefabs/particle_cube.json",
-            "position": [
-                15,
-                2,
-                0
-            ],
-            "rotation": [
-                0,
-                0,
-                0
-            ],
-            "scale": [
-                1,
-                1,
-                1
-            ],
-            "physics": {
-                "mass": 100,
-                "elasticity": 0.8
-            },
-            "render": {
-                "renderScale": [
-                    1,
-                    1,
-                    1
-                ],
-                "isVisible": true,
-                "showWires": false,
-                "showAxes": false,
-                "showAngVol": false,
-                "showVol": false,
-                "showCenter": false,
-                "defaultMaterial": {
-                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                    "fs": "assets/shaders/default.fs",
-                    "color": [
-                        200,
-                        100,
-                        100,
-                        255
+            "children": [
+                {
+                    "name": "cube",
+                    "tag": "cube",
+                    "prefab": "assets/prefabs/particle_cube.json",
+                    "position": [
+                        0,
+                        4,
+                        0
                     ],
-                    "depthWrite": true,
-                    "depthTest": true
-                },
-                "meshPasses": [
-                    {
-                        "meshIndex": 0,
-                        "name": "Mesh_0",
-                        "passes": [
+                    "physics": {
+                        "mass": 0,
+                        "elasticity": 0.0
+                    },
+                    "render": {
+                        "defaultMaterial": {
+                            "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                            "fs": "assets/shaders/default.fs"
+                        },
+                        "meshPasses": [
                             {
-                                "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
-                                "textures": {
-                                    "u_diffuseMap": [
-                                        "assets/textures/gif/3.gif",
-                                        10
-                                    ]
-                                },
-                                "blendMode": "NONE",
-                                "depthWrite": true,
-                                "depthTest": true
+                                "meshIndex": 0,
+                                "name": "Mesh_0",
+                                "passes": [
+                                    {
+                                        "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                                        "hints": "[path,animeSpeed]",
+                                        "textures": {
+                                            "u_diffuseMap": [
+                                                "assets/textures/gif/3.gif",
+                                                10
+                                            ]
+                                        },
+                                        "blendMode": "NONE",
+                                        "depthWrite": true,
+                                        "depthTest": true
+                                    }
+                                ]
                             }
                         ]
-                    }
-                ]
-            },
-            "scripts": [
-                {
-                    "RotatorScript": {
-                        "angluarVelocity": [
-                            1.0,
-                            0.0,
-                            0
-                        ]
-                    }
-                },
-                {
-                    "CollisionListener": {}
+                    },
+                    "children": [
+                        {
+                            "name": "cube",
+                            "tag": "cube",
+                            "prefab": "assets/prefabs/particle_cube.json",
+                            "position": [
+                                4,
+                                0,
+                                0
+                            ],
+                            "physics": {
+                                "mass": 0,
+                                "elasticity": 0.1
+                            },
+                            "render": {
+                                "defaultMaterial": {
+                                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                                    "fs": "assets/shaders/default.fs"
+                                },
+                                "meshPasses": [
+                                    {
+                                        "meshIndex": 0,
+                                        "name": "Mesh_0",
+                                        "passes": [
+                                            {
+                                                "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                                                "hints": "[path,animeSpeed]",
+                                                "textures": {
+                                                    "u_diffuseMap": [
+                                                        "assets/textures/gif/1.gif",
+                                                        10
+                                                    ]
+                                                },
+                                                "blendMode": "NONE",
+                                                "depthWrite": true,
+                                                "depthTest": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
                 }
             ]
         }

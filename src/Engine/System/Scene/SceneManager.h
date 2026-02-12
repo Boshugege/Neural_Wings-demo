@@ -17,6 +17,7 @@ public:
     bool LoadScene(const std::string &scenePath, GameWorld &gameWorld);
 
 private:
+    void ParseEntity(const json &data, GameWorld &world, GameObject *parent);
     void AddScripts(GameWorld &world, GameObject &gameObject, const json &scriptData);
     void AddParticle(GameWorld &gameWorld, GameObject &gameObject, const json &particleData);
     void AddShaders(GameObject &gameObject, const json &matData, GameWorld &gameWorld);

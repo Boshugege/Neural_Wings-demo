@@ -17,6 +17,11 @@ void RotatorScript::Initialize(const json &data)
 void RotatorScript::OnFixedUpdate(float fixedDeltaTime)
 {
     auto &tf = owner->GetComponent<TransformComponent>();
-    tf.rotation = tf.rotation * Quat4f(m_angluarVelocity * fixedDeltaTime);
+    Quat4f rot = tf.GetWorldRotation();
+    Vector3f scale = tf.GetWorldScale();
+    Vector3f pos = tf.GetWorldPosition();
+
+    rot = (rot * Quat4f(m_angluarVelocity * fixedDeltaTime));
+    tf.SetWorldMatrix(Matrix4f::CreateTransform(pos, rot, scale));
 }
 void RotatorScript::OnDestroy() {}

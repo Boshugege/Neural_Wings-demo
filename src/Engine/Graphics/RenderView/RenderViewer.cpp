@@ -13,7 +13,6 @@ void RenderViewer::ParseViewConfig(const json &data)
     this->ClearRenderViews();
     for (const auto &viewData : data)
     {
-        // TODO: 添加各view后处理效果
         RenderView view = ParseViews(viewData);
         this->AddRenderView(view);
     }

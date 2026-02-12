@@ -116,9 +116,10 @@ void ParticleEmitter::Spawn(int spawnCounts, const TransformComponent &ownerTf, 
     {
         for (auto &particle : m_spawnBuffer)
         {
-            particle.position = (ownerTf.rotation * (particle.position & ownerTf.scale)) + ownerTf.position;
-            particle.velocity = ownerTf.rotation * particle.velocity;
-            particle.acceleration = ownerTf.rotation * particle.acceleration;
+
+            particle.position = (ownerTf.GetWorldRotation() * (particle.position & ownerTf.GetWorldScale())) + ownerTf.GetWorldPosition();
+            particle.velocity = ownerTf.GetWorldRotation() * particle.velocity;
+            particle.acceleration = ownerTf.GetWorldRotation() * particle.acceleration;
         }
     }
 
@@ -349,7 +350,7 @@ Matrix4f ParticleEmitter::GetRenderMatrix(const TransformComponent &parentTf) co
     if (simSpace == SimulationSpace::WORLD)
         return Matrix4f::identity();
     else
-        return parentTf.GetTransformMatrix(); // local space
+        return parentTf.GetLocalMatrix(); // local space
 }
 
 unsigned int ParticleEmitter::GetDataTextureID() const

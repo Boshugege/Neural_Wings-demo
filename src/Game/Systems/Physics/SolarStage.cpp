@@ -32,10 +32,10 @@ void SolarStage::Execute(GameWorld &world, float fixedDeltaTime)
                     auto &otherRb = otherGameObject->GetComponent<RigidbodyComponent>();
                     auto &otherTransform = otherGameObject->GetComponent<TransformComponent>();
 
-                    auto distance = Vector3f::Distance(transform.position, otherTransform.position);
+                    auto distance = Vector3f::Distance(transform.GetWorldPosition(), otherTransform.GetWorldPosition());
 
                     auto f = m_G * rb.mass * otherRb.mass / (distance * distance);
-                    auto F = (otherTransform.position - transform.position).Normalized() * f;
+                    auto F = (otherTransform.GetWorldPosition() - transform.GetWorldPosition()).Normalized() * f;
                     rb.AddForce(F);
                 }
             }

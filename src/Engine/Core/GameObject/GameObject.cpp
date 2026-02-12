@@ -97,7 +97,8 @@ AABB GameObject::GetWorldAABB(Vector3f (*outCorners)[8]) const
     RigidbodyComponent &rb = this->GetComponent<RigidbodyComponent>();
     if (rb.colliderType == ColliderType::SPHERE)
     {
-        Vector3f center = tf.position;
+        // Vector3f center = tf.GetLocalPosition();
+        Vector3f center = tf.GetWorldPosition();
         float radius = rb.boudingRadius;
         if (outCorners != nullptr)
         {
@@ -125,8 +126,12 @@ AABB GameObject::GetWorldAABB(Vector3f (*outCorners)[8]) const
         Vector3f(max.x(), max.y(), max.z()),
     };
     float angle = 0.0f;
-    Vector3f axis = tf.rotation.getAxisAngle(&angle);
-    Vector3f worldPos = tf.position;
+
+    // Vector3f axis = tf.GetLocalRotation().getAxisAngle(&angle);
+    // Vector3f worldPos = tf.GetLocalPosition();
+    Vector3f axis = tf.GetWorldRotation().getAxisAngle(&angle);
+    Vector3f worldPos = tf.GetWorldPosition();
+
     Vector3f newMin = Vector3f(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     Vector3f newMax = Vector3f(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest());
     for (int i = 0; i < 8; i++)

@@ -47,7 +47,8 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
             {
                 float penetration = ground - lowy;
                 if (penetration > slop)
-                    tf.position.y() += (penetration - slop) * baumgarte;
+                    // TODO:子父级-修改为世界坐标
+                    tf.GetLocalPosition().y() += (penetration - slop) * baumgarte;
                 struct Contact
                 {
                     Vector3f r;
@@ -58,7 +59,8 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                 {
                     if (corners[i].y() < ground + 0.01f)
                     {
-                        contacts.push_back({corners[i] - tf.position, ground - corners[i].y()});
+                        // TODO:子父级-修改为世界坐标
+                        contacts.push_back({corners[i] - tf.GetLocalPosition(), ground - corners[i].y()});
                     }
                 }
                 const float div = (float)contacts.size();
@@ -72,7 +74,8 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                         float e = (fabsf(nrV) < 0.2f) ? 0.0f : rb.elasticity * e_ground;
                         float i = -(1.0f + e) * nrV;
                         auto raxn = cp.r ^ normal;
-                        auto rot = tf.rotation.toMatrix();
+                        // TODO:子父级-修改为世界坐标
+                        auto rot = tf.GetLocalRotation().toMatrix();
                         auto worldInverseInertia = rot * rb.inverseInertiaTensor * rot.transposed();
                         float term = raxn * (worldInverseInertia * raxn);
                         float j = i / (term + invMass);

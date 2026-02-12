@@ -51,12 +51,17 @@ void PhysicsSystem::Integrate(GameWorld &world, float fixedDeltaTime)
             rb.velocity *= dragFactor;
 
             // 4. p = p + v * t
-            tf.position += rb.velocity * fixedDeltaTime;
+
+            Vector3f pos = tf.GetWorldPosition();
+            Quat4f rot = tf.GetWorldRotation();
+            Vector3f scale = tf.GetWorldScale();
+            pos += rb.velocity * fixedDeltaTime;
+            // tf.SetLocalPosition(tf.GetLocalPosition() + rb.velocity * fixedDeltaTime);
+            tf.SetWorldMatrix(Matrix4f::CreateTransform(pos, rot, scale));
 
             // angluar velocity
-            Matrix3f rotationMatrix = tf.rotation.toMatrix();
+            Matrix3f rotationMatrix = rot.toMatrix();
             Matrix3f worldInverseInertia = rotationMatrix * rb.inverseInertiaTensor * rotationMatrix.transposed();
-            // Matrix3f worldInertia = rotationMatrix * rb.inertiaTensor * rotationMatrix.transposed();
 
             rb.angularMomentum += rb.accumulatedTorques * fixedDeltaTime;
 
@@ -74,13 +79,15 @@ void PhysicsSystem::Integrate(GameWorld &world, float fixedDeltaTime)
 
                 // dq/dt = 0.5 * w * q
                 // 世界系w左乘
-                Quat4f dq = (omegaQuat * tf.rotation) * 0.5f;
+                Quat4f dq = (omegaQuat * rot) * 0.5f;
 
                 // 欧拉方法积分 q(t+dt) = q(t) + dq*dt
-                tf.rotation = tf.rotation + dq * fixedDeltaTime;
+                rot = rot + dq * fixedDeltaTime;
 
                 // 归一化
-                tf.rotation.normalize();
+                rot.normalize();
+
+                tf.SetWorldMatrix(Matrix4f::CreateTransform(pos, rot, scale));
             }
             // 5. 清理受力
             rb.ClearForces();

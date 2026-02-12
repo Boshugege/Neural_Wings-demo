@@ -7,7 +7,7 @@
 #include <limits>
 
 class GameObject;
-struct TransformComponent;
+class TransformComponent;
 enum class ColliderType
 {
     NONE,
@@ -205,10 +205,10 @@ struct HitBox
         switch (rb.colliderType)
         {
         case ColliderType::SPHERE:
-            setHitboxSphere(tf.position, tf.rotation, rb.boudingRadius);
+            setHitboxSphere(tf.GetLocalPosition(), tf.GetLocalRotation(), rb.boudingRadius);
             break;
         case ColliderType::BOX:
-            setHitboxBox(tf.position, tf.rotation, rb.localAABB);
+            setHitboxBox(tf.GetLocalPosition(), tf.GetLocalRotation(), rb.localAABB);
             break;
         default:
             break;
