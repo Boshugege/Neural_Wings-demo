@@ -84,8 +84,8 @@ void CollisionStage::ResolveCollision(GameWorld &world, GameObject *a, GameObjec
     float invMassA = GetInverseMass(rbA);
     float invMassB = GetInverseMass(rbB);
 
-    auto rA = hitPoint - tfA.position;
-    auto rB = hitPoint - tfB.position;
+    auto rA = hitPoint - tfA.GetWorldPosition();
+    auto rB = hitPoint - tfB.GetWorldPosition();
 
     if (invMassA + invMassB <= std::numeric_limits<float>::min())
         return;
@@ -100,8 +100,8 @@ void CollisionStage::ResolveCollision(GameWorld &world, GameObject *a, GameObjec
     auto raxn = rA ^ normal;
     auto rbxn = rB ^ normal;
 
-    Matrix3f rotA = tfA.rotation.toMatrix();
-    Matrix3f rotB = tfB.rotation.toMatrix();
+    Matrix3f rotA = tfA.GetWorldRotation().toMatrix();
+    Matrix3f rotB = tfB.GetWorldRotation().toMatrix();
 
     auto worldInverseInertiaTensorA = rotA * rbA.inverseInertiaTensor * rotA.transposed();
     auto worldInverseInertiaTensorB = rotB * rbB.inverseInertiaTensor * rotB.transposed();
@@ -114,19 +114,25 @@ void CollisionStage::ResolveCollision(GameWorld &world, GameObject *a, GameObjec
     Vector3f impulse = j * normal;
     rbA.AddImpulse(-impulse, rA);
     rbB.AddImpulse(impulse, rB);
-    // rbA.velocity -= invMassA * impulse;
-    // rbB.velocity += invMassB * impulse;
-    // if (invMassA > 0.0001f)
-    //     rbA.angularMomentum -= (rA ^ impulse);
-    // if (invMassB > 0.0001f)
-    //     rbB.angularMomentum += (rB ^ impulse);
 
     // TODO:精度
     const float percent = 0.6f;
     const float slop = 0.0001f;
     Vector3f correction = std::max(penetration - slop, 0.0f) * percent * normal / (invMassA + invMassB);
-    tfA.position -= invMassA * correction;
-    tfB.position += invMassB * correction;
+
+    Vector3f posA = tfA.GetWorldPosition() - invMassA * correction;
+    Vector3f posB = tfB.GetWorldPosition() + invMassB * correction;
+
+    Vector3f scaleA = tfA.GetWorldScale();
+    Vector3f scaleB = tfB.GetWorldScale();
+
+    Quat4f _rotA = tfA.GetWorldRotation();
+    Quat4f _rotB = tfB.GetWorldRotation();
+
+    // tfA.SetLocalPosition(tfA.GetLocalPosition());
+    // tfB.SetLocalPosition(tfB.GetLocalPosition());
+    tfA.SetWorldMatrix(Matrix4f::CreateTransform(posA, _rotA, scaleA));
+    tfB.SetWorldMatrix(Matrix4f::CreateTransform(posB, _rotB, scaleB));
 
     world.GetEventManager().Emit(CollisionEvent(a, b, normal, penetration, hitPoint, rV, j));
 }

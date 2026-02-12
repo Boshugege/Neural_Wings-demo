@@ -355,6 +355,68 @@ Matrix4f Matrix4f::translation(const Vector3f &rTranslation)
         0, 0, 1, rTranslation.z(),
         0, 0, 0, 1);
 }
+Vector3f Matrix4f::getTranslation() const
+{
+    return Vector3f(m_data[12], m_data[13], m_data[14]);
+}
+Vector3f Matrix4f::getScale() const
+{
+    float sx = Vector3f(m_data[0], m_data[1], m_data[2]).Length();
+    float sy = Vector3f(m_data[4], m_data[5], m_data[6]).Length();
+    float sz = Vector3f(m_data[8], m_data[9], m_data[10]).Length();
+    return Vector3f(sx, sy, sz);
+}
+Quat4f Matrix4f::getRotation() const
+{
+    Vector3f scale = getScale();
+    float m00 = m_data[0] / (scale.x() > 0 ? scale.x() : 1.0f);
+    float m10 = m_data[1] / (scale.x() > 0 ? scale.x() : 1.0f);
+    float m20 = m_data[2] / (scale.x() > 0 ? scale.x() : 1.0f);
+
+    float m01 = m_data[4] / (scale.y() > 0 ? scale.y() : 1.0f);
+    float m11 = m_data[5] / (scale.y() > 0 ? scale.y() : 1.0f);
+    float m21 = m_data[6] / (scale.y() > 0 ? scale.y() : 1.0f);
+
+    float m02 = m_data[8] / (scale.z() > 0 ? scale.z() : 1.0f);
+    float m12 = m_data[9] / (scale.z() > 0 ? scale.z() : 1.0f);
+    float m22 = m_data[10] / (scale.z() > 0 ? scale.z() : 1.0f);
+
+    float tr = m00 + m11 + m22;
+    float qw, qx, qy, qz;
+    if (tr > 0)
+    {
+        float s = sqrtf(tr + 1.0f) * 2.0f;
+        qw = 0.25f * s;
+        qx = (m21 - m12) / s;
+        qy = (m02 - m20) / s;
+        qz = (m10 - m01) / s;
+    }
+    else if ((m00 > m11) && (m00 > m22))
+    {
+        float s = sqrtf(1.0f + m00 - m11 - m22) * 2.0f;
+        qw = (m21 - m12) / s;
+        qx = 0.25f * s;
+        qy = (m01 + m10) / s;
+        qz = (m02 + m20) / s;
+    }
+    else if (m11 > m22)
+    {
+        float s = sqrtf(1.0f + m11 - m00 - m22) * 2.0f;
+        qw = (m02 - m20) / s;
+        qx = (m01 + m10) / s;
+        qy = 0.25f * s;
+        qz = (m12 + m21) / s;
+    }
+    else
+    {
+        float s = sqrtf(1.0f + m22 - m00 - m11) * 2.0f;
+        qw = (m10 - m01) / s;
+        qx = (m02 + m20) / s;
+        qy = (m12 + m21) / s;
+        qz = 0.25f * s;
+    }
+    return Quat4f(qw, qx, qy, qz).normalized();
+}
 
 Matrix4f Matrix4f::rotateX(float radians)
 {
@@ -473,9 +535,9 @@ Matrix4f Matrix4f::lookAt(const Vector3f &eye, const Vector3f &center, const Vec
     // the affine part defines the overall translation
     Matrix4f view;
 
-    view.setRow(0, Vector4f(x, -(x* eye)));
-    view.setRow(1, Vector4f(y, -(y*eye)));
-    view.setRow(2, Vector4f(z, (z* eye)));
+    view.setRow(0, Vector4f(x, -(x * eye)));
+    view.setRow(1, Vector4f(y, -(y * eye)));
+    view.setRow(2, Vector4f(z, (z * eye)));
     view.setRow(3, Vector4f(0, 0, 0, 1));
 
     return view;
@@ -614,6 +676,21 @@ Matrix4f Matrix4f::infinitePerspectiveProjection(float fLeft, float fRight,
     }
 
     return projection;
+}
+
+Matrix4f Matrix4f::scale(const Vector3f &scale)
+{
+    Matrix4f m = Matrix4f::identity();
+
+    m(0, 0) = scale.x();
+    m(1, 1) = scale.y();
+    m(2, 2) = scale.z();
+
+    return m;
+}
+Matrix4f Matrix4f::CreateTransform(const Vector3f &pos, const Quat4f &rot, const Vector3f &sc)
+{
+    return translation(pos) * rotation(rot) * scale(sc);
 }
 
 //////////////////////////////////////////////////////////////////////////

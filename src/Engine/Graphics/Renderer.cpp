@@ -209,7 +209,7 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
             const auto &render = gameObject->GetComponent<RenderComponent>();
 
             float angle = 0.0f;
-            Quat4f rotation = tf.rotation;
+            Quat4f rotation = tf.GetWorldRotation();
             Vector3f axis = rotation.getAxisAngle(&angle);
             angle *= (float)180.0f / (float)M_PI;
 
@@ -217,9 +217,9 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
             if (useShader)
             {
 
-                Matrix4f S = Matrix4f(Matrix3f(tf.scale & render.scale));
-                Matrix4f R = Matrix4f(tf.rotation.toMatrix());
-                Matrix4f T = Matrix4f::translation(tf.position);
+                Matrix4f S = Matrix4f(Matrix3f(tf.GetWorldScale() & render.scale));
+                Matrix4f R = Matrix4f(tf.GetWorldRotation().toMatrix());
+                Matrix4f T = Matrix4f::translation(tf.GetWorldPosition());
                 Matrix4f M = T * R * S;
 
                 Matrix4f MVP = VP * M;
@@ -255,34 +255,34 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
                 Color tint = {(unsigned char)render.defaultMaterial.baseColor.x(), (unsigned char)render.defaultMaterial.baseColor.y(), (unsigned char)render.defaultMaterial.baseColor.z(), (unsigned char)render.defaultMaterial.baseColor.w()};
                 DrawModelEx(
                     render.model,
-                    tf.position,
+                    tf.GetWorldPosition(),
                     axis,
                     angle,
-                    tf.scale & render.scale,
+                    tf.GetWorldScale() & render.scale,
                     tint);
             }
             if (render.showWires)
                 DrawModelWiresEx(
                     render.model,
-                    tf.position,
+                    tf.GetWorldPosition(),
                     axis,
                     angle,
-                    tf.scale & render.scale,
+                    tf.GetWorldScale() & render.scale,
                     BLACK);
 
             if (render.showAxes)
-                DrawCoordinateAxes(tf.position, tf.rotation, 2.0f, 0.05f);
+                DrawCoordinateAxes(tf.GetWorldPosition(), tf.GetWorldRotation(), 2.0f, 0.05f);
             if (render.showCenter)
-                DrawSphereEx(tf.position, 0.1f, 8, 8, RED);
+                DrawSphereEx(tf.GetWorldPosition(), 0.1f, 8, 8, RED);
             if (render.showAngVol && gameObject->HasComponent<RigidbodyComponent>())
             {
                 const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
-                DrawVector(tf.position, rb.angularVelocity, 1.0f, 0.05f);
+                DrawVector(tf.GetWorldPosition(), rb.angularVelocity, 1.0f, 0.05f);
             }
             if (render.showVol && gameObject->HasComponent<RigidbodyComponent>())
             {
                 const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
-                DrawVector(tf.position, rb.velocity, 1.0f, 0.05f);
+                DrawVector(tf.GetWorldPosition(), rb.velocity, 1.0f, 0.05f);
             }
         }
     }
@@ -340,12 +340,32 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         if (pass.useDiffuseMap)
         {
             pass.shader->SetTexture("u_diffuseMap", pass.diffuseMap, texUnit);
+            if (pass.diffuseIsAnimated)
+            {
+                pass.shader->SetInt("u_diffuseMap_frameCount", pass.diffuseframeCount);
+                pass.shader->SetFloat("u_diffuseMap_animSpeed", pass.diffuseanimSpeed);
+            }
+            else
+            {
+                pass.shader->SetInt("u_diffuseMap_frameCount", 1);
+                pass.shader->SetFloat("u_diffuseMap_animSpeed", 0.0f);
+            }
             tempRaylibMaterial.maps[MATERIAL_MAP_DIFFUSE].texture = pass.diffuseMap;
             texUnit++;
         }
         for (auto const &[name, text] : pass.customTextures)
         {
             pass.shader->SetTexture(name, text, texUnit);
+            if (pass.isAnimated.at(name))
+            {
+                pass.shader->SetInt(name + "_frameCount", pass.frameCount.at(name));
+                pass.shader->SetFloat(name + "_animSpeed", pass.animSpeed.at(name));
+            }
+            else
+            {
+                pass.shader->SetInt(name + "_frameCount", 1);
+                pass.shader->SetFloat(name + "_animSpeed", 0.0f);
+            }
             texUnit++;
         }
 

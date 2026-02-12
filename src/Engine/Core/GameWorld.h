@@ -28,6 +28,8 @@ public:
     bool FixedUpdate(float fexedDeltaTime);
     bool Update(float deltaTime);
     void Render();
+    void UpdateTransforms();
+
     const std::vector<std::unique_ptr<GameObject>> &GetGameObjects() const;
 
     PhysicsStageFactory &GetPhysicsStageFactory() { return *m_physicsStageFactory; };
@@ -64,6 +66,7 @@ public:
     }
 
 private:
+    void UpdateHierarchyLogic(GameObject *obj, const Matrix4f &parentWorldMatrix);
     void DestroyWaitingObjects();
 
     std::unique_ptr<TimeManager> m_timeManager;

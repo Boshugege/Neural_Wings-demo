@@ -93,7 +93,10 @@
                                 "blendMode": "NONE",
                                 "hint": "粒子没有深度写入功能，仅深度测试",
                                 "textures": {
-                                    "tex": "assets/textures/test_4.png"
+                                    "tex": [
+                                        "assets/textures/test_4.png",
+                                        1
+                                    ]
                                 },
                                 "uniforms": {},
                                 "outputRT": "inScreen"

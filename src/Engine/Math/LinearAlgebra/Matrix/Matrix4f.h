@@ -86,6 +86,10 @@ public:
 	void transpose();
 	Matrix4f transposed() const;
 
+	Vector3f getTranslation() const;
+	Vector3f getScale() const;
+	Quat4f getRotation() const;
+
 	static Matrix4f ones();
 	static Matrix4f identity();
 	static Matrix4f translation(float x, float y, float z);
@@ -103,11 +107,11 @@ public:
 	static Matrix4f perspectiveProjection(float fLeft, float fRight, float fBottom, float fTop, float fZNear, float fZFar, bool directX);
 	static Matrix4f perspectiveProjection(float fovYRadians, float aspect, float zNear, float zFar, bool directX);
 	static Matrix4f infinitePerspectiveProjection(float fLeft, float fRight, float fBottom, float fTop, float fZNear, bool directX);
-
+	static Matrix4f CreateTransform(const Vector3f &translation, const Quat4f &rotation, const Vector3f &scale);
 	// Returns the rotation matrix represented by a quaternion
 	// uses a normalized version of q
 	static Matrix4f rotation(const Quat4f &q);
-
+	static Matrix4f scale(const Vector3f &scale);
 	// returns an orthogonal matrix that's a uniformly distributed rotation
 	// given u[i] is a uniformly distributed random number in [0,1]
 	static Matrix4f randomRotation(float u0, float u1, float u2);

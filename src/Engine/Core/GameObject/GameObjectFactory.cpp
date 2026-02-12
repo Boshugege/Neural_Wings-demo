@@ -101,11 +101,11 @@ void GameObjectFactory::ParseTransformComponent(GameObject &gameObject, const js
 {
     auto &tf = gameObject.AddComponent<TransformComponent>();
     if (prefab.contains("position"))
-        tf.position = JsonParser::ToVector3f(prefab["position"]);
+        tf.SetLocalPosition(JsonParser::ToVector3f(prefab["position"]));
     if (prefab.contains("scale"))
-        tf.scale = JsonParser::ToVector3f(prefab["scale"]);
+        tf.SetLocalScale(JsonParser::ToVector3f(prefab["scale"]));
     if (prefab.contains("rotation"))
-        tf.rotation = Quat4f(JsonParser::ToVector3f(prefab["rotation"]));
+        tf.SetLocalRotation(Quat4f(JsonParser::ToVector3f(prefab["rotation"])));
 }
 void GameObjectFactory::ParseRigidBodyComponent(GameObject &gameObject, const json &prefab)
 {
@@ -133,7 +133,7 @@ void GameObjectFactory::ParseRigidBodyComponent(GameObject &gameObject, const js
         rb.colliderType = ColliderType::SPHERE;
     else
         std::cerr << "Unknown collider type: " << colliderType << std::endl;
-    rb.SetHitbox(tf.scale);
+    rb.SetHitbox(tf.GetLocalScale());
 }
 void GameObjectFactory::ParseScriptComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab)
 {

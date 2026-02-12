@@ -67,8 +67,11 @@ GameObject &GameWorld::CreateGameObject()
 bool GameWorld::FixedUpdate(float fixedDeltaTime)
 {
     m_timeManager->TickGame(fixedDeltaTime);
-    m_physicsSystem->Update(*this, fixedDeltaTime);
+
     m_scriptingSystem->FixedUpdate(*this, fixedDeltaTime);
+    this->UpdateTransforms();
+    m_physicsSystem->Update(*this, fixedDeltaTime);
+    this->UpdateTransforms();
 
     this->DestroyWaitingObjects();
     return true;
@@ -79,9 +82,41 @@ bool GameWorld::Update(float DeltaTime)
     m_timeManager->Tick();
     m_scriptingSystem->Update(*this, DeltaTime);
     m_particleSystem->Update(*this, DeltaTime);
+    this->UpdateTransforms();
     return true;
 }
 
+void GameWorld::UpdateTransforms()
+{
+    for (auto &obj : m_gameObjects)
+    {
+        if (obj->IsWaitingDestroy())
+            continue;
+        if (!obj->HasComponent<TransformComponent>())
+            continue;
+        auto &tf = obj->GetComponent<TransformComponent>();
+        if (tf.GetParent() == nullptr)
+        {
+            UpdateHierarchyLogic(obj.get(), Matrix4f::identity());
+        }
+    }
+}
+
+void GameWorld::UpdateHierarchyLogic(GameObject *obj, const Matrix4f &parentWorldMatrix)
+{
+    auto &tf = obj->GetComponent<TransformComponent>();
+    if (tf.isDirty)
+    {
+        Matrix4f localMat = tf.GetLocalMatrix();
+        tf.SetWorldMatrix(parentWorldMatrix * localMat);
+        tf.SetClean();
+    }
+    for (auto *child : tf.GetChildren())
+    {
+        if (child && !child->IsWaitingDestroy())
+            UpdateHierarchyLogic(child, tf.GetWorldMatrix());
+    }
+}
 const std::vector<std::unique_ptr<GameObject>> &GameWorld::GetGameObjects() const
 {
     return m_gameObjects;

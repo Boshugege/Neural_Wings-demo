@@ -61,16 +61,64 @@ Model ResourceManager::GetModel(const std::string &path)
         std::cerr << "[ResourceManager] Failed to load model: " << path << std::endl;
     return model;
 }
-Texture2D ResourceManager::GetTexture2D(const std::string &path)
+Texture2D ResourceManager::GetTexture2D(const std::string &path, int *outFrameCount)
 {
     auto it = m_textures.find(path);
     if (it != m_textures.end())
+    {
+        if (outFrameCount)
+            *outFrameCount = m_textureFrameCounts[it->second.id];
         return it->second;
+    }
+    // gif贴图
+    if (path.substr(path.find_last_of(".") + 1) == "gif")
+    {
+        int frameCount = 0;
+
+        Image animImg = LoadImageAnim(path.c_str(), &frameCount);
+        if (frameCount > 0)
+        {
+            int frameWidth = animImg.width;
+            int frameHeight = animImg.height;
+
+            Image atlas = GenImageColor(frameWidth, frameHeight * frameCount, BLANK);
+
+            int pixelSize = GetPixelDataSize(frameWidth, frameHeight, animImg.format);
+            for (int i = 0; i < frameCount; i++)
+            {
+                Image frame;
+                frame.data = (unsigned char *)animImg.data + (i * pixelSize);
+                frame.width = frameWidth;
+                frame.height = frameHeight;
+                frame.mipmaps = 1;
+                frame.format = animImg.format;
+
+                ImageDraw(&atlas, frame,
+                          Rectangle{0, 0, (float)frameWidth, (float)frameHeight},
+                          Rectangle{0, (float)i * frameHeight, (float)frameWidth, (float)frameHeight},
+                          WHITE);
+            }
+
+            Texture2D tex = LoadTextureFromImage(atlas);
+            UnloadImage(animImg);
+            UnloadImage(atlas);
+            m_textures[path] = tex;
+            m_textureFrameCounts[tex.id] = frameCount;
+            if (outFrameCount)
+                *outFrameCount = frameCount;
+            std::cout << "[ResourceManager]: Loaded GIF as Atlas: " << path << " (" << frameCount << " frames)" << std::endl;
+            return tex;
+        }
+    }
+    // 静态贴图
     Texture2D textures = LoadTexture(path.c_str());
 
     if (textures.id != 0)
     {
         m_textures[path] = textures;
+        m_textureFrameCounts[textures.id] = 1;
+        if (outFrameCount)
+            *outFrameCount = 1;
         std::cout << "[ResourceManager] Loaded textures " << path << std::endl;
     }
     else

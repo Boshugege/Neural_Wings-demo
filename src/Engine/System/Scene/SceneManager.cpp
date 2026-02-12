@@ -48,56 +48,73 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
     {
         for (const auto &entityData : sceneData["entities"])
         {
-            std::string prefabPath = entityData["prefab"];
-            std::string objectName = entityData.value("name", "");
-            std::string objectTag = entityData.value("tag", "Untagged");
-            GameObject &obj = GameObjectFactory::CreateFromPrefab(objectName, objectTag, prefabPath, gameWorld);
-
-            obj.SetOwnerWorld(&gameWorld);
-
-            if (!obj.HasComponent<TransformComponent>())
-                obj.AddComponent<TransformComponent>();
-            auto &tf = obj.GetComponent<TransformComponent>();
-            if (entityData.contains("position"))
-            {
-                tf.position += JsonParser::ToVector3f(entityData["position"]);
-            }
-            if (entityData.contains("rotation"))
-            {
-                tf.rotation = tf.rotation * Quat4f(JsonParser::ToVector3f(entityData["rotation"]));
-            }
-            if (entityData.contains("scale"))
-            {
-                // 逐分量相乘
-                tf.scale = tf.scale & JsonParser::ToVector3f(entityData["scale"]);
-                if (obj.HasComponent<RigidbodyComponent>())
-                {
-                    auto &rb = obj.GetComponent<RigidbodyComponent>();
-                    rb.SetHitbox(tf.scale);
-                }
-            }
-
-            if (entityData.contains("physics"))
-            {
-                AddRigidbody(obj, entityData["physics"]);
-            }
-            if (entityData.contains("render") && obj.HasComponent<RenderComponent>())
-            {
-                AddShaders(obj, entityData["render"], gameWorld);
-            }
-            if (entityData.contains("scripts"))
-            {
-                AddScripts(gameWorld, obj, entityData["scripts"]);
-            }
-            if (entityData.contains("particles"))
-            {
-                AddParticle(gameWorld, obj, entityData["particles"]);
-            }
+            ParseEntity(entityData, gameWorld, nullptr);
         }
     }
+    gameWorld.UpdateTransforms();
     return true;
 }
+void SceneManager::ParseEntity(const json &entityData, GameWorld &gameWorld, GameObject *parent)
+{
+    std::string prefabPath = entityData["prefab"];
+    std::string objectName = entityData.value("name", "");
+    std::string objectTag = entityData.value("tag", "Untagged");
+    GameObject &obj = GameObjectFactory::CreateFromPrefab(objectName, objectTag, prefabPath, gameWorld);
 
+    obj.SetOwnerWorld(&gameWorld);
+
+    if (!obj.HasComponent<TransformComponent>())
+        obj.AddComponent<TransformComponent>();
+    auto &tf = obj.GetComponent<TransformComponent>();
+    tf.SetOwner(&obj);
+    if (entityData.contains("position"))
+    {
+        tf.SetLocalPosition(tf.GetLocalPosition() + JsonParser::ToVector3f(entityData["position"]));
+    }
+    if (entityData.contains("rotation"))
+    {
+        tf.SetLocalRotation(tf.GetLocalRotation() * Quat4f(JsonParser::ToVector3f(entityData["rotation"])));
+    }
+    if (entityData.contains("scale"))
+    {
+        // 逐分量相乘
+        tf.SetLocalScale(tf.GetLocalScale() & JsonParser::ToVector3f(entityData["scale"]));
+        if (obj.HasComponent<RigidbodyComponent>())
+        {
+            auto &rb = obj.GetComponent<RigidbodyComponent>();
+            rb.SetHitbox(tf.GetLocalScale());
+        }
+    }
+
+    if (entityData.contains("physics"))
+    {
+        AddRigidbody(obj, entityData["physics"]);
+    }
+    if (entityData.contains("render") && obj.HasComponent<RenderComponent>())
+    {
+        AddShaders(obj, entityData["render"], gameWorld);
+    }
+    if (entityData.contains("scripts"))
+    {
+        AddScripts(gameWorld, obj, entityData["scripts"]);
+    }
+    if (entityData.contains("particles"))
+    {
+        AddParticle(gameWorld, obj, entityData["particles"]);
+    }
+
+    if (parent != nullptr)
+    {
+        tf.SetParent(parent);
+    }
+    if (entityData.contains("children"))
+    {
+        for (const auto &childData : entityData["children"])
+        {
+            ParseEntity(childData, gameWorld, &obj);
+        }
+    }
+}
 void SceneManager::AddShaders(GameObject &gameObject, const json &renderData, GameWorld &gameWorld)
 {
     auto &rd = gameObject.GetComponent<RenderComponent>();

@@ -47,7 +47,10 @@
                             {
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
                                 "textures": {
-                                    "u_diffuseMap": "assets/textures/test_1.png"
+                                    "u_diffuseMap": [
+                                        "assets/textures/test_1.png",
+                                        1
+                                    ]
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,

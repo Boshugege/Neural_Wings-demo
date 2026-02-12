@@ -50,7 +50,10 @@
                 "blendMode": "NONE",
                 "hint": "粒子没有深度写入功能，仅深度测试",
                 "textures": {
-                    "tex": "assets/textures/test_4.png"
+                    "tex": [
+                        "assets/textures/test_4.png",
+                        1
+                    ]
                 },
                 "uniforms": {},
                 "outputRT": "Sparks",
@@ -103,9 +106,6 @@
                 "vs": "assets/shaders/particles/render/billboard.vs",
                 "fs": "assets/shaders/particles/render/fluid_thickness.fs",
                 "blendMode": "ADDITIVE",
-                "textures": {
-                    "tex": "assets/textures/sph.png"
-                },
                 "uniforms": {},
                 "outputRT": "raw_Fluid_Thickness",
                 "depthTest": true,
@@ -116,9 +116,6 @@
                 "vs": "assets/shaders/particles/render/billboard.vs",
                 "fs": "assets/shaders/particles/render/fluid_depth.fs",
                 "blendMode": "NONE",
-                "textures": {
-                    "tex": "assets/textures/sph.png"
-                },
                 "uniforms": {},
                 "outputRT": "raw_Fluid_Depth",
                 "depthTest": true,
@@ -130,7 +127,10 @@
                 "fs": "assets/shaders/particles/render/fluid.fs",
                 "blendMode": "NONE",
                 "textures": {
-                    "tex": "assets/textures/sph.png"
+                    "tex": [
+                        "assets/textures/sph.png",
+                        1
+                    ]
                 },
                 "uniforms": {},
                 "outputRT": "simple_Fluid",
