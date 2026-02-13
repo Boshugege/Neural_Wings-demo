@@ -26,6 +26,11 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_particleFactory = std::make_unique<ParticleFactory>();
     m_particleSystem = std::make_unique<ParticleSystem>(this);
 
+#if defined(PLATFORM_DESKTOP)
+    m_networkClient = std::make_unique<NetworkClient>();
+    m_networkSyncSystem = std::make_unique<NetworkSyncSystem>();
+#endif
+
     configCallback(*m_scriptingFactory, *m_physicsStageFactory, *m_particleFactory);
 
     m_cameraManager->LoadConfig(cameraConfigPath);
@@ -89,6 +94,17 @@ bool GameWorld::Update(float DeltaTime)
 
     m_particleSystem->Update(*this, DeltaTime);
     this->UpdateTransforms();
+
+#if defined(PLATFORM_DESKTOP)
+    // Network: poll incoming packets and sync transforms.
+    if (m_networkClient)
+    {
+        m_networkClient->Poll();
+        if (m_networkSyncSystem)
+            m_networkSyncSystem->Update(*this, *m_networkClient);
+    }
+#endif
+
     return true;
 }
 

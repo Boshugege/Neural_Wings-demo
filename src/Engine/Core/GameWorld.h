@@ -11,6 +11,11 @@
 #include <string>
 #include <queue>
 
+#if defined(PLATFORM_DESKTOP)
+#include "Engine/Network/Client/NetworkClient.h"
+#include "Engine/Network/Sync/NetworkSyncSystem.h"
+#endif
+
 class ScriptingFactory;
 class ScriptingSystem;
 
@@ -52,6 +57,11 @@ public:
 
     ParticleFactory &GetParticleFactory() { return *m_particleFactory; };
     ParticleSystem &GetParticleSystem() { return *m_particleSystem; };
+
+#if defined(PLATFORM_DESKTOP)
+    NetworkClient &GetNetworkClient() { return *m_networkClient; };
+    NetworkSyncSystem &GetNetworkSyncSystem() { return *m_networkSyncSystem; };
+#endif
 
     template <typename... Components>
     std::vector<GameObject *> GetEntitiesWith()
@@ -102,6 +112,11 @@ private:
 
     std::unique_ptr<ParticleFactory> m_particleFactory;
     std::unique_ptr<ParticleSystem> m_particleSystem;
+
+#if defined(PLATFORM_DESKTOP)
+    std::unique_ptr<NetworkClient> m_networkClient;
+    std::unique_ptr<NetworkSyncSystem> m_networkSyncSystem;
+#endif
 
     struct ActiveChange
     {

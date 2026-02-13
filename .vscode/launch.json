@@ -38,6 +38,36 @@
       "webRoot": "${workspaceFolder}",
       "userDataDir": true,
       "preLaunchTask": "Start Web Server"
+    },
+    // ── Server ────────────────────────────────────────────────
+    {
+      "name": "Debug Server",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/server/Debug/NeuralWings_Server.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "symbolSearchPath": "${workspaceFolder}/build/server/Debug",
+      "environment": [],
+      "externalConsole": false,
+      "logging": {
+        "moduleLoad": true,
+        "engineLogging": false
+      },
+      "preLaunchTask": "Server: Build Debug"
+    },
+    {
+      "name": "Run Server (Release)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/server/Release/NeuralWings_Server.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Server: Build Release"
     }
   ]
 }

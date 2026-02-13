@@ -6,3 +6,7 @@
 #include "Engine/Core/Components/RigidBodyComponent.h"
 #include "Engine/Core/Components/ScriptComponent.h"
 #include "Engine/Core/Components/ParticleEmitterComponent.h"
+
+#if defined(PLATFORM_DESKTOP)
+#include "Engine/Network/Sync/NetworkSyncComponent.h"
+#endif

@@ -45,6 +45,11 @@ set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(raylib raygui nlohmann_json enet)
 
+# ── Server (standalone executable, Desktop only) ─────────────────
+if(NOT EMSCRIPTEN)
+    add_subdirectory(server)
+endif()
+
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 if(EMSCRIPTEN)
@@ -63,6 +68,7 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${raygui_SOURCE_DIR}/src
+    ${enet_SOURCE_DIR}/include
 )
 
 
