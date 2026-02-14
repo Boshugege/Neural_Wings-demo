@@ -12,31 +12,39 @@ if(MSVC)
 endif()
 
 # ── Sources ──────────────────────────────────────────────────────
+# Server uses nbnet directly (NBN_IMPL is in GameServer.cpp).
+# No shared transport .cpp files are linked – only protocol headers.
 set(SERVER_SOURCES
     main.cpp
     GameServer.cpp
-
-    # Shared engine network code (Transport layer)
-    ${CMAKE_SOURCE_DIR}/src/Engine/Network/Transport/ENetTransport.cpp
+    nbnet_server_impl.c
 )
 
 add_executable(${PROJECT_NAME} ${SERVER_SOURCES})
 
+# ── nbnet ────────────────────────────────────────────────────────
+set(NBNET_ROOT "${CMAKE_SOURCE_DIR}/third_party/nbnet")
+
+if(NOT EXISTS "${NBNET_ROOT}/nbnet.h")
+    message(FATAL_ERROR
+        "nbnet not found!  Please clone/download nbnet into:\n"
+        "  ${NBNET_ROOT}\n"
+        "  (needs nbnet.h and net_drivers/ folder)\n"
+        "  https://github.com/nathhB/nbnet")
+endif()
+
 # ── Include paths ────────────────────────────────────────────────
-# Server code can #include "Engine/Network/..." just like the client.
+# Server code can #include "Engine/Network/..." for shared protocol headers.
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${enet_SOURCE_DIR}/include
+    ${NBNET_ROOT}
 )
 
-# ── Link libraries ──────────────────────────────────────────────
-# Server only needs ENet (no raylib, no rendering).
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    enet
-)
-
-# On Windows, ENet requires ws2_32 and winmm.
+# On Windows, nbnet UDP driver needs ws2_32.
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 winmm)
 endif()
+
+# TODO: When adding WebRTC server driver, link additional dependencies here
+# (e.g. OpenSSL, libdatachannel, etc. depending on nbnet's webrtc_c driver).

@@ -1,10 +1,10 @@
 #include "NetworkClient.h"
-#include "Engine/Network/Transport/TransportFactory.h"
+#include "Engine/Network/Transport/NBNetTransport.h"
 #include <iostream>
 
 // ────────────────────────────────────────────────────────────────────
 NetworkClient::NetworkClient()
-    : m_transport(TransportFactory::Create())
+    : m_transport(std::make_unique<NBNetTransport>())
 {
 }
 

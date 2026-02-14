@@ -6,7 +6,7 @@
 #include <cstdint>
 
 /// Platform-agnostic transport interface.
-/// Desktop uses ENet, Web will use WebRTC/WebSocket.
+/// Concrete implementation: NBNetTransport (nbnet + UDP on desktop, nbnet + WebRTC on web).
 /// NetworkClient depends ONLY on this interface — never on a concrete transport.
 class INetworkTransport
 {

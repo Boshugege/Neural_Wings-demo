@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 {
     uint16_t port = DEFAULT_SERVER_PORT;
 
-    // Allow overriding port via command-line: server.exe 9999
+    // Allow overriding port via command-line: server.exe <port>
     if (argc > 1)
         port = static_cast<uint16_t>(std::atoi(argv[1]));
 
@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::cout << "[Server] Running at " << port
-              << ".  Press Ctrl+C to stop.\n";
+    std::cout << "[Server] Running on port " << port
+              << ". Press Ctrl+C to stop.\n";
 
     // ── Main tick loop (60 Hz) ─────────────────────────────────────
     using clock = std::chrono::steady_clock;

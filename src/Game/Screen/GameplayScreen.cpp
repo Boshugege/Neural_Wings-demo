@@ -72,7 +72,7 @@ void GameplayScreen::OnEnter()
     DisableCursor();
 
     // ── 网络：连接服务器 ──
-    m_world->GetNetworkClient().Connect("127.0.0.1", 7777);
+    m_world->GetNetworkClient().Connect(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
     m_world->GetNetworkSyncSystem().Init(m_world->GetNetworkClient());
 
     // 监听事件

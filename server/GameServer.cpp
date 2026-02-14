@@ -1,4 +1,27 @@
+// ────────────────────────────────────────────────────────────────────
+// GameServer  –  nbnet server C++ wrapper
+//
+// The actual nbnet implementation (NBNET_IMPL) is compiled as C in
+// nbnet_server_impl.c.  This file only uses declaration-level access.
+// ────────────────────────────────────────────────────────────────────
+
+extern "C"
+{
+#include <nbnet.h>
+#include <net_drivers/udp.h>
+    // TODO: #include <net_drivers/webrtc_c.h> when adding browser client support
+}
+
 #include "GameServer.h"
+
+// ── Constants ──────────────────────────────────────────────────────
+static constexpr const char *NW_PROTOCOL_NAME = "neural_wings";
+
+static uint8_t MapChannel(uint8_t ourChannel)
+{
+    // our convention: 0 = reliable, 1 = unreliable
+    return (ourChannel == 0) ? NBN_CHANNEL_RESERVED_RELIABLE : NBN_CHANNEL_RESERVED_UNRELIABLE;
+}
 
 // ── Lifecycle ──────────────────────────────────────────────────────
 
@@ -9,15 +32,23 @@ GameServer::~GameServer()
 
 bool GameServer::Start(uint16_t port)
 {
-    m_transport.SetOnConnect([this](ENetPeer *p)
-                             { OnPeerConnected(p); });
-    m_transport.SetOnDisconnect([this](ENetPeer *p)
-                                { OnPeerDisconnected(p); });
-    m_transport.SetOnReceive([this](ENetPeer *p, const uint8_t *d, size_t l, uint8_t ch)
-                             { OnPacketReceived(p, d, l, ch); });
+    // Register the UDP driver BEFORE starting.
+    // NBN_Driver_Register asserts the driver isn't already registered,
+    // and NBN_GameServer_Stop does NOT unregister drivers, so we must
+    // only register once per process lifetime.
+    static bool s_driverRegistered = false;
+    if (!s_driverRegistered)
+    {
+        NBN_UDP_Register();
+        s_driverRegistered = true;
+    }
 
-    if (!m_transport.Listen(port))
+    if (NBN_GameServer_StartEx(NW_PROTOCOL_NAME, port, false) < 0)
+    {
+        std::cerr << "[GameServer] NBN_GameServer_StartEx failed on port "
+                  << port << "\n";
         return false;
+    }
 
     m_running = true;
     std::cout << "[GameServer] Started on port " << port << "\n";
@@ -26,8 +57,14 @@ bool GameServer::Start(uint16_t port)
 
 void GameServer::Stop()
 {
+    if (!m_running)
+        return;
+
     m_running = false;
-    m_transport.Disconnect();
+
+    NBN_GameServer_Stop();
+
+    m_connIndex.clear();
     m_clients.clear();
     std::cout << "[GameServer] Stopped\n";
 }
@@ -38,49 +75,111 @@ void GameServer::Tick()
 {
     if (!m_running)
         return;
-    m_transport.Poll(0);
-    BroadcastPositions();
-}
 
-// ── Connection callbacks ───────────────────────────────────────────
-
-void GameServer::OnPeerConnected(ENetPeer *peer)
-{
-    std::cout << "[GameServer] Peer connected (awaiting Hello)\n";
-    // Don't assign a ClientID yet — wait for MsgClientHello.
-}
-
-void GameServer::OnPeerDisconnected(ENetPeer *peer)
-{
-    auto it = m_clients.find(peer);
-    if (it != m_clients.end())
+    // 1. Poll all network events
+    int ev;
+    while ((ev = NBN_GameServer_Poll()) != NBN_NO_EVENT)
     {
-        std::cout << "[GameServer] Client " << it->second.id
-                  << " disconnected\n";
-        m_clients.erase(it);
+        if (ev < 0)
+        {
+            std::cerr << "[GameServer] Poll error\n";
+            break;
+        }
+
+        switch (ev)
+        {
+        case NBN_NEW_CONNECTION:
+            HandleNewConnection();
+            break;
+        case NBN_CLIENT_DISCONNECTED:
+            HandleClientDisconnected();
+            break;
+        case NBN_CLIENT_MESSAGE_RECEIVED:
+            HandleClientMessage();
+            break;
+        }
     }
+
+    // 2. Broadcast game state
+    BroadcastPositions();
+
+    // 3. Flush outgoing packets to all clients
+    if (NBN_GameServer_SendPackets() < 0)
+    {
+        std::cerr << "[GameServer] SendPackets failed\n";
+    }
+}
+
+// ── Connection events ──────────────────────────────────────────────
+
+void GameServer::HandleNewConnection()
+{
+    NBN_ConnectionHandle conn = NBN_GameServer_GetIncomingConnection();
+
+    // Always accept (authentication can be added later)
+    NBN_GameServer_AcceptIncomingConnection();
+
+    const ClientID newID = m_nextClientID++;
+
+    ClientState state;
+    state.id = newID;
+    state.connHandle = conn;
+
+    m_clients[newID] = state;
+    m_connIndex[conn] = newID;
+
+    std::cout << "[GameServer] Peer connected (awaiting Hello), assigned temp ClientID "
+              << newID << "\n";
+}
+
+void GameServer::HandleClientDisconnected()
+{
+    NBN_ConnectionHandle conn = NBN_GameServer_GetDisconnectedClient();
+
+    auto it = m_connIndex.find(conn);
+    if (it == m_connIndex.end())
+        return;
+
+    RemoveClient(it->second, "disconnected");
+}
+
+void GameServer::HandleClientMessage()
+{
+    NBN_MessageInfo info = NBN_GameServer_GetMessageInfo();
+
+    if (info.type != NBN_BYTE_ARRAY_MESSAGE_TYPE || !info.data)
+        return;
+
+    NBN_ByteArrayMessage *msg =
+        static_cast<NBN_ByteArrayMessage *>(info.data);
+
+    // Look up who sent it (info.sender is NBN_ConnectionHandle)
+    auto it = m_connIndex.find(info.sender);
+    if (it == m_connIndex.end())
+        return;
+
+    DispatchPacket(it->second, msg->bytes, msg->length);
 }
 
 // ── Packet dispatch ────────────────────────────────────────────────
 
-void GameServer::OnPacketReceived(ENetPeer *peer, const uint8_t *data,
-                                  size_t len, uint8_t /*channel*/)
+void GameServer::DispatchPacket(ClientID clientID,
+                                const uint8_t *data, size_t len)
 {
     if (len < sizeof(NetPacketHeader))
         return;
 
     NetMessageType type = PacketSerializer::PeekType(data, len);
-
     switch (type)
     {
     case NetMessageType::ClientHello:
-        HandleClientHello(peer, data, len);
+        HandleClientHello(clientID);
         break;
     case NetMessageType::PositionUpdate:
-        HandlePositionUpdate(peer, data, len);
+        HandlePositionUpdate(clientID, data, len);
         break;
     case NetMessageType::ClientDisconnect:
-        HandleClientDisconnect(peer, data, len);
+        HandleClientDisconnect(clientID);
         break;
     default:
         std::cerr << "[GameServer] Unknown message type "
@@ -91,61 +190,85 @@ void GameServer::OnPacketReceived(ENetPeer *peer, const uint8_t *data,
 
 // ── Handlers ───────────────────────────────────────────────────────
 
-void GameServer::HandleClientHello(ENetPeer *peer,
-                                   const uint8_t * /*data*/, size_t /*len*/)
+void GameServer::HandleClientHello(ClientID clientID)
 {
-    ClientID newID = m_nextClientID++;
-    ClientState state;
-    state.id = newID;
-    state.peer = peer;
-    m_clients[peer] = state;
+    auto it = m_clients.find(clientID);
+    if (it == m_clients.end() || it->second.welcomed)
+        return;
 
-    // Send welcome.
-    auto pkt = PacketSerializer::WriteServerWelcome(newID);
-    m_transport.SendTo(peer, pkt, 0); // reliable
-
-    std::cout << "[GameServer] Assigned ClientID " << newID << "\n";
+    it->second.welcomed = true;
+    SendWelcome(clientID);
+    std::cout << "[GameServer] Assigned ClientID " << clientID << "\n";
 }
 
-void GameServer::HandlePositionUpdate(ENetPeer *peer,
+void GameServer::HandlePositionUpdate(ClientID clientID,
                                       const uint8_t *data, size_t len)
 {
     auto msg = PacketSerializer::Read<MsgPositionUpdate>(data, len);
 
-    auto it = m_clients.find(peer);
+    auto it = m_clients.find(clientID);
     if (it == m_clients.end())
-        return; // unknown peer
+        return;
 
     it->second.objectID = msg.objectID;
     it->second.lastTransform = msg.transform;
     it->second.hasTransform = true;
 }
 
-void GameServer::HandleClientDisconnect(ENetPeer *peer,
-                                        const uint8_t * /*data*/, size_t /*len*/)
+void GameServer::HandleClientDisconnect(ClientID clientID)
 {
-    auto it = m_clients.find(peer);
-    if (it != m_clients.end())
-    {
-        std::cout << "[GameServer] Client " << it->second.id
-                  << " requested disconnect\n";
-        m_clients.erase(it);
-    }
-    enet_peer_disconnect(peer, 0);
+    RemoveClient(clientID, "requested disconnect");
+}
+
+// ── Sending helpers ────────────────────────────────────────────────
+
+void GameServer::SendWelcome(ClientID clientID)
+{
+    auto pkt = PacketSerializer::WriteServerWelcome(clientID);
+    SendTo(clientID, pkt.data(), pkt.size(), 0); // reliable
+}
+
+void GameServer::SendTo(ClientID clientID,
+                        const uint8_t *data, size_t len, uint8_t channel)
+{
+    auto it = m_clients.find(clientID);
+    if (it == m_clients.end())
+        return;
+
+    NBN_GameServer_SendByteArrayTo(
+        it->second.connHandle,
+        const_cast<uint8_t *>(data),
+        static_cast<unsigned int>(len),
+        MapChannel(channel));
+}
+
+void GameServer::RemoveClient(ClientID clientID, const char *reason)
+{
+    auto it = m_clients.find(clientID);
+    if (it == m_clients.end())
+        return;
+
+    uint32_t connHandle = it->second.connHandle;
+    m_clients.erase(it);
+    m_connIndex.erase(connHandle);
+
+    std::cout << "[GameServer] Client " << clientID << " " << reason << "\n";
 }
 
 // ── Broadcast ──────────────────────────────────────────────────────
 
 void GameServer::BroadcastPositions()
 {
-    // Collect entries from all clients that have reported at least once.
+    // Collect entries from all welcomed clients that have reported.
     std::vector<NetBroadcastEntry> entries;
     entries.reserve(m_clients.size());
 
-    for (auto &[_, cs] : m_clients)
+    for (const auto &[id, cs] : m_clients)
     {
-        if (!cs.hasTransform)
+        (void)id;
+        if (!cs.welcomed || !cs.hasTransform)
             continue;
+
         NetBroadcastEntry e;
         e.clientID = cs.id;
         e.objectID = cs.objectID;
@@ -157,5 +280,17 @@ void GameServer::BroadcastPositions()
         return;
 
     auto pkt = PacketSerializer::WritePositionBroadcast(entries);
-    m_transport.Broadcast(pkt, 1); // unreliable channel
+
+    for (auto &[id, cs] : m_clients)
+    {
+        (void)id;
+        if (!cs.welcomed)
+            continue;
+
+        NBN_GameServer_SendByteArrayTo(
+            cs.connHandle,
+            pkt.data(),
+            static_cast<unsigned int>(pkt.size()),
+            NBN_CHANNEL_RESERVED_UNRELIABLE); // unreliable for position broadcast
+    }
 }
