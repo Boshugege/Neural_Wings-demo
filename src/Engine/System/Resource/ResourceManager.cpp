@@ -9,53 +9,53 @@ using json = nlohmann::json;
 
 namespace
 {
-bool TryLoadPreprocessedGifAtlas(const std::string &gifPath, Texture2D &outTexture, int &outFrameCount)
-{
-    namespace fs = std::filesystem;
-    fs::path basePath = fs::path(gifPath).replace_extension("");
-    fs::path atlasPath = basePath.string() + ".atlas.png";
-    fs::path metaPath = basePath.string() + ".atlas.json";
-
-    if (!fs::exists(atlasPath) || !fs::exists(metaPath))
-        return false;
-
-    std::ifstream metaFile(metaPath);
-    if (!metaFile.is_open())
-        return false;
-
-    json meta;
-    try
+    bool TryLoadPreprocessedGifAtlas(const std::string &gifPath, Texture2D &outTexture, int &outFrameCount)
     {
-        metaFile >> meta;
+        namespace fs = std::filesystem;
+        fs::path basePath = fs::path(gifPath).replace_extension("");
+        fs::path atlasPath = basePath.string() + ".atlas.png";
+        fs::path metaPath = basePath.string() + ".atlas.json";
+
+        if (!fs::exists(atlasPath) || !fs::exists(metaPath))
+            return false;
+
+        std::ifstream metaFile(metaPath);
+        if (!metaFile.is_open())
+            return false;
+
+        json meta;
+        try
+        {
+            metaFile >> meta;
+        }
+        catch (...)
+        {
+            return false;
+        }
+
+        if (!meta.contains("frameCount") || !meta["frameCount"].is_number_integer())
+            return false;
+
+        outFrameCount = meta["frameCount"].get<int>();
+        if (outFrameCount <= 0)
+            return false;
+
+        Texture2D tex = LoadTexture(atlasPath.string().c_str());
+        if (tex.id == 0)
+            return false;
+
+        outTexture = tex;
+        return true;
     }
-    catch (...)
+
+    bool IsGifPath(const std::string &path)
     {
-        return false;
+        namespace fs = std::filesystem;
+        std::string ext = fs::path(path).extension().string();
+        for (char &c : ext)
+            c = (char)tolower(c);
+        return ext == ".gif";
     }
-
-    if (!meta.contains("frameCount") || !meta["frameCount"].is_number_integer())
-        return false;
-
-    outFrameCount = meta["frameCount"].get<int>();
-    if (outFrameCount <= 0)
-        return false;
-
-    Texture2D tex = LoadTexture(atlasPath.string().c_str());
-    if (tex.id == 0)
-        return false;
-
-    outTexture = tex;
-    return true;
-}
-
-bool IsGifPath(const std::string &path)
-{
-    namespace fs = std::filesystem;
-    std::string ext = fs::path(path).extension().string();
-    for (char &c : ext)
-        c = (char)tolower(c);
-    return ext == ".gif";
-}
 } // namespace
 
 ResourceManager::~ResourceManager()
@@ -63,6 +63,35 @@ ResourceManager::~ResourceManager()
     UnloadAll();
 }
 
+Sound ResourceManager::GetSound(const std::string &path)
+{
+    auto it = m_sounds.find(path);
+    if (it != m_sounds.end())
+        return it->second;
+
+    Sound s = LoadSound(path.c_str());
+    if (s.frameCount > 0)
+    {
+        m_sounds[path] = s;
+    }
+    return s;
+}
+Music ResourceManager::GetMusic(const std::string &path)
+{
+    auto it = m_musics.find(path);
+    if (it != m_musics.end())
+        return it->second;
+
+    Music m = LoadMusicStream(path.c_str());
+    if (m.frameCount > 0)
+    {
+        m_musics[path] = m;
+    }
+    return m;
+}
+void ResourceManager::UpdateMusic()
+{
+}
 std::shared_ptr<ShaderWrapper> ResourceManager::GetShader(const std::string &vsPath, const std::string &fsPath)
 {
     std::string key = vsPath + fsPath;
@@ -172,6 +201,11 @@ void ResourceManager::UnloadAll()
         UnloadTexture(pair.second);
     }
     m_textures.clear();
+
+    for (auto &pair : m_sounds)
+        UnloadSound(pair.second);
+    m_sounds.clear();
+
     m_shaders.clear();
     std::cout << "[ResourceManager] Unloaded all resources" << std::endl;
 }

@@ -2,8 +2,8 @@
 #include "raylib.h"
 #include "Engine/System/Screen/ScreenManager.h"
 #include "Game/Screen/MyScreenState.h"
-MainMenuScreen::MainMenuScreen()
-    : m_nextScreenState(SCREEN_STATE_NONE)
+MainMenuScreen::MainMenuScreen(ScreenManager *sm)
+    : m_nextScreenState(SCREEN_STATE_NONE), IGameScreen(sm)
 {
 }
 MainMenuScreen::~MainMenuScreen()

@@ -31,6 +31,8 @@ ScreenManager::ScreenManager(const EngineConfig &config, std::unique_ptr<ScreenF
     m_activeConfig.screenHeight = GetScreenHeight();
     m_activeConfig.fullScreen = IsWindowFullscreen();
 
+    m_resourceManager = std::make_unique<ResourceManager>();
+
 #if defined(PLATFORM_WEB)
     m_uiLayer = std::make_unique<WebLayer>();
 #else
@@ -44,6 +46,9 @@ ScreenManager::ScreenManager(const EngineConfig &config, std::unique_ptr<ScreenF
 
     m_currentScreen = m_factory->Create(config.initialScreen, this);
     m_currentScreen->OnEnter();
+
+    InitAudioDevice();
+    SetMasterVolume(1.0f);
 }
 
 ScreenManager::~ScreenManager()
@@ -105,12 +110,19 @@ UILayer *ScreenManager::GetUILayer()
     return m_uiLayer.get();
 }
 
+ResourceManager &ScreenManager::GetResourceManager()
+{
+    return *m_resourceManager;
+}
 bool ScreenManager::UpdateFrame()
 {
     if (WindowShouldClose() || m_currentScreen->GetNextScreenState() == SCREEN_STATE_EXIT)
     {
         return false;
     }
+
+    // m_resourceManager->UpdateMusic();
+
     m_timeManager.Tick();
     m_accumulator += m_timeManager.GetDeltaTime();
 
@@ -155,6 +167,7 @@ void ScreenManager::Shutdown()
         m_uiLayer->Shutdown();
         m_uiLayer.reset();
     }
+    CloseAudioDevice();
     CloseWindow();
 }
 // 屏幕切换

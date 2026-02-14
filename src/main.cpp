@@ -22,13 +22,13 @@ int main()
 
     auto factory = std::make_unique<ScreenFactory>();
     factory->Register(SCREEN_STATE_START, [](ScreenManager *manager)
-                      { return std::make_unique<StartScreen>(); });
+                      { return std::make_unique<StartScreen>(manager); });
     factory->Register(MAIN_MENU, [](ScreenManager *manager)
-                      { return std::make_unique<MainMenuScreen>(); });
+                      { return std::make_unique<MainMenuScreen>(manager); });
     factory->Register(GAMEPLAY, [](ScreenManager *manager)
-                      { return std::make_unique<GameplayScreen>(); });
+                      { return std::make_unique<GameplayScreen>(manager); });
     factory->Register(OPTIONS, [](ScreenManager *manager)
-                      { return std::make_unique<OptionsScreen>(); });
+                      { return std::make_unique<OptionsScreen>(manager); });
 
     g_App = std::make_unique<ScreenManager>(config, std::move(factory));
 

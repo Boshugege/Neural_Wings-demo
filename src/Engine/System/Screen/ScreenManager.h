@@ -1,8 +1,9 @@
 #pragma once
-#include "GameScreen.h"
+#include "IGameScreen.h"
 #include "ScreenFactory.h"
 #include "Engine/Config/EngineConfig.h"
 #include "Engine/System/Time/TimeManager.h"
+#include "Engine/System/Resource/ResourceManager.h"
 #include "Engine/UI/UI.h"
 
 #include <memory>
@@ -21,10 +22,14 @@ public:
     bool UpdateFrame();
     void Shutdown();
 
+    ResourceManager &GetResourceManager();
+
 private:
     void ChangeScreen(int newState);
 
-    std::unique_ptr<GameScreen> m_currentScreen;
+    std::unique_ptr<ResourceManager> m_resourceManager;
+
+    std::unique_ptr<IGameScreen> m_currentScreen;
     std::unique_ptr<ScreenFactory> m_factory;
 
     std::unique_ptr<UILayer> m_uiLayer;

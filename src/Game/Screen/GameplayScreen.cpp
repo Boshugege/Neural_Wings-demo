@@ -12,9 +12,10 @@
 #include "Engine/Engine.h"
 #include <iostream>
 
-GameplayScreen::GameplayScreen()
-    : m_nextScreenState(SCREEN_STATE_NONE)
+GameplayScreen::GameplayScreen(ScreenManager *sm)
+    : m_nextScreenState(SCREEN_STATE_NONE), IGameScreen(sm)
 {
+
     const std::string &cameraConfigPath = "assets/config/cameras_config.json";
     const std::string &sceneConfigPath = "assets/scenes/test_scene.json";
     const std::string &inputConfigPath = "assets/config/input_config.json";
@@ -22,6 +23,7 @@ GameplayScreen::GameplayScreen()
     const std::string &effectLibPath = "assets/Library/particle_effects.json";
     m_world = std::make_unique<GameWorld>([this](ScriptingFactory &scriptingFactory, PhysicsStageFactory &physicsStageFactory, ParticleFactory &particleFactory)
                                           { this->ConfigCallback(scriptingFactory, physicsStageFactory, particleFactory); },
+                                          resourceManager,
                                           cameraConfigPath,
                                           sceneConfigPath,
                                           inputConfigPath,

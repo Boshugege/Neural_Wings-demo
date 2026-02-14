@@ -2,11 +2,13 @@
 
 class ScreenManager;
 class ScreenState;
+class ResourceManager;
 
-class GameScreen
+class IGameScreen
 {
 public:
-    virtual ~GameScreen() = default;
+    IGameScreen(ScreenManager *sm);
+    virtual ~IGameScreen() = default;
 
     // 激活调用（初始化）
     virtual void OnEnter() = 0;
@@ -28,4 +30,5 @@ public:
     virtual ScreenState GetScreenState() const = 0;
 
     ScreenManager *screenManager = nullptr;
+    ResourceManager *resourceManager = nullptr;
 };

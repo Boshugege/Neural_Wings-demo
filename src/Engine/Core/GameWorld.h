@@ -18,6 +18,7 @@ class GameWorld
 {
 public:
     GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &, ParticleFactory &)> configCallback,
+              ResourceManager *resourceManager,
               const std::string &cameraConfigPath = "assets/config/cameras_config.json",
               const std::string &sceneConfigPath = "assets/scenes/test_scene.json",
               const std::string &inputConfigPath = "assets/config/input_config.json",
@@ -96,7 +97,8 @@ private:
     std::unique_ptr<ScriptingSystem> m_scriptingSystem;
 
     std::unique_ptr<SceneManager> m_sceneManager;
-    std::unique_ptr<ResourceManager> m_resourceManager;
+
+    ResourceManager *m_resourceManager;
 
     std::unique_ptr<EventManager> m_eventManager;
 
@@ -109,6 +111,5 @@ private:
         bool newState;
     };
     std::queue<ActiveChange> m_activeChanges;
-    bool m_isIterating = false; // 防止递归
     std::unordered_map<std::string, std::unique_ptr<GameObjectPool>> m_pools;
 };
