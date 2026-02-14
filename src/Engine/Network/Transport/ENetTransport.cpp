@@ -105,14 +105,20 @@ void ENetTransport::Poll(uint32_t timeoutMs)
         case ENET_EVENT_TYPE_CONNECT:
             m_state = ConnectionState::Connected;
             std::cout << "[ENetTransport] Peer connected\n";
-            if (m_onConnect)
-                m_onConnect(event.peer);
+            if (m_serverOnConnect)
+                m_serverOnConnect(event.peer);
+            else if (m_onConnect)
+                m_onConnect();
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
-            if (m_onReceive)
-                m_onReceive(event.peer,
-                            event.packet->data,
+            if (m_serverOnReceive)
+                m_serverOnReceive(event.peer,
+                                  event.packet->data,
+                                  event.packet->dataLength,
+                                  event.channelID);
+            else if (m_onReceive)
+                m_onReceive(event.packet->data,
                             event.packet->dataLength,
                             event.channelID);
             enet_packet_destroy(event.packet);
@@ -120,8 +126,10 @@ void ENetTransport::Poll(uint32_t timeoutMs)
 
         case ENET_EVENT_TYPE_DISCONNECT:
             std::cout << "[ENetTransport] Peer disconnected\n";
-            if (m_onDisconnect)
-                m_onDisconnect(event.peer);
+            if (m_serverOnDisconnect)
+                m_serverOnDisconnect(event.peer);
+            else if (m_onDisconnect)
+                m_onDisconnect();
             if (event.peer == m_serverPeer)
             {
                 m_serverPeer = nullptr;
@@ -137,7 +145,13 @@ void ENetTransport::Poll(uint32_t timeoutMs)
     }
 }
 
-// ── Send ───────────────────────────────────────────────────────────
+// ── Send (INetworkTransport interface – sends to server peer) ──────
+void ENetTransport::Send(const uint8_t *data, size_t len, uint8_t channel)
+{
+    SendTo(m_serverPeer, data, len, channel);
+}
+
+// ── SendTo (server-side: send to a specific peer) ──────────────────
 void ENetTransport::SendTo(ENetPeer *peer, const uint8_t *data, size_t len, uint8_t channel)
 {
     if (!peer)

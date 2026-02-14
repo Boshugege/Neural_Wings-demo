@@ -8,7 +8,4 @@
 #include "Engine/Math/Math.h"
 
 #include "Engine/Core/Core.h"
-
-#if defined(PLATFORM_DESKTOP)
 #include "Engine/Network/Network.h"
-#endif

@@ -71,11 +71,9 @@ void GameplayScreen::OnEnter()
 {
     DisableCursor();
 
-#if defined(PLATFORM_DESKTOP)
     // ── 网络：连接服务器 ──
     m_world->GetNetworkClient().Connect("127.0.0.1", 7777);
     m_world->GetNetworkSyncSystem().Init(m_world->GetNetworkClient());
-#endif
 
     // 监听事件
     // m_world->GetEventManager().Subscribe<CollisionEvent>([this](const CollisionEvent &e)
@@ -94,9 +92,7 @@ void GameplayScreen::OnEnter()
 // 当离开游戏场景时调用
 void GameplayScreen::OnExit()
 {
-#if defined(PLATFORM_DESKTOP)
     m_world->GetNetworkClient().Disconnect();
-#endif
     EnableCursor();
 }
 

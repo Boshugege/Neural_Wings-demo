@@ -1,10 +1,10 @@
 #include "NetworkClient.h"
-#include "Engine/Network/Transport/ENetTransport.h"
+#include "Engine/Network/Transport/TransportFactory.h"
 #include <iostream>
 
 // ────────────────────────────────────────────────────────────────────
 NetworkClient::NetworkClient()
-    : m_transport(std::make_unique<ENetTransport>())
+    : m_transport(TransportFactory::Create())
 {
 }
 
@@ -16,21 +16,19 @@ NetworkClient::~NetworkClient()
 // ── Connect ────────────────────────────────────────────────────────
 bool NetworkClient::Connect(const std::string &host, uint16_t port)
 {
-    // Wire up transport callbacks.
-    m_transport->SetOnConnect([this](ENetPeer * /*peer*/)
+    m_transport->SetOnConnect([this]()
                               {
         std::cout << "[NetworkClient] Connected – sending Hello\n";
         auto pkt = PacketSerializer::WriteClientHello();
-        m_transport->SendTo(m_transport->GetServerPeer(), pkt, 0); });
+        m_transport->Send(pkt, 0); });
 
-    m_transport->SetOnDisconnect([this](ENetPeer * /*peer*/)
+    m_transport->SetOnDisconnect([this]()
                                  {
         std::cout << "[NetworkClient] Disconnected from server\n";
         m_localClientID = INVALID_CLIENT_ID; });
 
-    m_transport->SetOnReceive([this](ENetPeer *peer, const uint8_t *data,
-                                     size_t len, uint8_t ch)
-                              { OnRawReceive(peer, data, len, ch); });
+    m_transport->SetOnReceive([this](const uint8_t *data, size_t len, uint8_t ch)
+                              { OnRawReceive(data, len, ch); });
 
     return m_transport->Connect(host, port);
 }
@@ -41,7 +39,7 @@ void NetworkClient::Disconnect()
     if (m_localClientID != INVALID_CLIENT_ID)
     {
         auto pkt = PacketSerializer::WriteClientDisconnect(m_localClientID);
-        m_transport->SendTo(m_transport->GetServerPeer(), pkt, 0);
+        m_transport->Send(pkt, 0);
     }
     m_transport->Disconnect();
     m_localClientID = INVALID_CLIENT_ID;
@@ -66,13 +64,11 @@ void NetworkClient::SendPositionUpdate(NetObjectID objectID,
         return;
     auto pkt = PacketSerializer::WritePositionUpdate(
         m_localClientID, objectID, transform);
-    // Position updates use the unreliable channel (1) for low latency.
-    m_transport->SendTo(m_transport->GetServerPeer(), pkt, 1);
+    m_transport->Send(pkt, 1); // unreliable channel
 }
 
 // ── Incoming dispatch ──────────────────────────────────────────────
-void NetworkClient::OnRawReceive(_ENetPeer * /*peer*/,
-                                 const uint8_t *data, size_t len,
+void NetworkClient::OnRawReceive(const uint8_t *data, size_t len,
                                  uint8_t /*channelID*/)
 {
     if (len < sizeof(NetPacketHeader))
