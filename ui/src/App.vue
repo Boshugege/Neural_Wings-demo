@@ -23,6 +23,8 @@ const fullscreen = ref(null);
 const selectedResolution = ref("");
 const isResolutionOpen = ref(false);
 const targetFPS = ref(null);
+const serverIP = ref("");
+const serverStatus = ref("");
 
 const isStart = computed(() => route.value.startsWith("#/start"));
 const isMenu = computed(() => route.value.startsWith("#/menu"));
@@ -47,6 +49,9 @@ function syncAppStateToWindow() {
   if (targetFPS.value !== null) {
     window.vueAppState.targetFPS = targetFPS.value;
   }
+  if (serverIP.value) {
+    window.vueAppState.serverIP = serverIP.value;
+  }
 }
 
 function applySettings(settings) {
@@ -68,6 +73,10 @@ function applySettings(settings) {
     if (!Number.isNaN(fps)) {
       targetFPS.value = fps;
     }
+  }
+
+  if (typeof state.serverIP === "string" && state.serverIP) {
+    serverIP.value = state.serverIP;
   }
 
   syncAppStateToWindow();
@@ -93,6 +102,34 @@ function changeFPS(value) {
   targetFPS.value = value;
 }
 
+function changeServerIP(value) {
+  serverIP.value = value;
+}
+
+function checkServer() {
+  if (!serverIP.value) return;
+  serverStatus.value = "checking";
+  window.vueAppState.serverIP = serverIP.value;
+  window.vueAppState.serverCheckRequested = true;
+
+  // Poll for serverStatus changes from the C++ engine
+  const pollInterval = setInterval(() => {
+    const status = window.vueAppState.serverStatus;
+    if (status === "online" || status === "offline") {
+      serverStatus.value = status;
+      clearInterval(pollInterval);
+    }
+  }, 200);
+
+  // Auto-clear after timeout
+  setTimeout(() => {
+    clearInterval(pollInterval);
+    if (serverStatus.value === "checking") {
+      serverStatus.value = "offline";
+    }
+  }, 5000);
+}
+
 function saveSettings() {
   if (
     fullscreen.value === null ||
@@ -105,12 +142,14 @@ function saveSettings() {
   window.vueAppState.fullscreen = fullscreen.value;
   window.vueAppState.resolution = selectedResolution.value;
   window.vueAppState.targetFPS = targetFPS.value;
+  window.vueAppState.serverIP = serverIP.value || "127.0.0.1";
   window.vueAppState.settingsSaveRequested = true;
 
   console.log("Settings save requested:", {
     fullscreen: fullscreen.value,
     resolution: selectedResolution.value,
     fps: targetFPS.value,
+    serverIP: serverIP.value,
   });
 }
 
@@ -196,11 +235,15 @@ onBeforeUnmount(() => {
         :selectedResolution="selectedResolution"
         :isResolutionOpen="isResolutionOpen"
         :targetFPS="targetFPS"
+        :serverIP="serverIP"
+        :serverStatus="serverStatus"
         :resolutions="resolutions"
         :toggleFullscreen="toggleFullscreen"
         :toggleResolution="toggleResolution"
         :chooseResolution="chooseResolution"
         :changeFPS="changeFPS"
+        :changeServerIP="changeServerIP"
+        :checkServer="checkServer"
         :saveSettings="saveSettings"
       />
 

@@ -14,6 +14,14 @@ defineProps({
   targetFPS: {
     default: null,
   },
+  serverIP: {
+    type: String,
+    default: "",
+  },
+  serverStatus: {
+    type: String,
+    default: "",
+  },
   resolutions: {
     type: Array,
     default: () => [],
@@ -31,6 +39,14 @@ defineProps({
     required: true,
   },
   changeFPS: {
+    type: Function,
+    required: true,
+  },
+  changeServerIP: {
+    type: Function,
+    required: true,
+  },
+  checkServer: {
     type: Function,
     required: true,
   },
@@ -83,6 +99,23 @@ defineProps({
               <span class="chip fps-value">
                 {{ targetFPS === null ? "--" : targetFPS }} FPS
               </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <span>Server IP</span>
+          <div class="settings-control">
+            <div class="server-ip-control">
+              <input class="chip server-ip-input" type="text" :value="serverIP"
+                @input="changeServerIP($event.target.value)"
+                placeholder="127.0.0.1" />
+              <button class="btn small server-check-btn"
+                :class="{ 'status-online': serverStatus === 'online', 'status-offline': serverStatus === 'offline', 'status-checking': serverStatus === 'checking' }"
+                @click="checkServer"
+                :disabled="serverStatus === 'checking'">
+                {{ serverStatus === 'checking' ? 'Checking...' : serverStatus === 'online' ? 'Online' : serverStatus === 'offline' ? 'Offline' : 'Check' }}
+              </button>
             </div>
           </div>
         </div>

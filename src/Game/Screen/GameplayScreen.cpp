@@ -71,8 +71,16 @@ void GameplayScreen::OnEnter()
 {
     DisableCursor();
 
-    // ── 网络：连接服务器 ──
-    m_world->GetNetworkClient().Connect(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
+    // ── 网络：连接服务器（使用配置的IP和端口） ──
+    std::string serverHost = DEFAULT_SERVER_HOST;
+    uint16_t serverPort = DEFAULT_SERVER_PORT;
+    if (screenManager)
+    {
+        const auto &config = screenManager->GetActiveConfig();
+        serverHost = config.serverIP;
+        serverPort = config.serverPort;
+    }
+    m_world->GetNetworkClient().Connect(serverHost, serverPort);
     m_world->GetNetworkSyncSystem().Init(m_world->GetNetworkClient());
 
     // 监听事件
