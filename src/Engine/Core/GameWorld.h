@@ -19,6 +19,7 @@ class GameWorld
 public:
     GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &, ParticleFactory &)> configCallback,
               ResourceManager *resourceManager,
+              AudioManager *audioManager,
               const std::string &cameraConfigPath = "assets/config/cameras_config.json",
               const std::string &sceneConfigPath = "assets/scenes/test_scene.json",
               const std::string &inputConfigPath = "assets/config/input_config.json",
@@ -114,5 +115,5 @@ private:
     std::queue<ActiveChange> m_activeChanges;
     std::unordered_map<std::string, std::unique_ptr<GameObjectPool>> m_pools;
 
-    std::unique_ptr<AudioManager> m_audioManager;
+    AudioManager *m_audioManager;
 };

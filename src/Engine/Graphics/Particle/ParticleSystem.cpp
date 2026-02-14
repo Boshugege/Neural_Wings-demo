@@ -91,6 +91,7 @@ void ParticleSystem::InternalSpawn(const std::string &effectName, const Particle
     Quat4f rot = Quat4f::dirToQuat(params.Get<Vector3f>("direction", Vector3f(0, 0, 1)));
     Vector3f scale = Vector3f::ONE;
     auto tf = TransformComponent(pos, rot, scale);
+    tf.SetWorldMatrix(tf.GetLocalMatrix());
 
     if (config.value("isBurst", false))
     {

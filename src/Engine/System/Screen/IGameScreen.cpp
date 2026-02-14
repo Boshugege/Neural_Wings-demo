@@ -2,4 +2,6 @@
 #include "ScreenManager.h"
 
 IGameScreen::IGameScreen(ScreenManager *sm)
-    : screenManager(sm), resourceManager(&sm->GetResourceManager()) {}
+    : screenManager(sm),
+      resourceManager(&sm->GetResourceManager()),
+      audioManager(&sm->GetAudioManager()) {}

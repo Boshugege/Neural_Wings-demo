@@ -19,7 +19,7 @@ namespace
     }
 } // namespace
 
-ScreenManager::ScreenManager(const EngineConfig &config, std::unique_ptr<ScreenFactory> factory)
+ScreenManager::ScreenManager(const EngineConfig &config, const std::string audioPath, std::unique_ptr<ScreenFactory> factory)
     : m_factory(std::move(factory)), m_activeConfig(config)
 {
     InitWindow(config.screenWidth, config.screenHeight, config.windowTitle.c_str());
@@ -32,7 +32,9 @@ ScreenManager::ScreenManager(const EngineConfig &config, std::unique_ptr<ScreenF
     m_activeConfig.fullScreen = IsWindowFullscreen();
 
     m_resourceManager = std::make_unique<ResourceManager>();
+    m_audioManager = std::make_unique<AudioManager>(*m_resourceManager);
 
+    m_audioManager->LoadLibrary(audioPath);
 #if defined(PLATFORM_WEB)
     m_uiLayer = std::make_unique<WebLayer>();
 #else
@@ -114,6 +116,12 @@ ResourceManager &ScreenManager::GetResourceManager()
 {
     return *m_resourceManager;
 }
+
+AudioManager &ScreenManager::GetAudioManager()
+{
+    return *m_audioManager;
+}
+
 bool ScreenManager::UpdateFrame()
 {
     if (WindowShouldClose() || m_currentScreen->GetNextScreenState() == SCREEN_STATE_EXIT)

@@ -63,7 +63,7 @@ void GameObjectFactory::ParseAudioComponent(GameWorld &gameWorld, GameObject &ga
 
     for (auto &[clipName, clipData] : clipsJson.items())
     {
-        AudioClip clip;
+        AudioClip &clip = audio.audioClips[clipName];
         clip.sound = gameWorld.GetResourceManager().GetSound(clipData["path"]);
 
         clip.is3D = clipData.value("is3D", true);
@@ -77,7 +77,6 @@ void GameObjectFactory::ParseAudioComponent(GameWorld &gameWorld, GameObject &ga
             clip.isMulti = true;
             clip.SetupMultiVoice(clipData["multiVoice"]);
         }
-        audio.audioClips[clipName] = clip;
     }
 }
 

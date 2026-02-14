@@ -6,12 +6,14 @@
 
 GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &, ParticleFactory &)> configCallback,
                      ResourceManager *resourceManager,
+                     AudioManager *audioManager,
                      const std::string &cameraConfigPath,
                      const std::string &sceneConfigPath,
                      const std::string &inputConfigPath,
                      const std::string &renderView,
                      const std::string &effectLibPath)
     : m_resourceManager(resourceManager),
+      m_audioManager(audioManager),
       m_nextObjectID(0)
 {
     m_timeManager = std::make_unique<TimeManager>();
@@ -25,7 +27,6 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_renderer = std::make_unique<Renderer>();
     m_particleFactory = std::make_unique<ParticleFactory>();
     m_particleSystem = std::make_unique<ParticleSystem>(this);
-    m_audioManager = std::make_unique<AudioManager>();
 
     configCallback(*m_scriptingFactory, *m_physicsStageFactory, *m_particleFactory);
 
@@ -54,6 +55,8 @@ void GameWorld::OnDestroy()
     }
     DestroyWaitingObjects();
     m_gameObjects.clear();
+
+    m_audioManager->ClearOneShots();
     m_resourceManager->GameWorldUnloadAll();
 }
 

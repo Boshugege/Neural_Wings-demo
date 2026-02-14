@@ -24,6 +24,7 @@ GameplayScreen::GameplayScreen(ScreenManager *sm)
     m_world = std::make_unique<GameWorld>([this](ScriptingFactory &scriptingFactory, PhysicsStageFactory &physicsStageFactory, ParticleFactory &particleFactory)
                                           { this->ConfigCallback(scriptingFactory, physicsStageFactory, particleFactory); },
                                           resourceManager,
+                                          audioManager,
                                           cameraConfigPath,
                                           sceneConfigPath,
                                           inputConfigPath,
@@ -77,16 +78,22 @@ void GameplayScreen::OnEnter()
     DisableCursor();
 
     // 监听事件
-    // m_world->GetEventManager().Subscribe<CollisionEvent>([this](const CollisionEvent &e)
-    //                                                      { std::cout << "CollisionEvent, impluse: " <<e.impulse << std::endl;
-    //                                                         e.hitpoint.print();
-    //                                                         if(std::fabsf(e.relativeVelocity.Length())<1.0f) return;
-    //                                                         auto &particleSys = m_world->GetParticleSystem();
-    //                                                         particleSys.Spawn("Collision", e.hitpoint,
-    //                                                             "relVel",e.relativeVelocity,
-    //                                                             "normal",e.normal,
-    //                                                             "impulse",e.impulse,
-    //                                                             "maxSpeed",e.relativeVelocity.Length()/4); });
+    m_world->GetEventManager().Subscribe<CollisionEvent>([this](const CollisionEvent &e)
+                                                         {
+                                                             std::cout << "CollisionEvent, impluse: " << e.impulse << std::endl;
+                                                            //  e.hitpoint.print();
+                                                            std::cout << "relative velocity: " << e.relativeVelocity.Length() << std::endl;
+                                                             if (std::fabsf(e.relativeVelocity.Length()) < 2.0f)
+                                                                 return;
+                                                             auto &particleSys = m_world->GetParticleSystem();
+                                                             particleSys.Spawn("Collision",
+                                                                                e.hitpoint,
+                                                                               "relVel", e.relativeVelocity,
+                                                                               "normal", e.normal,
+                                                                               "impulse", e.impulse,
+                                                                               "maxSpeed", e.relativeVelocity.Length() / 4);
+                                                             float randomPitch = 0.5f + (float)GetRandomValue(0, 100) / 100.0f;
+                                                             m_world->GetAudioManager().PlaySpatial("explosion", e.hitpoint, 5.0f, 50.0f, e.relativeVelocity.Length() / 4, randomPitch); });
     m_world->GetParticleSystem().Spawn("SPH", Vector3f(0.0f, 3.0f, 0.0f));
 }
 

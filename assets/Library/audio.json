@@ -1,0 +1,10 @@
+{
+    "sfx": {
+        "pipdown": "assets/sounds/fire.wav",
+        "explosion": "assets/sounds/explosion.wav"
+    },
+    "music": {
+        "BGM_Menu": "assets/audio/music/main_theme.mp3",
+        "BGM_Battle": "assets/audio/music/combat_loop.mp3"
+    }
+}

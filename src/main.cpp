@@ -14,6 +14,7 @@ void UpdateDrawFrame()
 int main()
 {
     EngineConfig config;
+    std::string audioPath = "assets/Library/audio.json";
     if (!config.load("assets/config/engine_config.json"))
     {
         printf("EngineConfig failed.\n");
@@ -30,7 +31,7 @@ int main()
     factory->Register(OPTIONS, [](ScreenManager *manager)
                       { return std::make_unique<OptionsScreen>(manager); });
 
-    g_App = std::make_unique<ScreenManager>(config, std::move(factory));
+    g_App = std::make_unique<ScreenManager>(config, audioPath, std::move(factory));
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);

@@ -3,6 +3,7 @@
 class ScreenManager;
 class ScreenState;
 class ResourceManager;
+class AudioManager;
 
 class IGameScreen
 {
@@ -31,4 +32,5 @@ public:
 
     ScreenManager *screenManager = nullptr;
     ResourceManager *resourceManager = nullptr;
+    AudioManager *audioManager = nullptr;
 };
