@@ -15,6 +15,8 @@ class NetworkClient
 public:
     using OnPositionBroadcastFn =
         std::function<void(const std::vector<NetBroadcastEntry> &entries)>;
+    using OnObjectDespawnFn =
+        std::function<void(ClientID ownerClientID, NetObjectID objectID)>;
 
     NetworkClient();
     ~NetworkClient();
@@ -45,6 +47,10 @@ public:
     {
         m_onPositionBroadcast = std::move(fn);
     }
+    void SetOnObjectDespawn(OnObjectDespawnFn fn)
+    {
+        m_onObjectDespawn = std::move(fn);
+    }
 
 private:
     void OnRawReceive(const uint8_t *data, size_t len, uint8_t channelID);
@@ -53,4 +59,5 @@ private:
     ClientID m_localClientID = INVALID_CLIENT_ID;
     NetUUID m_uuid{};
     OnPositionBroadcastFn m_onPositionBroadcast;
+    OnObjectDespawnFn m_onObjectDespawn;
 };

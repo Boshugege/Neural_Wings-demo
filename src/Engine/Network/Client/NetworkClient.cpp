@@ -93,6 +93,13 @@ void NetworkClient::OnRawReceive(const uint8_t *data, size_t len,
             m_onPositionBroadcast(entries);
         break;
     }
+    case NetMessageType::ObjectDespawn:
+    {
+        auto msg = PacketSerializer::Read<MsgObjectDespawn>(data, len);
+        if (m_onObjectDespawn)
+            m_onObjectDespawn(msg.ownerClientID, msg.objectID);
+        break;
+    }
     default:
         std::cerr << "[NetworkClient] Unknown message type: "
                   << static_cast<int>(type) << "\n";

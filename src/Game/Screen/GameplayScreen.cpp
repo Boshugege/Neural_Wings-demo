@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "Game/Screen/MyScreenState.h"
 #include "Game/Systems/Physics/SolarStage.h"
+#include "Game/Systems/Physics/NetworkVerifyStage.h"
 #include "Game/Systems/Particles/Initializers/RandomLife.h"
 #include "Game/Systems/Particles/Initializers/SphereDir.h"
 #include "Game/Systems/Particles/Initializers/CollisionInit.h"
@@ -38,6 +39,8 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
     // 注册后才可使用json配置
     physicsStageFactory.Register("SolarStage", []()
                                  { return std::make_unique<SolarStage>(); });
+    physicsStageFactory.Register("NetworkVerifyStage", []()
+                                 { return std::make_unique<NetworkVerifyStage>(); });
     physicsStageFactory.Register("CollisionStage", []()
                                  { return std::make_unique<CollisionStage>(); });
 
@@ -52,6 +55,8 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
                               { return std::make_unique<BulletScript>(); });
     scriptingFactory.Register("RayScript", []()
                               { return std::make_unique<RayScript>(); });
+    scriptingFactory.Register("LocalPlayerSyncScript", []()
+                              { return std::make_unique<LocalPlayerSyncScript>(); });
 
     // 注册粒子初始化器
     particleFactory.Register("SphereDir", []()

@@ -8,6 +8,9 @@
             "SolarStage": {
                 "G": 0.1,
                 "enable": true
+            },
+            "NetworkVerifyStage": {
+                "enable": false
             }
         }
     },
@@ -140,6 +143,23 @@
                 },
                 {
                     "RayScript": {}
+                }
+            ]
+        },
+        {
+            "name": "local_player_anchor",
+            "tag": "PlayerAnchor",
+            "prefab": "assets/prefabs/local_player_anchor.json",
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "scripts": [
+                {
+                    "LocalPlayerSyncScript": {
+                        "netObjectID": 1
+                    }
                 }
             ]
         }

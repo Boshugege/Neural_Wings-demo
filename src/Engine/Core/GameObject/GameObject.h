@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <stdexcept>
 #include <string>
+#include <sstream>
 
 #include "raylib.h"
 #include "Engine/Math/Math.h"
@@ -96,7 +97,11 @@ T &GameObject::GetComponent() const
             return *dynamic_cast<T *>(m_components[i].get());
         }
     }
-    throw std::runtime_error("Component not found!");
+    std::ostringstream oss;
+    oss << "Component not found: type=" << typeid(T).name()
+        << ", objectID=" << m_id
+        << ", objectName=" << m_name;
+    throw std::runtime_error(oss.str());
 }
 
 template <typename T>
