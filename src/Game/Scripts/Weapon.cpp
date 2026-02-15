@@ -19,9 +19,9 @@ void WeaponScript::OnUpdate(float deltaTime)
     if (input.IsActionDown("Fire"))
     {
         m_fireTimer += deltaTime;
-        while (m_fireTimer >= 0.05f)
+        while (m_fireTimer >= 0.15f)
         {
-            m_fireTimer -= 0.05f;
+            m_fireTimer -= 0.15f;
             auto &tf = owner->GetComponent<TransformComponent>();
             Vector3f spawnPos = tf.GetWorldPosition() + tf.GetForward() * (static_cast<float>(rand()) * 1 / RAND_MAX + 1);
             // 修改名字以区分不同类型的子弹和owner
@@ -31,10 +31,14 @@ void WeaponScript::OnUpdate(float deltaTime)
             auto &rb = bullet->GetComponent<RigidbodyComponent>();
             rb.velocity = tf.GetForward() * 10.0f;
 
+            auto &audio = owner->GetComponent<AudioComponent>();
+            float randomPitch = 0.3f + (static_cast<float>(rand()) / RAND_MAX) * 1.5f;
+            float randomVol = 0.8f + (static_cast<float>(rand()) / RAND_MAX) * 0.2f;
+            audio.Play("Fire", randomVol, randomPitch);
+
             // world->GetParticleSystem().Spawn(...);
         }
     }
     else
-
-        m_fireTimer = 0.049f;
+        m_fireTimer = 0.09f;
 }

@@ -70,6 +70,14 @@ void GameObjectPool::Recycle(GameObject *obj)
         for (auto &script : obj->GetComponent<ScriptComponent>().scripts)
             script->OnSleep();
     }
+    if (obj->HasComponent<AudioComponent>())
+    {
+        auto &audio = obj->GetComponent<AudioComponent>();
+        for (auto &[name, clip] : audio.audioClips)
+        {
+            audio.Stop(name);
+        }
+    }
 
     obj->SetActive(false);
     m_pool.push_back(obj);

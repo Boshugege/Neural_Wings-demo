@@ -1,0 +1,81 @@
+{
+    "name": "Cube",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "primitive://cube",
+                "scale": [
+                    1,
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "RigidBodyComponent": {
+                "mass": 100,
+                "drag": 0.1,
+                "angularDrag": 0.1,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "colliderType": "BOX"
+            }
+        },
+        {
+            "AudioComponent": {
+                "clips": {
+                    "Test_Velocity": {
+                        "path": "assets/sounds/vel.wav",
+                        "is3D": true,
+                        "looping": true,
+                        "volume": 1.0,
+                        "minDist": 5.0,
+                        "maxDist": 100.0
+                    },
+                    "Fire": {
+                        "path": "assets/sounds/fire.wav",
+                        "is3D": true,
+                        "looping": false,
+                        "volume": 0.2,
+                        "minDist": 5.0,
+                        "maxDist": 40.0,
+                        "multiVoice": 12
+                    }
+                }
+            }
+        },
+        {
+            "ScriptComponent": {
+                "AudioScript": {}
+            }
+        }
+    ]
+}

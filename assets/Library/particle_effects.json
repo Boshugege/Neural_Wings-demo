@@ -56,7 +56,7 @@
                     ]
                 },
                 "uniforms": {},
-                "outputRT": "Sparks",
+                "outputRT": "inScreen",
                 "depthTest": true
             }
         ]

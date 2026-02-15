@@ -1,6 +1,6 @@
 #pragma once
 #include "Config.h"
-#include "Engine/System/Screen/GameScreen.h"
+#include "Engine/System/Screen/IGameScreen.h"
 #include <string>
 #include "Engine/System/Screen/ScreenState.h"
 #include "Engine/Network/NetTypes.h"

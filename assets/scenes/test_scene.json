@@ -92,7 +92,7 @@
         {
             "name": "cube_camera",
             "tag": "cube",
-            "prefab": "assets/prefabs/cube.json",
+            "prefab": "assets/prefabs/sound_cube.json",
             "position": [
                 20,
                 0,
