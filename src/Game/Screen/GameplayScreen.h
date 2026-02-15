@@ -4,10 +4,10 @@
 #include "Engine/Graphics/Graphics.h"
 #include "MyScreenState.h"
 
-class GameplayScreen : public GameScreen
+class GameplayScreen : public IGameScreen
 {
 public:
-    GameplayScreen();
+    GameplayScreen(ScreenManager *sm);
     ~GameplayScreen();
 
     void OnEnter() override;

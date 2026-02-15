@@ -88,9 +88,16 @@ void NetworkClient::OnRawReceive(const uint8_t *data, size_t len,
     }
     case NetMessageType::PositionBroadcast:
     {
-        auto entries = PacketSerializer::ReadBroadcastEntries(data, len);
+        auto packet = PacketSerializer::ReadPositionBroadcast(data, len);
         if (m_onPositionBroadcast)
-            m_onPositionBroadcast(entries);
+            m_onPositionBroadcast(packet.serverTick, packet.entries);
+        break;
+    }
+    case NetMessageType::ObjectDespawn:
+    {
+        auto msg = PacketSerializer::Read<MsgObjectDespawn>(data, len);
+        if (m_onObjectDespawn)
+            m_onObjectDespawn(msg.ownerClientID, msg.objectID);
         break;
     }
     default:

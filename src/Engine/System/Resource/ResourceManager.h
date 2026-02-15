@@ -16,6 +16,13 @@ public:
     TextureCubemap GetCubemap(const std::string &path);
     std::shared_ptr<ShaderWrapper> GetShader(const std::string &vsPath, const std::string &fsPath);
     std::shared_ptr<ShaderWrapper> GetTFBShader(const std::string &vsPath, const std::vector<std::string> &varyings);
+
+    Sound GetSound(const std::string &path);
+    Music GetMusic(const std::string &path);
+    void UpdateMusic();
+
+    void GameWorldUnloadAll();
+
     void UnloadAll();
 
 private:
@@ -26,6 +33,10 @@ private:
 
     std::unordered_map<std::string, Texture2D> m_textures;
     std::unordered_map<std::string, TextureCubemap> m_cubemaps;
+  
     // 纹理帧数map
     std::unordered_map<unsigned int, int> m_textureFrameCounts;
+
+    std::unordered_map<std::string, Sound> m_sounds;
+    std::unordered_map<std::string, Music> m_musics;
 };

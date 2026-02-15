@@ -2,10 +2,11 @@
 #include "MyScreenState.h"
 #include "Engine/System/Screen/ScreenManager.h"
 
-StartScreen::StartScreen()
+StartScreen::StartScreen(ScreenManager *sm)
     : m_nextScreenState(SCREEN_STATE_NONE),
       m_elapsedTime(0.0f),
-      m_alpha(0.0f)
+      m_alpha(0.0f),
+      IGameScreen(sm)
 {
 }
 StartScreen::~StartScreen()

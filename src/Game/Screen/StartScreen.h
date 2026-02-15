@@ -1,10 +1,10 @@
 #pragma once
-#include "Engine/System/Screen/GameScreen.h"
+#include "Engine/System/Screen/IGameScreen.h"
 #include "MyScreenState.h"
-class StartScreen : public GameScreen
+class StartScreen : public IGameScreen
 {
 public:
-    StartScreen();
+    StartScreen(ScreenManager *sm);
     ~StartScreen();
 
     void OnEnter() override;

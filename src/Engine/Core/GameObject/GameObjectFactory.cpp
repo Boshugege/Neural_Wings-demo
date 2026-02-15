@@ -50,8 +50,34 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
         ParseScriptComponent(gameWorld, gameObject, prefab);
     else if (compName == "ParticleEmitterComponent")
         ParseParticleEmitterComponent(gameWorld, gameObject, prefab);
+    else if (compName == "AudioComponent")
+        ParseAudioComponent(gameWorld, gameObject, prefab);
     else
         std::cerr << "Component " << compName << " not implemented" << std::endl;
+}
+
+void GameObjectFactory::ParseAudioComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab)
+{
+    auto &audio = gameObject.AddComponent<AudioComponent>();
+    auto &clipsJson = prefab["clips"];
+
+    for (auto &[clipName, clipData] : clipsJson.items())
+    {
+        AudioClip &clip = audio.audioClips[clipName];
+        clip.sound = gameWorld.GetResourceManager().GetSound(clipData["path"]);
+
+        clip.is3D = clipData.value("is3D", true);
+        clip.isLooping = clipData.value("looping", false);
+        clip.baseVolume = clipData.value("volume", 1.0f);
+        clip.minDis = clipData.value("minDist", 5.0f);
+        clip.maxDis = clipData.value("maxDist", 100.0f);
+
+        if (clipData.contains("multiVoice"))
+        {
+            clip.isMulti = true;
+            clip.SetupMultiVoice(clipData["multiVoice"]);
+        }
+    }
 }
 
 void GameObjectFactory::ParseRenderComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab)

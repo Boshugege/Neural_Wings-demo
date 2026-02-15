@@ -70,8 +70,17 @@ struct NetBroadcastEntry
 struct MsgPositionBroadcast
 {
     NetPacketHeader header{NetMessageType::PositionBroadcast};
+    uint32_t serverTick = 0;
     uint16_t entryCount = 0;
     // Followed by `entryCount` NetBroadcastEntry structs in the buffer.
+};
+
+/// S→C : server notifies that a network object should be removed.
+struct MsgObjectDespawn
+{
+    NetPacketHeader header{NetMessageType::ObjectDespawn};
+    ClientID ownerClientID = INVALID_CLIENT_ID;
+    NetObjectID objectID = INVALID_NET_OBJECT_ID;
 };
 
 #pragma pack(pop)

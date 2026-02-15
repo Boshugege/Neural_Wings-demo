@@ -13,6 +13,7 @@
 
 #include "Engine/Network/Client/NetworkClient.h"
 #include "Engine/Network/Sync/NetworkSyncSystem.h"
+#include <memory> // shared_ptr for NetworkClient
 
 class ScriptingFactory;
 class ScriptingSystem;
@@ -21,6 +22,8 @@ class GameWorld
 {
 public:
     GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &, ParticleFactory &)> configCallback,
+              ResourceManager *resourceManager,
+              AudioManager *audioManager,
               const std::string &cameraConfigPath = "assets/config/cameras_config.json",
               const std::string &sceneConfigPath = "assets/scenes/test_scene.json",
               const std::string &inputConfigPath = "assets/config/input_config.json",
@@ -55,9 +58,13 @@ public:
 
     ParticleFactory &GetParticleFactory() { return *m_particleFactory; };
     ParticleSystem &GetParticleSystem() { return *m_particleSystem; };
+    AudioManager &GetAudioManager() { return *m_audioManager; }
 
-    NetworkClient &GetNetworkClient() { return *m_networkClient; };
-    NetworkSyncSystem &GetNetworkSyncSystem() { return *m_networkSyncSystem; };
+    NetworkClient &GetNetworkClient() { return *m_networkClient; }
+    NetworkSyncSystem &GetNetworkSyncSystem() { return *m_networkSyncSystem; }
+
+    /// Inject a shared NetworkClient owned by ScreenManager.
+    void SetNetworkClient(std::shared_ptr<NetworkClient> client) { m_networkClient = std::move(client); }
 
     template <typename... Components>
     std::vector<GameObject *> GetEntitiesWith()
@@ -102,14 +109,15 @@ private:
     std::unique_ptr<ScriptingSystem> m_scriptingSystem;
 
     std::unique_ptr<SceneManager> m_sceneManager;
-    std::unique_ptr<ResourceManager> m_resourceManager;
+
+    ResourceManager *m_resourceManager;
 
     std::unique_ptr<EventManager> m_eventManager;
 
     std::unique_ptr<ParticleFactory> m_particleFactory;
     std::unique_ptr<ParticleSystem> m_particleSystem;
 
-    std::unique_ptr<NetworkClient> m_networkClient;
+    std::shared_ptr<NetworkClient> m_networkClient;
     std::unique_ptr<NetworkSyncSystem> m_networkSyncSystem;
 
     struct ActiveChange
@@ -118,6 +126,7 @@ private:
         bool newState;
     };
     std::queue<ActiveChange> m_activeChanges;
-    bool m_isIterating = false; // 防止递归
     std::unordered_map<std::string, std::unique_ptr<GameObjectPool>> m_pools;
+
+    AudioManager *m_audioManager;
 };

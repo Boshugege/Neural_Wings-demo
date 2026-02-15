@@ -14,6 +14,7 @@ void UpdateDrawFrame()
 int main()
 {
     EngineConfig config;
+    std::string audioPath = "assets/Library/audio.json";
     if (!config.load("assets/config/engine_config.json"))
     {
         printf("EngineConfig failed.\n");
@@ -22,15 +23,15 @@ int main()
 
     auto factory = std::make_unique<ScreenFactory>();
     factory->Register(SCREEN_STATE_START, [](ScreenManager *manager)
-                      { return std::make_unique<StartScreen>(); });
+                      { return std::make_unique<StartScreen>(manager); });
     factory->Register(MAIN_MENU, [](ScreenManager *manager)
-                      { return std::make_unique<MainMenuScreen>(); });
+                      { return std::make_unique<MainMenuScreen>(manager); });
     factory->Register(GAMEPLAY, [](ScreenManager *manager)
-                      { return std::make_unique<GameplayScreen>(); });
+                      { return std::make_unique<GameplayScreen>(manager); });
     factory->Register(OPTIONS, [](ScreenManager *manager)
-                      { return std::make_unique<OptionsScreen>(); });
+                      { return std::make_unique<OptionsScreen>(manager); });
 
-    g_App = std::make_unique<ScreenManager>(config, std::move(factory));
+    g_App = std::make_unique<ScreenManager>(config, audioPath, std::move(factory));
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);

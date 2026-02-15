@@ -64,6 +64,52 @@ ResourceManager::~ResourceManager()
     UnloadAll();
 }
 
+Sound ResourceManager::GetSound(const std::string &path)
+{
+    auto it = m_sounds.find(path);
+    if (it != m_sounds.end())
+        return it->second;
+
+    Sound s = LoadSound(path.c_str());
+    if (s.frameCount > 0)
+    {
+        m_sounds[path] = s;
+        std::cout << "[ResourceManager]: Sound loaded: " << path << std::endl;
+    }
+    else
+    {
+        std::cerr << "[ResourceManager]: Failed to load sound: " << path << std::endl;
+    }
+    return s;
+}
+Music ResourceManager::GetMusic(const std::string &path)
+{
+    auto it = m_musics.find(path);
+    if (it != m_musics.end())
+        return it->second;
+
+    Music m = LoadMusicStream(path.c_str());
+    if (m.frameCount > 0)
+    {
+        m_musics[path] = m;
+        std::cout << "[ResourceManager]: Music stream loaded: " << path << std::endl;
+    }
+    else
+    {
+        std::cerr << "[ResourceManager]: Failed to load music: " << path << std::endl;
+    }
+    return m;
+}
+void ResourceManager::UpdateMusic()
+{
+    for (auto &pair : m_musics)
+    {
+        if (IsMusicStreamPlaying(pair.second))
+        {
+            UpdateMusicStream(pair.second);
+        }
+    }
+}
 std::shared_ptr<ShaderWrapper> ResourceManager::GetShader(const std::string &vsPath, const std::string &fsPath)
 {
     std::string key = vsPath + fsPath;
@@ -281,6 +327,40 @@ TextureCubemap ResourceManager::GenTextureCubemap(Shader shader, Texture2D panor
     UnloadMesh(cube);
 
     return cubemap;
+void ResourceManager::GameWorldUnloadAll()
+{
+    for (auto &pair : m_models)
+    {
+        UnloadModel(pair.second);
+    }
+    m_models.clear();
+
+    for (auto &pair : m_textures)
+    {
+        UnloadTexture(pair.second);
+    }
+    m_textures.clear();
+
+    for (auto &pair : m_musics)
+    {
+
+        StopMusicStream(pair.second);
+        UnloadMusicStream(pair.second);
+    }
+    m_musics.clear();
+
+    for (auto &pair : m_cubemaps)
+        UnloadTexture(pair.second);
+    m_cubemaps.clear();
+  
+    for (auto &pair : m_sounds)
+    {
+        UnloadSound(pair.second);
+    }
+    m_sounds.clear();
+
+    m_shaders.clear();
+    std::cout << "[ResourceManager] Unloaded all resources" << std::endl;
 }
 
 void ResourceManager::UnloadAll()
@@ -300,6 +380,18 @@ void ResourceManager::UnloadAll()
     for (auto &pair : m_cubemaps)
         UnloadTexture(pair.second);
     m_cubemaps.clear();
+  
+    for (auto &pair : m_musics)
+    {
+        StopMusicStream(pair.second);
+        UnloadMusicStream(pair.second);
+    }
+    m_musics.clear();
+    for (auto &pair : m_sounds)
+    {
+        UnloadSound(pair.second);
+    }
+    m_sounds.clear();
 
     m_shaders.clear();
     std::cout << "[ResourceManager] Unloaded all resources" << std::endl;

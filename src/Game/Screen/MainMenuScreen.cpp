@@ -2,8 +2,8 @@
 #include "raylib.h"
 #include "Engine/System/Screen/ScreenManager.h"
 #include "Game/Screen/MyScreenState.h"
-MainMenuScreen::MainMenuScreen()
-    : m_nextScreenState(SCREEN_STATE_NONE)
+MainMenuScreen::MainMenuScreen(ScreenManager *sm)
+    : m_nextScreenState(SCREEN_STATE_NONE), IGameScreen(sm)
 {
 }
 MainMenuScreen::~MainMenuScreen()
@@ -52,11 +52,13 @@ void MainMenuScreen::Update(float deltaTime)
 
         if (currentRoute == "#/" + GAMEPLAY.getName())
         {
+            audioManager->Play2D("pipdown", 1.0f, (1.0f * rand() / RAND_MAX) * 0.7f + 0.8f);
             m_nextScreenState = GAMEPLAY;
             return;
         }
         else if (currentRoute == "#/" + OPTIONS.getName())
         {
+            audioManager->Play2D("pipdown", 1.0f, (1.0f * rand() / RAND_MAX) * 0.7f + 0.8f);
             m_nextScreenState = OPTIONS;
             return;
         }

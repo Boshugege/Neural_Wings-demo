@@ -1,14 +1,14 @@
 #pragma once
-#include "Engine/System/Screen/GameScreen.h"
+#include "Engine/System/Screen/IGameScreen.h"
 #include "Engine/Config/EngineConfig.h"
 #include "Engine/Network/Client/NetworkClient.h"
 #include "MyScreenState.h"
 #include <memory>
 
-class OptionsScreen : public GameScreen
+class OptionsScreen : public IGameScreen
 {
 public:
-    OptionsScreen();
+    OptionsScreen(ScreenManager *sm);
     ~OptionsScreen();
 
     void OnEnter() override;

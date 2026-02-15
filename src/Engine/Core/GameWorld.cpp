@@ -5,20 +5,22 @@
 #include <string>
 
 GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory &, ParticleFactory &)> configCallback,
+                     ResourceManager *resourceManager,
+                     AudioManager *audioManager,
                      const std::string &cameraConfigPath,
                      const std::string &sceneConfigPath,
                      const std::string &inputConfigPath,
                      const std::string &renderView,
                      const std::string &effectLibPath)
+    : m_resourceManager(resourceManager),
+      m_audioManager(audioManager),
+      m_nextObjectID(0)
 {
     m_timeManager = std::make_unique<TimeManager>();
-
-    m_nextObjectID = 0;
     m_cameraManager = std::make_unique<CameraManager>();
     m_inputManager = std::make_unique<InputManager>();
     m_physicsSystem = std::make_unique<PhysicsSystem>();
     m_physicsStageFactory = std::make_unique<PhysicsStageFactory>();
-    m_resourceManager = std::make_unique<ResourceManager>();
     m_scriptingFactory = std::make_unique<ScriptingFactory>();
     m_scriptingSystem = std::make_unique<ScriptingSystem>();
     m_eventManager = std::make_unique<EventManager>();
@@ -26,7 +28,7 @@ GameWorld::GameWorld(std::function<void(ScriptingFactory &, PhysicsStageFactory 
     m_particleFactory = std::make_unique<ParticleFactory>();
     m_particleSystem = std::make_unique<ParticleSystem>(this);
 
-    m_networkClient = std::make_unique<NetworkClient>();
+    // NetworkClient is injected by ScreenManager via SetNetworkClient().
     m_networkSyncSystem = std::make_unique<NetworkSyncSystem>();
 
     configCallback(*m_scriptingFactory, *m_physicsStageFactory, *m_particleFactory);
@@ -56,6 +58,9 @@ void GameWorld::OnDestroy()
     }
     DestroyWaitingObjects();
     m_gameObjects.clear();
+
+    m_audioManager->ClearOneShots();
+    m_resourceManager->GameWorldUnloadAll();
 }
 
 GameObject &GameWorld::CreateGameObject()
@@ -93,6 +98,11 @@ bool GameWorld::Update(float DeltaTime)
     m_particleSystem->Update(*this, DeltaTime);
     this->UpdateTransforms();
 
+    mCamera *activeCam = m_cameraManager->GetMainCamera();
+    if (activeCam)
+    {
+        m_audioManager->Update(*this, *activeCam);
+    }
     // Network: poll incoming packets and sync transforms.
     if (m_networkClient)
     {

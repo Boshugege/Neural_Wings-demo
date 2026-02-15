@@ -8,8 +8,8 @@
 #include <cstdio>
 #include <sstream>
 
-OptionsScreen::OptionsScreen()
-    : m_nextScreenState(SCREEN_STATE_NONE)
+OptionsScreen::OptionsScreen(ScreenManager *sm)
+    : m_nextScreenState(SCREEN_STATE_NONE), IGameScreen(sm)
 {
 }
 OptionsScreen::~OptionsScreen()

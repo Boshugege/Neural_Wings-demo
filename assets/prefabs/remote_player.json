@@ -1,0 +1,64 @@
+{
+    "name": "RemotePlayer",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    0.45,
+                    0.45,
+                    0.45
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "primitive://sphere",
+                "defaultMaterial": {
+                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                    "fs": "assets/shaders/default.fs",
+                    "color": [
+                        255,
+                        255,
+                        255,
+                        255
+                    ]
+                },
+                "scale": [
+                    0.45,
+                    0.45,
+                    0.45
+                ],
+                "showWires": false,
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "passes": [
+                            {
+                                "name": "texture",
+                                "textures": {
+                                    "u_diffuseMap": [
+                                        "assets/textures/test_1.png",
+                                        1
+                                    ]
+                                },
+                                "blendMode": "NONE",
+                                "depthWrite": true,
+                                "depthTest": true
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
