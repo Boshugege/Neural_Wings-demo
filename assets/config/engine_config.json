@@ -1,9 +1,13 @@
 {
+    "network": {
+        "serverIP": "192.168.21.213",
+        "serverPort": 7777
+    },
     "performance": {
         "targetFPS": 94.0
     },
     "window": {
-        "fullscreen": true,
+        "fullscreen": false,
         "height": 900,
         "title": "Neural Wings",
         "width": 1600

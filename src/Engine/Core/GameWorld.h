@@ -11,6 +11,9 @@
 #include <string>
 #include <queue>
 
+#include "Engine/Network/Client/NetworkClient.h"
+#include "Engine/Network/Sync/NetworkSyncSystem.h"
+
 class ScriptingFactory;
 class ScriptingSystem;
 
@@ -55,6 +58,9 @@ public:
     ParticleFactory &GetParticleFactory() { return *m_particleFactory; };
     ParticleSystem &GetParticleSystem() { return *m_particleSystem; };
     AudioManager &GetAudioManager() { return *m_audioManager; }
+
+    NetworkClient &GetNetworkClient() { return *m_networkClient; };
+    NetworkSyncSystem &GetNetworkSyncSystem() { return *m_networkSyncSystem; };
 
     template <typename... Components>
     std::vector<GameObject *> GetEntitiesWith()
@@ -106,6 +112,9 @@ private:
 
     std::unique_ptr<ParticleFactory> m_particleFactory;
     std::unique_ptr<ParticleSystem> m_particleSystem;
+
+    std::unique_ptr<NetworkClient> m_networkClient;
+    std::unique_ptr<NetworkSyncSystem> m_networkSyncSystem;
 
     struct ActiveChange
     {

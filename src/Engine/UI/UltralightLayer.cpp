@@ -4,6 +4,7 @@
 #include <Ultralight/platform/Config.h>
 
 using ultralight::BitmapSurface;
+using ultralight::KeyEvent;
 using ultralight::MouseEvent;
 using ultralight::ScrollEvent;
 
@@ -117,6 +118,7 @@ void UltralightLayer::HandleInput()
     if (!m_view || !m_visible)
         return;
 
+    // ── Mouse events ──────────────────────────────────────────────
     Vector2 mouse = GetMousePosition();
     const bool mousePressed = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
     if (mousePressed)
@@ -159,6 +161,131 @@ void UltralightLayer::HandleInput()
         scrollEvent.delta_x = 0;
         scrollEvent.delta_y = static_cast<int>(-wheel * 120.0f);
         m_view->FireScrollEvent(scrollEvent);
+    }
+
+    // ── Keyboard events ───────────────────────────────────────────
+
+    // Build current modifier mask
+    unsigned modifiers = 0;
+    if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
+        modifiers |= ultralight::KeyEvent::kMod_ShiftKey;
+    if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
+        modifiers |= ultralight::KeyEvent::kMod_CtrlKey;
+    if (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))
+        modifiers |= ultralight::KeyEvent::kMod_AltKey;
+
+    // 1. Character input  (typed printable characters, with auto-repeat)
+    int charCode;
+    while ((charCode = GetCharPressed()) != 0)
+    {
+        ultralight::KeyEvent evt;
+        evt.type = ultralight::KeyEvent::kType_Char;
+        evt.modifiers = modifiers;
+
+        // Convert Unicode code-point to a short UTF-8 string
+        char utf8[5] = {};
+        if (charCode < 0x80)
+        {
+            utf8[0] = static_cast<char>(charCode);
+        }
+        else if (charCode < 0x800)
+        {
+            utf8[0] = static_cast<char>(0xC0 | (charCode >> 6));
+            utf8[1] = static_cast<char>(0x80 | (charCode & 0x3F));
+        }
+        else if (charCode < 0x10000)
+        {
+            utf8[0] = static_cast<char>(0xE0 | (charCode >> 12));
+            utf8[1] = static_cast<char>(0x80 | ((charCode >> 6) & 0x3F));
+            utf8[2] = static_cast<char>(0x80 | (charCode & 0x3F));
+        }
+        else
+        {
+            utf8[0] = static_cast<char>(0xF0 | (charCode >> 18));
+            utf8[1] = static_cast<char>(0x80 | ((charCode >> 12) & 0x3F));
+            utf8[2] = static_cast<char>(0x80 | ((charCode >> 6) & 0x3F));
+            utf8[3] = static_cast<char>(0x80 | (charCode & 0x3F));
+        }
+
+        evt.text = ultralight::String(utf8);
+        evt.unmodified_text = evt.text;
+        m_view->FireKeyEvent(evt);
+    }
+
+    // 2. Special (non-printable) keys  –  mapped to Windows virtual-key codes
+    struct KeyMapping
+    {
+        int raylibKey;
+        int vk;
+    };
+    static const KeyMapping specialKeys[] = {
+        {KEY_BACKSPACE, 0x08}, // VK_BACK
+        {KEY_TAB, 0x09},       // VK_TAB
+        {KEY_ENTER, 0x0D},     // VK_RETURN
+        {KEY_DELETE, 0x2E},    // VK_DELETE
+        {KEY_LEFT, 0x25},      // VK_LEFT
+        {KEY_UP, 0x26},        // VK_UP
+        {KEY_RIGHT, 0x27},     // VK_RIGHT
+        {KEY_DOWN, 0x28},      // VK_DOWN
+        {KEY_HOME, 0x24},      // VK_HOME
+        {KEY_END, 0x23},       // VK_END
+        {KEY_ESCAPE, 0x1B},    // VK_ESCAPE
+    };
+
+    for (const auto &k : specialKeys)
+    {
+        if (IsKeyPressed(k.raylibKey))
+        {
+            ultralight::KeyEvent evt;
+            evt.type = ultralight::KeyEvent::kType_RawKeyDown;
+            evt.virtual_key_code = k.vk;
+            evt.native_key_code = k.vk;
+            evt.modifiers = modifiers;
+            m_view->FireKeyEvent(evt);
+        }
+        if (IsKeyReleased(k.raylibKey))
+        {
+            ultralight::KeyEvent evt;
+            evt.type = ultralight::KeyEvent::kType_KeyUp;
+            evt.virtual_key_code = k.vk;
+            evt.native_key_code = k.vk;
+            evt.modifiers = modifiers;
+            m_view->FireKeyEvent(evt);
+        }
+    }
+
+    // 3. Ctrl+letter shortcuts  (Select-All, Copy, Paste, Cut, Undo, Redo)
+    if (modifiers & ultralight::KeyEvent::kMod_CtrlKey)
+    {
+        static const KeyMapping ctrlKeys[] = {
+            {KEY_A, 'A'},
+            {KEY_C, 'C'},
+            {KEY_V, 'V'},
+            {KEY_X, 'X'},
+            {KEY_Z, 'Z'},
+            {KEY_Y, 'Y'},
+        };
+        for (const auto &k : ctrlKeys)
+        {
+            if (IsKeyPressed(k.raylibKey))
+            {
+                ultralight::KeyEvent down;
+                down.type = ultralight::KeyEvent::kType_RawKeyDown;
+                down.virtual_key_code = k.vk;
+                down.native_key_code = k.vk;
+                down.modifiers = modifiers;
+                m_view->FireKeyEvent(down);
+            }
+            if (IsKeyReleased(k.raylibKey))
+            {
+                ultralight::KeyEvent up;
+                up.type = ultralight::KeyEvent::kType_KeyUp;
+                up.virtual_key_code = k.vk;
+                up.native_key_code = k.vk;
+                up.modifiers = modifiers;
+                m_view->FireKeyEvent(up);
+            }
+        }
     }
 }
 

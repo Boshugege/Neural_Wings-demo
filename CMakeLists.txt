@@ -33,19 +33,23 @@ FetchContent_Declare(
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/json-develop"
 )
 
-FetchContent_Declare(
-    enet
-    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/enet-master"
-)
-
 set(ULTRALIGHT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ultralight")
+set(NBNET_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third_party/nbnet")
+
+if(NOT EXISTS "${NBNET_ROOT}/nbnet.h")
+    message(FATAL_ERROR
+        "nbnet not found!  Please clone/download nbnet into:\n"
+        "  ${NBNET_ROOT}\n"
+        "  (needs nbnet.h and net_drivers/ folder)\n"
+        "  https://github.com/nathhB/nbnet")
+endif()
 
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(raylib raygui nlohmann_json enet)
+FetchContent_MakeAvailable(raylib raygui nlohmann_json)
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")
 
 if(EMSCRIPTEN)
     list(FILTER SOURCES EXCLUDE REGEX "src/Engine/UI/UltralightLayer.cpp")
@@ -63,13 +67,14 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${raygui_SOURCE_DIR}/src
+    ${NBNET_ROOT}
 )
 
 
 if(EMSCRIPTEN)
     set(PLATFORM "Web")
     add_definitions(-DPLATFORM_WEB)
-
+    message(STATUS "Web network backend: nbnet + WebRTC")
 else()
     set(PLATFORM "Desktop")
     add_definitions(-DPLATFORM_DESKTOP)
@@ -121,7 +126,6 @@ else()
 
     target_link_libraries(${PROJECT_NAME} PRIVATE
         raylib
-        enet
         nlohmann_json::nlohmann_json
         "${ULTRALIGHT_ROOT}/lib/Ultralight.lib"
         "${ULTRALIGHT_ROOT}/lib/UltralightCore.lib"
@@ -129,7 +133,10 @@ else()
         "${ULTRALIGHT_ROOT}/lib/AppCore.lib"
     )
 
-
+    # nbnet UDP driver needs Winsock on Windows
+    if(WIN32)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 winmm)
+    endif()
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

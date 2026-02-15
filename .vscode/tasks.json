@@ -16,12 +16,7 @@
       "label": "CMake Build",
       "type": "shell",
       "command": "cmake",
-      "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "Debug"
-      ],
+      "args": ["--build", "${workspaceFolder}/build", "--config", "Debug"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -32,10 +27,7 @@
     {
       "label": "Build All (UI + Debug)",
       "dependsOrder": "sequence",
-      "dependsOn": [
-        "UI: Build",
-        "CMake Build"
-      ],
+      "dependsOn": ["UI: Build", "CMake Build"],
       "problemMatcher": []
     },
     {
@@ -53,12 +45,7 @@
       "label": "CMake Build Release",
       "type": "shell",
       "command": "cmake",
-      "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "Release"
-      ],
+      "args": ["--build", "${workspaceFolder}/build", "--config", "Release"],
       "dependsOn": "Ensure Build Dir",
       "problemMatcher": "$msCompile"
     },
@@ -67,19 +54,10 @@
       "label": "Start Web Server",
       "type": "shell",
       "command": "python",
-      "args": [
-        "-m",
-        "http.server",
-        "8000",
-        "--directory",
-        "build_web"
-      ],
+      "args": ["-m", "http.server", "8000", "--directory", "build_web"],
       "isBackground": true,
       "dependsOrder": "sequence",
-      "dependsOn": [
-        "UI: Build",
-        "Web Build"
-      ],
+      "dependsOn": ["UI: Build", "Web Build"],
       "problemMatcher": {
         "owner": "python",
         "pattern": {
@@ -96,10 +74,7 @@
       "label": "Web Build",
       "type": "shell",
       "command": "cmake",
-      "args": [
-        "--build",
-        "build_web"
-      ],
+      "args": ["--build", "build_web"],
       "group": "build",
       "dependsOn": "Web Configure",
       "problemMatcher": "$gcc"
@@ -135,9 +110,7 @@
       "label": "UI: Install",
       "type": "shell",
       "command": "npm",
-      "args": [
-        "ci"
-      ],
+      "args": ["ci"],
       "options": {
         "cwd": "${workspaceFolder}/ui"
       },
@@ -147,10 +120,7 @@
       "label": "UI: Dev",
       "type": "shell",
       "command": "npm",
-      "args": [
-        "run",
-        "dev"
-      ],
+      "args": ["run", "dev"],
       "options": {
         "cwd": "${workspaceFolder}/ui"
       },
@@ -160,10 +130,7 @@
       "label": "UI: Build",
       "type": "shell",
       "command": "npm",
-      "args": [
-        "run",
-        "build"
-      ],
+      "args": ["run", "build"],
       "options": {
         "cwd": "${workspaceFolder}/ui"
       },
@@ -174,10 +141,7 @@
       "label": "UI: Preview",
       "type": "shell",
       "command": "npm",
-      "args": [
-        "run",
-        "preview"
-      ],
+      "args": ["run", "preview"],
       "options": {
         "cwd": "${workspaceFolder}/ui"
       },

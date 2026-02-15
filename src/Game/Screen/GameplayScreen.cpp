@@ -77,6 +77,25 @@ void GameplayScreen::OnEnter()
 {
     DisableCursor();
 
+    // ── 客户端身份：加载或生成 UUID ──
+    ClientIdentity identity;
+    identity.LoadOrGenerate();
+    TraceLog(LOG_INFO, "CLIENT: UUID = %s", identity.GetUUIDString().c_str());
+
+    // ── 网络：连接服务器（使用配置的IP和端口） ──
+    std::string serverHost = DEFAULT_SERVER_HOST;
+    uint16_t serverPort = DEFAULT_SERVER_PORT;
+    if (screenManager)
+    {
+        const auto &config = screenManager->GetActiveConfig();
+        serverHost = config.serverIP;
+        serverPort = config.serverPort;
+    }
+    auto &netClient = m_world->GetNetworkClient();
+    netClient.SetUUID(identity.GetUUID());
+    netClient.Connect(serverHost, serverPort);
+    m_world->GetNetworkSyncSystem().Init(m_world->GetNetworkClient());
+
     // 监听事件
     m_world->GetEventManager().Subscribe<CollisionEvent>([this](const CollisionEvent &e)
                                                          {
@@ -100,6 +119,7 @@ void GameplayScreen::OnEnter()
 // 当离开游戏场景时调用
 void GameplayScreen::OnExit()
 {
+    m_world->GetNetworkClient().Disconnect();
     EnableCursor();
 }
 

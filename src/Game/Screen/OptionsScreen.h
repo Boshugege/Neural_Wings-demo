@@ -1,7 +1,9 @@
 #pragma once
 #include "Engine/System/Screen/IGameScreen.h"
 #include "Engine/Config/EngineConfig.h"
+#include "Engine/Network/Client/NetworkClient.h"
 #include "MyScreenState.h"
+#include <memory>
 
 class OptionsScreen : public IGameScreen
 {
@@ -26,4 +28,17 @@ private:
     void SaveConfig();
     void ApplyVueSettings(); // Apply settings from Vue to m_modifiedConfig
     void ApplyConfigToUI();
+
+    // ── Server ping check ──────────────────────────────────────────
+    enum class PingState
+    {
+        Idle,
+        Connecting,
+        Done
+    };
+    PingState m_pingState = PingState::Idle;
+    std::unique_ptr<NetworkClient> m_pingClient;
+    float m_pingTimer = 0.0f;
+    static constexpr float PING_TIMEOUT = 3.0f;
+    void UpdatePingCheck(float deltaTime);
 };

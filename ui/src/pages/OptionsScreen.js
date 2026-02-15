@@ -13,6 +13,14 @@ defineProps({
   targetFPS: {
     default: null,
   },
+  serverIP: {
+    type: String,
+    default: "",
+  },
+  serverStatus: {
+    type: String,
+    default: "",
+  },
   resolutions: {
     type: Array,
     default: () => [],
@@ -30,6 +38,14 @@ defineProps({
     required: true,
   },
   changeFPS: {
+    type: Function,
+    required: true,
+  },
+  changeServerIP: {
+    type: Function,
+    required: true,
+  },
+  checkServer: {
     type: Function,
     required: true,
   },
