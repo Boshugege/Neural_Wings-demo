@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <memory>
 using json = nlohmann::json;
 
 #define M_PI 3.14159265358979323846
@@ -18,9 +19,16 @@ void Renderer::Init(const std::string &configViewPath, GameWorld &gameWorld)
 {
     m_postProcesser = std::make_unique<PostProcesser>();
     m_renderViewer = std::make_unique<RenderViewer>();
+
     this->LoadViewConfig(configViewPath, gameWorld);
 }
 
+void Renderer::SetSkybox(const std::string &skyboxPath, Vector4f tintColor, GameWorld &gameWorld)
+{
+    m_skybox->Load(skyboxPath, gameWorld.GetResourceManager());
+    m_skybox->SetTintColor(tintColor);
+    m_useSkybox = true;
+}
 bool Renderer::LoadViewConfig(const std::string &configPath, GameWorld &gameWorld)
 {
     std::ifstream configFile(configPath);
@@ -58,6 +66,7 @@ bool Renderer::LoadViewConfig(const std::string &configPath, GameWorld &gameWorl
 #endif
 Renderer::Renderer()
 {
+    m_skybox = std::make_unique<Skybox>();
     // if (m_dummyDepth.id > 0)
     //     rlUnloadTexture(m_dummyDepth.id);
     // m_dummyDepth.id = rlLoadTextureDepth(GetScreenWidth(), GetScreenHeight(), false);
@@ -137,6 +146,11 @@ void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager
                     rlOrtho(-right, right, -top, top, 0.01, 1000.0);
                 }
                 rlMatrixMode(RL_MODELVIEW);
+
+                if (m_useSkybox)
+                {
+                    m_skybox->Draw(rawCamera, aspect);
+                }
 
                 DrawWorldObjects(gameWorld, rawCamera, *camera, aspect);
 
@@ -300,12 +314,12 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
                         {
                             const RenderMaterial &pass = (*passes)[p];
 
-                            RenderSinglePass(mesh, render.model, i, pass, MVP, M, camera, world);
+                            RenderSinglePass(mesh, render.model, i, pass, matProj, matView, MVP, M, camera, world);
                         }
                     }
                     else
                     {
-                        RenderSinglePass(mesh, render.model, i, render.defaultMaterial, MVP, M, camera, world);
+                        RenderSinglePass(mesh, render.model, i, render.defaultMaterial, matProj, matView, MVP, M, camera, world);
                     }
                 }
             }
@@ -351,7 +365,8 @@ void Renderer::DrawWorldObjects(GameWorld &world, Camera3D &rawCamera, mCamera &
     DrawCoordinateAxes(Vector3f(0.0f), Quat4f::IDENTITY, 2.0f, 0.05f);
 }
 
-void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int &meshIdx, const RenderMaterial &pass, const Matrix4f &MVP, const Matrix4f &M, const mCamera &camera, GameWorld &gameWorld)
+void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int &meshIdx, const RenderMaterial &pass,
+                                const Matrix4f &matProj, const Matrix4f &matView, const Matrix4f &MVP, const Matrix4f &M, const mCamera &camera, GameWorld &gameWorld)
 {
     rlDrawRenderBatchActive();
 
@@ -393,8 +408,8 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         }
 
         pass.shader->SetAll(MVP, M, camera.Position(), realTime, gameTime, pass.baseColor, pass.customFloats, pass.customVector2, pass.customVector3, pass.customVector4);
-
-        tempRaylibMaterial.shader = pass.shader->GetShader();
+        pass.shader->SetMat4("matProj", matProj);
+        pass.shader->SetMat4("matView", matView);
 
         int texUnit = 1;
         if (pass.useDiffuseMap)
@@ -413,6 +428,10 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
             tempRaylibMaterial.maps[MATERIAL_MAP_DIFFUSE].texture = pass.diffuseMap;
             texUnit++;
         }
+
+        pass.shader->SetCubeMap("skyboxMap", m_skybox->GetTexture(), texUnit);
+        texUnit++;
+
         for (auto const &[name, text] : pass.customTextures)
         {
             pass.shader->SetTexture(name, text, texUnit);
@@ -438,6 +457,8 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
             rlDisableDepthTest();
         if (!pass.depthWrite)
             rlDisableDepthMask();
+
+        tempRaylibMaterial.shader = pass.shader->GetShader();
 
         DrawMesh(mesh, tempRaylibMaterial, M);
         rlDrawRenderBatchActive();
@@ -472,6 +493,7 @@ void Renderer::DrawParticle(GameWorld &gameWorld, mCamera &camera, float aspect)
         matProj = MatrixOrtho(-right, right, -top, top, camera.getNearPlane(), camera.getFarPlane());
     }
     Matrix4f VP = matProj * matView;
+
     particleSys.Render(m_RTPool, realTime, gameTime, VP, matProj, gameWorld, camera);
 }
 // Debug

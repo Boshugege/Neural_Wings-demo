@@ -190,7 +190,16 @@ void ShaderWrapper::SetTexture(const std::string &name, Texture2D texture, int u
         SetShaderValue(m_shader, loc, &unit, SHADER_UNIFORM_INT);
     }
 }
-
+void ShaderWrapper::SetCubeMap(const std::string &name, TextureCubemap cubemap, int unit)
+{
+    int loc = GetLocation(name);
+    if (loc >= 0)
+    {
+        rlActiveTextureSlot(unit);
+        rlEnableTextureCubemap(cubemap.id);
+        SetShaderValue(m_shader, loc, &unit, SHADER_UNIFORM_INT);
+    }
+}
 // private:
 int ShaderWrapper::GetLocation(const std::string &name)
 {

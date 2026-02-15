@@ -18,7 +18,7 @@ vec3 getWorldPos(vec2 uv) {
     float radFov = radians(cameraFov);
     float tanHalfFov = tan(radFov * 0.5);
 
-    vec2 ndc = uv * 2.0 - vec2(1, -1);
+    vec2 ndc = uv * 2.0 - 1;
     float aspect = float(screenResolution.x) / float(screenResolution.y);
     vec3 rayDir = cameraDir +
         (cameraRight * ndc.x * aspect * tanHalfFov) +

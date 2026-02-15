@@ -267,7 +267,16 @@ void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManag
 
             texUnit++;
         }
+        auto &skyboxMap = gameWorld.GetRenderer().GetSkybox()->GetTexture();
+        if (skyboxMap.id > 0)
+        {
+            mat.shader->SetCubeMap("skyboxMap", skyboxMap, texUnit);
+            texUnit++;
+        }
+        Matrix4f matView = GetCameraMatrix(cameraManager.GetMainCamera()->GetConstRawCamera());
         // 上传参数
+        mat.shader->SetMat4("matView", matView);
+
         mat.shader->SetFloat("gameTime", gameWorld.GetTimeManager().GetGameTime());
         mat.shader->SetFloat("realTime", gameWorld.GetTimeManager().GetRealTime());
         mat.shader->SetFloat("deltaRealTime", gameWorld.GetTimeManager().GetDeltaTime());

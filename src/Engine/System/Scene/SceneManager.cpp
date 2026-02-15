@@ -48,7 +48,10 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
     {
         ParseGameObjectPools(sceneData["objectsPools"], gameWorld);
     }
-
+    if (sceneData.contains("skybox"))
+    {
+        ParseSkybox(sceneData["skybox"], gameWorld);
+    }
     if (sceneData.contains("entities"))
     {
         for (const auto &entityData : sceneData["entities"])
@@ -61,6 +64,13 @@ bool SceneManager::LoadScene(const std::string &scenePath, GameWorld &gameWorld)
     return true;
 }
 
+void SceneManager::ParseSkybox(const json &sceneData, GameWorld &gameWorld)
+{
+    std::string skyboxPath = sceneData["texture"];
+    Vector4f tintColor = JsonParser::ToVector4f(sceneData.value("tint", json::array({255.0f, 255.0f, 255.0f, 255.0f}))) / 255.0f;
+
+    gameWorld.GetRenderer().SetSkybox(skyboxPath, tintColor, gameWorld);
+}
 void SceneManager::ParseGameObjectPools(const json &objectsPools, GameWorld &gameWorld)
 {
     for (const auto &poolData : objectsPools)

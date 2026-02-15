@@ -197,7 +197,7 @@ void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RT
             emitter->EnsureDataTextureSize(emitter->GetMaxParticles());
             buffer->SyncPrticleDataToTexture(emitter->GetDataTextureID());
             emitter->Render(RTPool, *buffer, sceneDepth, renderModelMat, camera.Position(),
-                            realTime, gameTime, VP, matProj, camera);
+                            realTime, gameTime, VP, matProj, camera, gameWorld);
         }
     }
     // 遗留粒子
@@ -212,7 +212,7 @@ void ParticleSystem::Render(std::unordered_map<std::string, RenderTexture2D> &RT
         orphan.emitter->EnsureDataTextureSize(orphan.emitter->GetMaxParticles());
         buffer->SyncPrticleDataToTexture(orphan.emitter->GetDataTextureID());
         orphan.emitter->Render(RTPool, *buffer, sceneDepth, renderModelMat, camera.Position(),
-                               realTime, gameTime, VP, matProj, camera);
+                               realTime, gameTime, VP, matProj, camera, gameWorld);
     }
     glDepthMask(GL_TRUE);
 }

@@ -29,6 +29,7 @@ public:
     void SetVec4(const std::string &name, const Vector4f &value);
     void SetMat4(const std::string &name, const Matrix4f &value);
     void SetTexture(const std::string &name, Texture2D texture, int unit);
+    void SetCubeMap(const std::string &name, TextureCubemap cubemap, int unit);
 
     bool IsValid() const { return m_shader.id > 0; };
     Shader GetShader() const { return m_shader; }
@@ -39,9 +40,9 @@ public:
                 const std::unordered_map<std::string, Vector3f> &customVector3,
                 const std::unordered_map<std::string, Vector4f> &customVector4);
 
-private:
     int GetLocation(const std::string &name);
 
+private:
     std::string LoadVSText(const std::string &path);
     Shader m_shader;
     std::unordered_map<std::string, int> m_locationCache;

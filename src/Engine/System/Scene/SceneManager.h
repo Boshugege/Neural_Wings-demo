@@ -15,6 +15,7 @@ public:
     bool LoadScene(const std::string &scenePath, GameWorld &gameWorld);
 
 private:
+    void ParseSkybox(const json &sceneData, GameWorld &gameWorld);
     void ParsePhysics(const json &sceneData, GameWorld &gameWorld);
     void ParseGameObjectPools(const json &sceneData, GameWorld &gameWorld);
     void ParseEntity(const json &data, GameWorld &world, GameObject *parent);

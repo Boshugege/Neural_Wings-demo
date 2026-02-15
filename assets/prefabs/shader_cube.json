@@ -58,7 +58,7 @@
                                 "depthTest": true
                             },
                             {
-                                "vs": "assets/shaders/base.vs",
+                                "vs": "assets/shaders/default.vs",
                                 "fs": "assets/shaders/hologram.fs",
                                 "color": [
                                     255,

@@ -14,7 +14,7 @@ in float vFar;
 
 out vec4 finalColor;
 
-uniform mat4 proj;
+uniform mat4 matProj;
 uniform sampler2D dataTex;
 uniform int maxParticles;
 vec4 GetPos(int id) {
@@ -57,7 +57,7 @@ void main() {
 
     float centerViewZ = dot(view, vDir);
     float pixelViewZ = centerViewZ - z * vRadius;
-    vec4 clipPos = proj * vec4(0.0, 0.0, -pixelViewZ, 1.0);
+    vec4 clipPos = matProj * vec4(0.0, 0.0, -pixelViewZ, 1.0);
     gl_FragDepth = (clipPos.z / clipPos.w) * 0.5 + 0.5;
     // float t = 1.0;
     // t = length(GetVel(int(vID)));

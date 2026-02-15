@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <memory>
 #include <vector>
+class GameWorld;
 using json = nlohmann::json;
 enum class SimulationSpace
 {
@@ -42,7 +43,8 @@ public:
 
     void Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                 const Vector3f &viewPos, float realTime, float gameTime,
-                const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera);
+                const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera,
+                GameWorld &gameWorld);
 
     Matrix4f GetRenderMatrix(const TransformComponent &parentTf) const;
 
@@ -72,7 +74,8 @@ private:
 
     void RenderSignlePass(size_t passIndex, const RenderMaterial &pass, std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                           const Vector3f &viewPos, float realTime, float gameTime,
-                          const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera);
+                          const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera,
+                          GameWorld &gameWorld);
 
     // 粒子数据纹理
     Texture2D m_dataTexture = {0};

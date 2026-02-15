@@ -47,6 +47,8 @@ endif()
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 
+
+add_compile_definitions(SUPPORT_FILEFORMAT_HDR)
 FetchContent_MakeAvailable(raylib raygui nlohmann_json)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")

@@ -1,4 +1,5 @@
 #include "ParticleEmitter.h"
+#include "Engine/Core/GameWorld.h"
 #include <nlohmann/json.hpp>
 #include <memory>
 #include <vector>
@@ -195,7 +196,8 @@ std::vector<RenderMaterial> &ParticleEmitter::GetRenderPasses()
 
 void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &pass, std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                                        const Vector3f &viewPos, float realTime, float gameTime,
-                                       const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera)
+                                       const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera,
+                                       GameWorld &gameWorld)
 {
     if (!pass.shader || !pass.shader->IsValid())
         return;
@@ -246,6 +248,14 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
             texUnit++;
         }
 
+        auto &skyboxMap = gameWorld.GetRenderer().GetSkybox()->GetTexture();
+        if (skyboxMap.id > 0)
+        {
+            pass.shader->SetCubeMap("skyboxMap", skyboxMap, texUnit);
+            texUnit++;
+        }
+        Matrix4f matView = GetCameraMatrix(camera.GetConstRawCamera());
+
         pass.shader->SetVec2("resolution", Vector2f(GetScreenWidth(), GetScreenHeight()));
         pass.shader->SetFloat("near", camera.getNearPlane());
         pass.shader->SetFloat("far", camera.getFarPlane());
@@ -254,7 +264,8 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
         pass.shader->SetVec3("cameraRight", right);
         pass.shader->SetVec3("cameraUp", up);
         pass.shader->SetMat4("vp", VP);
-        pass.shader->SetMat4("proj", matProj);
+        pass.shader->SetMat4("matProj", matProj);
+        pass.shader->SetMat4("matView", matView);
         pass.shader->SetMat4("model", modelMat);
         pass.shader->SetAll(Matrix4f::identity(), Matrix4f::identity(), viewPos, realTime, gameTime,
                             pass.baseColor,
@@ -337,11 +348,13 @@ void ParticleEmitter::RenderSignlePass(size_t passIndex, const RenderMaterial &p
 }
 void ParticleEmitter::Render(std::unordered_map<std::string, RenderTexture2D> &RTPool, GPUParticleBuffer &gpuBuffer, const Texture2D &sceneDepth, const Matrix4f &modelMat,
                              const Vector3f &viewPos, float realTime, float gameTime,
-                             const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera)
+                             const Matrix4f &VP, const Matrix4f &matProj, const mCamera &camera,
+                             GameWorld &gameWorld)
 {
     for (size_t i = 0; i < m_passes.size(); ++i)
     {
-        RenderSignlePass(i, m_passes[i], RTPool, gpuBuffer, sceneDepth, modelMat, viewPos, realTime, gameTime, VP, matProj, camera);
+        RenderSignlePass(i, m_passes[i], RTPool, gpuBuffer, sceneDepth, modelMat, viewPos, realTime, gameTime, VP, matProj, camera,
+                         gameWorld);
     }
 }
 

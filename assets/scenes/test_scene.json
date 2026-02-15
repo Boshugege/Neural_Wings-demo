@@ -11,6 +11,15 @@
             }
         }
     },
+    "skybox": {
+        "texture": "assets/textures/skybox_1.hdr",
+        "tint": [
+            255,
+            255,
+            255,
+            255
+        ]
+    },
     "hints": "用来预生成大量物体（子弹等）",
     "objectsPools": [
         {

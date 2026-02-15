@@ -89,13 +89,15 @@ void NetworkSyncSystem::ApplyRemoteBroadcast(GameWorld &world,
                 sync.netObjectID == remote.objectID)
             {
                 auto &tf = obj->GetComponent<TransformComponent>();
-                tf.SetLocalPosition(Vector3f(remote.transform.posX,
-                                             remote.transform.posY,
-                                             remote.transform.posZ));
-                tf.SetLocalRotation(Quat4f(remote.transform.rotW,
-                                           remote.transform.rotX,
-                                           remote.transform.rotY,
-                                           remote.transform.rotZ));
+
+                Vector3f pos = (Vector3f(remote.transform.posX,
+                                         remote.transform.posY,
+                                         remote.transform.posZ));
+                Quat4f rot = (Quat4f(remote.transform.rotW,
+                                     remote.transform.rotX,
+                                     remote.transform.rotY,
+                                     remote.transform.rotZ));
+                tf.SetWorldMatrix(Matrix4f::CreateTransform(pos, rot, Vector3f::ONE));
                 found = true;
                 break;
             }
