@@ -75,6 +75,8 @@
                                         10
                                     ]
                                 },
+                                "vs": "assets/shaders/default.vs",
+                                "fs": "assets/shaders/reflect_Skybox.fs",
                                 "blendMode": "NONE",
                                 "depthWrite": true,
                                 "depthTest": true
