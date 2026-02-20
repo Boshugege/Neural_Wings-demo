@@ -61,6 +61,7 @@ void GameObjectFactory::ApplyComponent(GameWorld &gameWorld, GameObject &gameObj
 void GameObjectFactory::ParseLightComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab)
 {
     auto &light = gameObject.AddComponent<LightComponent>();
+    light.owner = &gameObject;
     std::string typeStr = prefab.value("type", "Directional");
     if (typeStr == "POINT")
     {
@@ -158,12 +159,13 @@ void GameObjectFactory::ParseRenderComponent(GameWorld &gameWorld, GameObject &g
 void GameObjectFactory::ParseTransformComponent(GameObject &gameObject, const json &prefab)
 {
     auto &tf = gameObject.AddComponent<TransformComponent>();
+    tf.owner = &gameObject;
     if (prefab.contains("position"))
         tf.SetLocalPosition(JsonParser::ToVector3f(prefab["position"]));
     if (prefab.contains("scale"))
         tf.SetLocalScale(JsonParser::ToVector3f(prefab["scale"]));
     if (prefab.contains("rotation"))
-        tf.SetLocalRotation(Quat4f(DEG2RAD * JsonParser::ToVector3f(prefab["rotation"])));
+        tf.SetLocalRotation(Quat4f::XYZRotate(DEG2RAD * JsonParser::ToVector3f(prefab["rotation"])));
 }
 void GameObjectFactory::ParseRigidBodyComponent(GameObject &gameObject, const json &prefab)
 {

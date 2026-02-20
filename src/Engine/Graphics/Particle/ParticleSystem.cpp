@@ -138,6 +138,7 @@ void ParticleSystem::Update(GameWorld &gameWorld, float dt)
     for (auto it = m_orphans.begin(); it != m_orphans.end();)
     {
         GPUParticleBuffer *buffer = GetOrCreateBuffer(it->emitter);
+        it->emitter->Update(dt, it->lastTransform, *buffer);
 
         if (it->emitter->GetUpdateShader())
         {
@@ -155,10 +156,24 @@ void ParticleSystem::Update(GameWorld &gameWorld, float dt)
         else
             ++it;
     }
+
+    // 清除缓存
+    for (auto it = m_emitterBuffers.begin(); it != m_emitterBuffers.end();)
+    {
+        if (it->first.use_count() <= 1)
+            it = m_emitterBuffers.erase(it);
+        else
+            ++it;
+    }
 }
 
 void ParticleSystem::RegisterOrphan(std::shared_ptr<ParticleEmitter> emitter, const TransformComponent &lastTf)
 {
+    if (GetOrphanCount() > MAX_ORPHAN_COUNT)
+    {
+        std::cout << "[ParticleSystem]: Too many orphan particles!!!" << std::endl;
+        return;
+    }
     emitter->SetEmissionRate(0.0f);
     m_orphans.push_back({emitter, lastTf});
 }

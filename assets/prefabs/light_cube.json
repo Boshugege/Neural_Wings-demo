@@ -29,6 +29,7 @@
                 "showAngVol": false,
                 "showVol": false,
                 "showCenter": false,
+                "castShadows": true,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
                     "fs": "assets/shaders/default.fs",
@@ -55,11 +56,11 @@
                                 "fs": "assets/shaders/lighting/lighting.fs",
                                 "emissive": {
                                     "color": [
-                                        255,
-                                        255,
+                                        100,
+                                        100,
                                         255
                                     ],
-                                    "intensity": 0.9
+                                    "intensity": 2.0
                                 },
                                 "blendMode": "NONE",
                                 "depthWrite": true,
@@ -68,7 +69,6 @@
                         ]
                     }
                 ],
-                "emissive": {},
                 "scale": [
                     1,
                     1,
@@ -79,9 +79,9 @@
         {
             "RigidBodyComponent": {
                 "mass": 100,
-                "drag": 0.1,
-                "angularDrag": 0.1,
-                "elasticity": 0.5,
+                "drag": 0.0,
+                "angularDrag": 0.0,
+                "elasticity": 1.0,
                 "velocity": [
                     0,
                     0,
@@ -122,16 +122,11 @@
             "LightComponent": {
                 "type": "POINT",
                 "color": [
-                    255,
-                    255,
+                    100,
+                    100,
                     255
                 ],
-                "direction": [
-                    -1,
-                    -1,
-                    -1
-                ],
-                "intensity": 1.0,
+                "intensity": 0.3,
                 "range": 100.0,
                 "attenuation": 1.0,
                 "shadows": true,

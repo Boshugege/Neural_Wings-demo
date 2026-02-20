@@ -82,7 +82,15 @@
                                 "fs": "assets/shaders/lighting/lighting.fs",
                                 "blendMode": "NONE",
                                 "depthWrite": true,
-                                "depthTest": true
+                                "depthTest": true,
+                                "emissive": {
+                                    "color": [
+                                        100,
+                                        255,
+                                        100
+                                    ],
+                                    "intensity": 1.0
+                                }
                             }
                         ]
                     }
@@ -106,7 +114,7 @@
             "prefab": "assets/prefabs/light_cube.json",
             "position": [
                 20,
-                0,
+                -2,
                 0
             ],
             "rotation": [
@@ -116,7 +124,52 @@
             ],
             "physics": {
                 "mass": 100,
-                "elasticity": 0.9
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    -4
+                ]
+            },
+            "scripts": [
+                {
+                    "CollisionListener": {}
+                },
+                {
+                    "WeaponScript": {}
+                },
+                {
+                    "RayScript": {}
+                }
+            ]
+        },
+        {
+            "name": "cube_camera",
+            "tag": "cube",
+            "prefab": "assets/prefabs/light_cube.json",
+            "position": [
+                -20,
+                2,
+                0
+            ],
+            "rotation": [
+                0,
+                -90,
+                0
+            ],
+            "scale": [
+                1.3,
+                1.3,
+                1.3
+            ],
+            "physics": {
+                "mass": 100,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    -4
+                ]
             },
             "scripts": [
                 {
@@ -170,9 +223,54 @@
                 0
             ],
             "rotation": [
+                -90,
+                90,
+                0
+            ]
+        },
+        {
+            "name": "ground3",
+            "tag": "cube",
+            "prefab": "assets/prefabs/ground.json",
+            "position": [
+                -40,
+                0,
+                0
+            ],
+            "rotation": [
+                -90,
+                90,
+                0
+            ]
+        },
+        {
+            "name": "ground3",
+            "tag": "cube",
+            "prefab": "assets/prefabs/ground.json",
+            "position": [
                 0,
                 0,
-                90
+                40
+            ],
+            "rotation": [
+                -90,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "ground3",
+            "tag": "cube",
+            "prefab": "assets/prefabs/ground.json",
+            "position": [
+                0,
+                0,
+                -40
+            ],
+            "rotation": [
+                -90,
+                0,
+                0
             ]
         },
         {

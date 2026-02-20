@@ -1,7 +1,7 @@
 {
     "Collision": {
         "isBurst": true,
-        "maxParticles": 100,
+        "maxParticles": 10,
         "emissionRate": 0,
         "maxLife": 3.0,
         "updateShader": "assets/shaders/particles/compute/default.vs",
@@ -13,7 +13,7 @@
                         0.5,
                         0.5
                     ],
-                    "maxLife": 3.0,
+                    "maxLife": 1.0,
                     "minSpeed": 2,
                     "maxSpeed": 0,
                     "tau": 1000,

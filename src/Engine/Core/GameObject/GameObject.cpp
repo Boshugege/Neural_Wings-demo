@@ -49,6 +49,8 @@ void GameObject::SetOwnerWorld(GameWorld *world)
 #include "Engine/Graphics/Particle/ParticleSystem.h"
 void GameObject::OnDestroy()
 {
+    if (this == nullptr)
+        return;
     if (m_isDestroyed)
         return;
     m_isDestroyed = true;

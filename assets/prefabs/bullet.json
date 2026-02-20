@@ -9,9 +9,9 @@
                     0
                 ],
                 "scale": [
-                    0.4,
-                    0.4,
-                    0.4
+                    0.6,
+                    0.6,
+                    0.6
                 ],
                 "rotation": [
                     0,
@@ -23,6 +23,7 @@
         {
             "RenderComponent": {
                 "model": "primitive://cube",
+                "castShadows": true,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
                     "fs": "assets/shaders/default.fs",
@@ -90,10 +91,10 @@
                     0,
                     0
                 ],
-                "intensity": 1.0,
-                "range": 10.0,
+                "intensity": 0.2,
+                "range": 40.0,
                 "attenuation": 5.0,
-                "shadows": true,
+                "shadows": false,
                 "shadowBias": 0.005
             }
         }

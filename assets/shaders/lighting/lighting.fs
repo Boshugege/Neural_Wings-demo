@@ -20,11 +20,13 @@ struct Light {
 };
 
 #define MAX_LIGHTS 16
-#define MAX_SHADOWS 4 
+#define MAX_SHADOW_CASTERS 6
+#define MAX_POINT_SHADOWS 6
 
-uniform sampler2D shadowMaps[MAX_SHADOWS];
-uniform mat4 lightVPs[MAX_SHADOWS];
+uniform samplerCube pointShadowMaps[MAX_POINT_SHADOWS];
+uniform sampler2D shadowMaps[MAX_SHADOW_CASTERS];
 
+uniform mat4 lightVPs[MAX_SHADOW_CASTERS];
 uniform Light lights[MAX_LIGHTS];
 uniform int lightCounts;
 uniform vec3 emissiveColor;
@@ -39,43 +41,6 @@ uniform float u_diffuseMap_animSpeed;
 uniform float gameTime;
 uniform float realTime;
 
-// --- 计算方向光 ---
-vec3 CalcDirectionalLight(Light light, vec3 normal, vec3 viewDir) {
-    vec3 lightDir = normalize(-light.direction);
-
-    // 漫反射
-    float diff = max(dot(normal, lightDir), 0.0);
-
-    // 高光 (Blinn-Phong)
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-
-    vec3 result = (diff + spec) * light.color * light.intensity;
-    return result;
-}
-
-// --- 计算点光源 ---
-vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
-    vec3 lightDir = normalize(light.position - fragPos);
-
-    // 衰减 (Attenuation)
-    float distance = length(light.position - fragPos);
-    // 使用简单的线性+二次衰减，或者基于 range 的平滑衰减
-    // 这里使用基于 range 的简单公式：1 - (dist/range)^2
-    float att = 1.0 - clamp(distance / light.range, 0.0, 1.0);
-    att = att * att; // 平方让衰减更自然
-
-    // 漫反射
-    float diff = max(dot(normal, lightDir), 0.0);
-
-    // 高光
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-
-    vec3 result = (diff + spec) * light.color * light.intensity * att;
-    return result;
-}
-
 float SampleShadowMap(int index, vec2 coords) {
     if(index == 0)
         return texture(shadowMaps[0], coords).r;
@@ -85,71 +50,159 @@ float SampleShadowMap(int index, vec2 coords) {
         return texture(shadowMaps[2], coords).r;
     if(index == 3)
         return texture(shadowMaps[3], coords).r;
+    if(index == 4)
+        return texture(shadowMaps[4], coords).r;
+    if(index == 5)
+        return texture(shadowMaps[5], coords).r;
+    // if(index == 6)
+    //     return texture(shadowMaps[6], coords).r;
+    // if(index == 7)
+    //     return texture(shadowMaps[7], coords).r;
+    // if(index == 8)
+    //     return texture(shadowMaps[8], coords).r;
+    // if(index == 9)
+    //     return texture(shadowMaps[9], coords).r;
+    // if(index == 10)
+    //     return texture(shadowMaps[10], coords).r;
+    // if(index == 11)
+    //     return texture(shadowMaps[11], coords).r;
+    // if(index == 12)
+    //     return texture(shadowMaps[12], coords).r;
+    // if(index == 13)
+    //     return texture(shadowMaps[13], coords).r;
+    // if(index == 14)
+    //     return texture(shadowMaps[14], coords).r;
+    // if(index == 15)
+    //     return texture(shadowMaps[15], coords).r;
     return 1.0;
 }
 
-float CalculateShadow(int shadowIndex, vec3 worldPos, float bias) {
-    if(shadowIndex < 0 || shadowIndex >= MAX_SHADOWS)
+float SamplePointShadowMap(int index, vec3 dir) {
+    if(index == 0)
+        return texture(pointShadowMaps[0], dir).r;
+    if(index == 1)
+        return texture(pointShadowMaps[1], dir).r;
+    if(index == 2)
+        return texture(pointShadowMaps[2], dir).r;
+    if(index == 3)
+        return texture(pointShadowMaps[3], dir).r;
+    if(index == 4)
+        return texture(pointShadowMaps[4], dir).r;
+    if(index == 5)
+        return texture(pointShadowMaps[5], dir).r;
+    // if(index == 6)
+    //     return texture(pointShadowMaps[6], dir).r;
+    // if(index == 7)
+    //     return texture(pointShadowMaps[7], dir).r;
+    // if(index == 8)
+    //     return texture(pointShadowMaps[8], dir).r;
+    // if(index == 9)
+    //     return texture(pointShadowMaps[9], dir).r;
+    // if(index == 10)
+    //     return texture(pointShadowMaps[10], dir).r;
+    // if(index == 11)
+    //     return texture(pointShadowMaps[11], dir).r;
+    // if(index == 12)
+    //     return texture(pointShadowMaps[12], dir).r;
+    // if(index == 13)
+    //     return texture(pointShadowMaps[13], dir).r;
+    // if(index == 14)
+    //     return texture(pointShadowMaps[14], dir).r;
+    // if(index == 15)
+    //     return texture(pointShadowMaps[15], dir).r;
+    return 1.0;
+}
+
+float CalculateDirShadow(int shadowIndex, vec3 worldPos, float bias) {
+    if(shadowIndex < 0 || shadowIndex >= MAX_SHADOW_CASTERS)
         return 0.0;
 
-    // 1. 变换到该光源的裁剪空间
     vec4 fragPosLightSpace = lightVPs[shadowIndex] * vec4(worldPos, 1.0);
-
-    // 2. 透视除法
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
-    // 3. 越界检查
     if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
         return 0.0;
 
-    // 4. PCF 采样 (简单 3x3)
     float currentDepth = projCoords.z;
     float shadow = 0.0;
-    vec2 texSize = vec2(1.0) / vec2(textureSize(shadowMaps[0], 0)); // 假设所有阴影图大小一致
+    vec2 texSize = 1.0 / vec2(textureSize(shadowMaps[0], 0));
 
+    // PCF 3x3 滤波
     for(int x = -1; x <= 1; ++x) {
         for(int y = -1; y <= 1; ++y) {
-
-            // float pcfDepth = SampleShadowMap(shadowIndex, projCoords.xy + vec2(x, y) * texSize);
-            float pcfDepth = 0.0;
-            if(shadowIndex == 0)
-                pcfDepth = texture(shadowMaps[0], projCoords.xy + vec2(x, y) * texSize).r;
-            else if(shadowIndex == 1)
-                pcfDepth = texture(shadowMaps[1], projCoords.xy + vec2(x, y) * texSize).r;
-            else if(shadowIndex == 2)
-                pcfDepth = texture(shadowMaps[2], projCoords.xy + vec2(x, y) * texSize).r;
-            else if(shadowIndex == 3)
-                pcfDepth = texture(shadowMaps[3], projCoords.xy + vec2(x, y) * texSize).r;
+            float pcfDepth = SampleShadowMap(shadowIndex, projCoords.xy + vec2(x, y) * texSize);
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
         }
     }
-    shadow /= 9.0;
-    return shadow;
+    return shadow / 9.0;
 }
+float CalculatePointShadow(int shadowIndex, vec3 worldPos, vec3 lightPos, float farPlane, float bias) {
+    if(shadowIndex < 0 || shadowIndex >= MAX_POINT_SHADOWS)
+        return 0.0;
 
+    vec3 fragToLight = worldPos - lightPos;
+    float currentDepth = length(fragToLight);
+
+    // 采样 Cubemap 存储的是线性深度 [0, 1] (由我们之前的点光源深片 Shader 写入)
+    float closestDepth = SamplePointShadowMap(shadowIndex, fragToLight);
+
+    // 还原真实距离
+    closestDepth *= farPlane;
+
+    // 简单硬阴影比较
+    return (currentDepth - bias > closestDepth) ? 1.0 : 0.0;
+}
+vec3 CalcLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
+    vec3 lightDir;
+    float attenuation = 1.0;
+
+    if(light.type == 0) { // Directional
+        lightDir = normalize(-light.direction);
+    } else { // Point
+        lightDir = normalize(light.position - fragPos);
+        float dist = length(light.position - fragPos);
+        if(dist > light.range)
+            return vec3(0.0);
+        // 使用 range 相关的平方衰减
+        attenuation = clamp(1.0 - (dist * dist) / (light.range * light.range), 0.0, 1.0);
+    }
+
+    // Diffuse
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // Specular (Blinn-Phong)
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+
+    vec3 radiance = light.color * light.intensity * attenuation;
+    return (diff + spec) * radiance * (1.0 - shadow);
+}
 void main() {
     vec3 norm = normalize(fragNormal);
     vec3 viewDir = normalize(viewPos - fragPosition);
-    vec3 totalLight = vec3(0.1); // 基础环境光 0.1
+    vec3 totalLight = vec3(0.0); // 基础环境光 0.1
 
     for(int i = 0; i < MAX_LIGHTS; i++) {
         if(i >= lightCounts) {
             break;
         }
-        vec3 lightContribution = vec3(0.0);
+        if(lights[i].intensity <= 0.001)
+            continue;
         float shadow = 0.0;
+
         if(lights[i].shadowIndex >= 0) {
-            shadow = CalculateShadow(lights[i].shadowIndex, fragPosition, lights[i].shadowBias);
+            if(lights[i].type == 0) {
+                shadow = CalculateDirShadow(lights[i].shadowIndex, fragPosition, lights[i].shadowBias);
+            } else {
+                if(lights[i].range > 0.0) {
+                    shadow = CalculatePointShadow(lights[i].shadowIndex, fragPosition, lights[i].position, lights[i].range, lights[i].shadowBias);
+                }
+            }
         }
 
-        if(lights[i].type == 0) {
-            lightContribution = CalcDirectionalLight(lights[i], norm, viewDir);
-        } else {
-            lightContribution = CalcPointLight(lights[i], norm, fragPosition, viewDir);
-        }
+        totalLight += CalcLight(lights[i], norm, fragPosition, viewDir, shadow);
 
-        totalLight += lightContribution * (1.0 - shadow);
     }
 
     float currentFrame = floor(mod(gameTime * u_diffuseMap_animSpeed, float(u_diffuseMap_frameCount)));
@@ -159,6 +212,11 @@ void main() {
     animatedUV.y += (currentFrame / u_diffuseMap_frameCount);
 
     vec4 texColor = texture(u_diffuseMap, animatedUV);
-    vec3 emission = emissiveColor * emissiveIntensity;
-    finalColor = vec4(totalLight * texColor.rgb + emission, texColor.a);
+
+    vec3 albedo = texture(u_diffuseMap, animatedUV).rgb * baseColor.rgb;
+
+    float brightness = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 emission = albedo * emissiveColor * emissiveIntensity * brightness;
+
+    finalColor = vec4(totalLight * albedo + emission, texColor.a * baseColor.a);
 }
