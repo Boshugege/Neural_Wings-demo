@@ -113,6 +113,9 @@ void GameplayScreen::OnEnter()
         {
             // Navigate to gameplay route so only ChatHUD renders (no menu overlay)
             ui->ExecuteScript("window.location.hash = '#/gameplay';");
+            // Keep UI layer visible in gameplay so incoming chat can render
+            // without requiring chat focus.
+            ui->SetVisible(true);
             ui->ExecuteScript(
                 "window.vueAppState = window.vueAppState || {};"
                 "window.vueAppState.chatMessages = [];"
@@ -274,8 +277,9 @@ void GameplayScreen::Draw()
     DrawText(TextFormat("Total Entities: %d", total), 10, 50, 20, WHITE);
     DrawText(TextFormat("Active Entities: %d", active), 10, 80, 20, GREEN);
 
-    // Draw UILayer overlay when chat is active
-    if (m_chatActive && screenManager && screenManager->GetUILayer())
+    // Always draw UILayer in gameplay so new chat messages are visible
+    // even when chat input is not active.
+    if (screenManager && screenManager->GetUILayer())
     {
         screenManager->GetUILayer()->Draw();
     }
@@ -329,8 +333,6 @@ void GameplayScreen::DeactivateChat()
             ui->ExecuteScript(
                 "window.vueAppState.chatActive = false;"
                 "if (window.__NW_CHAT_DEACTIVATE__) window.__NW_CHAT_DEACTIVATE__();");
-            // Hide UILayer again so it doesn't overlay gameplay
-            ui->SetVisible(false);
         }
     }
 }

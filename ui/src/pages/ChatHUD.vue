@@ -6,14 +6,24 @@ const inputText = ref("");
 const isActive = ref(false);
 const chatChannelMode = ref("public");
 const chatWhisperTarget = ref("");
+const gameplayMessageVisible = ref(false);
 const inputRef = ref(null);
 const messagesEndRef = ref(null);
 const route = ref(window.location.hash || "");
+const GAMEPLAY_MESSAGE_VISIBLE_MS = 5000;
+let gameplayMessageHideTimer = null;
 
 function syncRoute() {
   route.value = window.location.hash || "";
   if (!isVisibleRoute() && isActive.value) {
     deactivate();
+  }
+  if (!isGameplayRoute()) {
+    gameplayMessageVisible.value = false;
+    if (gameplayMessageHideTimer) {
+      clearTimeout(gameplayMessageHideTimer);
+      gameplayMessageHideTimer = null;
+    }
   }
 }
 
@@ -39,6 +49,21 @@ function scrollToBottom() {
       messagesEndRef.value.scrollIntoView({ behavior: "auto" });
     }
   });
+}
+
+function showGameplayMessagesTemporarily() {
+  if (!isGameplayRoute()) {
+    return;
+  }
+  gameplayMessageVisible.value = true;
+  if (gameplayMessageHideTimer) {
+    clearTimeout(gameplayMessageHideTimer);
+    gameplayMessageHideTimer = null;
+  }
+  gameplayMessageHideTimer = setTimeout(() => {
+    gameplayMessageVisible.value = false;
+    gameplayMessageHideTimer = null;
+  }, GAMEPLAY_MESSAGE_VISIBLE_MS);
 }
 
 function applyChatModeMarker(msg) {
@@ -75,6 +100,9 @@ function pushMessage(msg) {
     return;
   }
   messages.value.push(normalized);
+  if (!isActive.value) {
+    showGameplayMessagesTemporarily();
+  }
   if (messages.value.length > 300) {
     messages.value.shift();
   }
@@ -90,6 +118,9 @@ function pushBatch(batch) {
     if (normalized) {
       messages.value.push(normalized);
     }
+  }
+  if (!isActive.value) {
+    showGameplayMessagesTemporarily();
   }
   if (messages.value.length > 300) {
     messages.value.splice(0, messages.value.length - 300);
@@ -287,6 +318,10 @@ onBeforeUnmount(() => {
   delete window.__NW_CHAT_ACTIVATE__;
   delete window.__NW_CHAT_DEACTIVATE__;
   delete window.__NW_CHAT_CLEAR_INPUT__;
+  if (gameplayMessageHideTimer) {
+    clearTimeout(gameplayMessageHideTimer);
+    gameplayMessageHideTimer = null;
+  }
   window.removeEventListener("hashchange", syncRoute);
   window.removeEventListener("keydown", onGlobalKeydown);
 });
@@ -294,8 +329,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="isVisibleRoute()" class="chat-hud" :class="{ active: isActive, gameplay: isGameplayRoute() }">
-    <!-- Message history (always visible, semi-transparent when inactive) -->
-    <div v-if="isActive || isGameplayRoute()" class="chat-messages" :class="{ faded: !isActive }">
+    <!-- Message history (always visible when active; in gameplay, auto-show for a short time on new messages) -->
+    <div v-if="isActive || (isGameplayRoute() && gameplayMessageVisible)" class="chat-messages" :class="{ faded: !isActive && !isGameplayRoute() }">
       <div v-for="(msg, idx) in messages" :key="idx" class="chat-line" :class="getTypeClass(msg.type)">
         <span v-if="getTypeLabel(msg.type)" class="chat-type-label">{{
           getTypeLabel(msg.type)
