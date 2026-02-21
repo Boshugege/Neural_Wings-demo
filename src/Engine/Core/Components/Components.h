@@ -7,4 +7,6 @@
 #include "Engine/Core/Components/ScriptComponent.h"
 #include "Engine/Core/Components/ParticleEmitterComponent.h"
 #include "Engine/Core/Components/AudioComponent.h"
+#include "Engine/Core/Components/LightComponent.h"
+
 #include "Engine/Network/Sync/NetworkSyncComponent.h"

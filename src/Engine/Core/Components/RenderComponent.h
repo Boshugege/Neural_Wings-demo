@@ -21,6 +21,8 @@ struct RenderComponent : public IComponent
     bool showVol = false;
 
     Vector3f scale = Vector3f(1.0f, 1.0f, 1.0f); // 渲染缩放
+    bool castShadows = true;
+
     RenderComponent() = default;
     ~RenderComponent() = default;
 };

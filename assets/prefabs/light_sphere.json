@@ -1,0 +1,73 @@
+{
+    "name": "Sphere",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "primitive://sphere",
+                "scale": [
+                    1,
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "RigidBodyComponent": {
+                "mass": 100,
+                "drag": 0.1,
+                "angularDrag": 0.1,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "colliderType": "SPHERE"
+            }
+        },
+        {
+            "LightComponent": {
+                "type": "POINT",
+                "color": [
+                    100,
+                    255,
+                    100
+                ],
+                "direction": [
+                    0,
+                    0,
+                    1
+                ],
+                "intensity": 0.9,
+                "range": 100.0,
+                "attenuation": 1.0,
+                "shadows": true,
+                "shadowBias": 0.01
+            }
+        }
+    ]
+}

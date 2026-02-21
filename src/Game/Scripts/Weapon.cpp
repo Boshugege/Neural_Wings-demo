@@ -40,5 +40,5 @@ void WeaponScript::OnUpdate(float deltaTime)
         }
     }
     else
-        m_fireTimer = 0.09f;
+        m_fireTimer = 0.14f;
 }

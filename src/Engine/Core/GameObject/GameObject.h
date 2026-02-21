@@ -101,6 +101,7 @@ T &GameObject::GetComponent() const
     oss << "Component not found: type=" << typeid(T).name()
         << ", objectID=" << m_id
         << ", objectName=" << m_name;
+    std::cout << oss.str() << std::endl;
     throw std::runtime_error(oss.str());
 }
 

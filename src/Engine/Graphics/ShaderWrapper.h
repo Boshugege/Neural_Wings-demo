@@ -30,6 +30,7 @@ public:
     void SetMat4(const std::string &name, const Matrix4f &value);
     void SetTexture(const std::string &name, Texture2D texture, int unit);
     void SetCubeMap(const std::string &name, TextureCubemap cubemap, int unit);
+    void SetCubeMap(const std::string &name, unsigned int cubemapId, int unit);
 
     bool IsValid() const { return m_shader.id > 0; };
     Shader GetShader() const { return m_shader; }

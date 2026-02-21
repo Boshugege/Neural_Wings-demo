@@ -27,7 +27,7 @@ private:
     void SetUpRTPool(const std::vector<std::string> &names, int width, int height);
     void UnloadRTPool();
 
-    RenderTexture2D PostProcesser::LoadRT(int width, int height, PixelFormat format);
+    // RenderTexture2D PostProcesser::LoadRT(int width, int height, PixelFormat format);
 
     std::unordered_map<std::string, RenderTexture2D> m_RTPool;
     std::vector<PostProcessPass> m_postProcessPasses;
