@@ -22,6 +22,8 @@ struct RenderMaterial
     std::shared_ptr<ShaderWrapper> shader;
 
     Vector4f baseColor = Vector4f(255.0, 255.0, 255.0, 255.0);
+    Vector3f emissiveColor = {0.0f, 0.0f, 0.0f};
+    float emissiveIntensity = 1.0f;
 
     bool diffuseIsAnimated = false;
     int diffuseframeCount = 1;
@@ -100,6 +102,12 @@ struct RenderMaterial
 
         if (config.contains("color"))
             baseColor = JsonParser::ToVector4f(config["color"]);
+        if (config.contains("emissive"))
+        {
+            auto &emissiveData = config["emissive"];
+            emissiveColor = JsonParser::ToVector3f(emissiveData["color"]);
+            emissiveIntensity = emissiveData.value("intensity", 1.0f);
+        }
         if (config.contains("blendMode"))
         {
             std::string blend = config["blendMode"];

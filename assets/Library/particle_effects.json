@@ -1,9 +1,9 @@
 {
     "Collision": {
         "isBurst": true,
-        "maxParticles": 500,
+        "maxParticles": 10,
         "emissionRate": 0,
-        "maxLife": 10.0,
+        "maxLife": 3.0,
         "updateShader": "assets/shaders/particles/compute/default.vs",
         "initializers": [
             {
@@ -13,7 +13,7 @@
                         0.5,
                         0.5
                     ],
-                    "maxLife": 10.0,
+                    "maxLife": 1.0,
                     "minSpeed": 2,
                     "maxSpeed": 0,
                     "tau": 1000,
@@ -28,7 +28,7 @@
                         0
                     ],
                     "impulse": 0,
-                    "countFactor": 10,
+                    "countFactor": 1,
                     "direction": [
                         0,
                         0,

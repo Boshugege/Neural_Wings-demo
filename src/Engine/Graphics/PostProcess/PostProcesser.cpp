@@ -1,6 +1,7 @@
 #include "PostProcesser.h"
 #include "Engine/Core/GameWorld.h"
 #include "Engine/Utils/JsonParser.h"
+#include "Engine/Graphics/Renderer.h"
 void PostProcesser::AddPostProcessPass(const PostProcessPass &pass)
 {
     if (pass.outputTarget.empty())
@@ -11,46 +12,6 @@ void PostProcesser::AddPostProcessPass(const PostProcessPass &pass)
     m_postProcessPasses.push_back(pass);
     std::cout << "[PostProcesser]: Post process pass added: " << pass.name << " output target -> " << pass.outputTarget << std::endl;
 }
-// raylib源码修改，深度不再不可采样
-#include "rlgl.h"
-RenderTexture2D PostProcesser::LoadRT(int width, int height, PixelFormat format)
-{
-    RenderTexture2D target = {0};
-
-    target.id = rlLoadFramebuffer(); // Load an empty framebuffer
-
-    if (target.id > 0)
-    {
-        rlEnableFramebuffer(target.id);
-
-        // Create color texture (default to RGBA)
-        target.texture.id = rlLoadTexture(NULL, width, height, format, 1);
-        target.texture.width = width;
-        target.texture.height = height;
-        target.texture.format = format;
-        target.texture.mipmaps = 1;
-
-        // Create depth renderbuffer/texture
-        target.depth.id = rlLoadTextureDepth(width, height, false);
-        target.depth.width = width;
-        target.depth.height = height;
-        target.depth.format = 19; // DEPTH_COMPONENT_24BIT?
-        target.depth.mipmaps = 1;
-
-        // Attach color texture and depth renderbuffer/texture to FBO
-        rlFramebufferAttach(target.id, target.texture.id, RL_ATTACHMENT_COLOR_CHANNEL0, RL_ATTACHMENT_TEXTURE2D, 0);
-        rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
-
-        // Check if fbo is complete with attachments (valid)
-        if (rlFramebufferComplete(target.id))
-            std::cout << "[PostProcesser]: [ID " << target.id << "] Framebuffer object created successfully" << std::endl;
-
-        rlDisableFramebuffer();
-    }
-
-    return target;
-}
-
 void PostProcesser::DefaultSetup()
 {
     std::vector<std::string> names = {"inScreen", "outScreen"};
@@ -72,7 +33,7 @@ void PostProcesser::SetUpRTPool(const std::vector<std::string> &names, int width
             processName = processName.substr(prefix.length());
             format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;
         }
-        RenderTexture2D rt = LoadRT(width, height, format);
+        RenderTexture2D rt = Renderer::LoadRT(width, height, format);
         if (rt.id > 0)
         {
             m_RTPool[processName] = rt;

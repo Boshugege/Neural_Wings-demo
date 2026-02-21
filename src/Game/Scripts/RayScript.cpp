@@ -8,9 +8,9 @@ void RayScript::OnFixedUpdate(float fixedDeltaTime)
     if (input.IsActionDown("Ray"))
     {
         m_timer += fixedDeltaTime;
-        if (m_timer >= 0.5f)
+        while (m_timer >= 0.05f)
         {
-            m_timer = 0.0f;
+            m_timer -= 0.05f;
             auto &tf = owner->GetComponent<TransformComponent>();
             mRay ray(tf.GetWorldPosition() + tf.GetForward() * 2.0f, tf.GetForward());
             mRaycastHit hit = ray.Raycast(1000.0f, *owner->GetOwnerWorld(), owner);
@@ -20,5 +20,9 @@ void RayScript::OnFixedUpdate(float fixedDeltaTime)
                 std::cout << "Ray hit: " << (hit.entity ? hit.entity->GetName() : "Unknown") << " at distance: " << hit.distance << std::endl;
             }
         }
+        }
+    else
+    {
+        m_timer = 0.049f;
     }
 }

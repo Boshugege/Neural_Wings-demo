@@ -1,5 +1,5 @@
 {
-    "name": "test_bulllet",
+    "name": "Cube",
     "components": [
         {
             "TransformComponent": {
@@ -9,9 +9,9 @@
                     0
                 ],
                 "scale": [
-                    0.6,
-                    0.6,
-                    0.6
+                    100,
+                    0.1,
+                    100
                 ],
                 "rotation": [
                     0,
@@ -23,7 +23,13 @@
         {
             "RenderComponent": {
                 "model": "primitive://cube",
-                "castShadows": true,
+                "isVisible": true,
+                "showWires": true,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
+                "castShadows": false,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
                     "fs": "assets/shaders/default.fs",
@@ -43,59 +49,18 @@
                                 "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
                                 "textures": {
                                     "u_diffuseMap": [
-                                        "assets/textures/test_1.png",
+                                        "assets/textures/test_3.png",
                                         1
                                     ]
                                 },
+                                "fs": "assets/shaders/lighting/lighting.fs",
                                 "blendMode": "NONE",
                                 "depthWrite": true,
-                                "depthTest": true,
-                                "fs": "assets/shaders/lighting/lighting.fs",
-                                "emissive": {
-                                    "color": [
-                                        255,
-                                        0,
-                                        0
-                                    ],
-                                    "intensity": 0.5
-                                }
+                                "depthTest": true
                             }
                         ]
                     }
-                ],
-                "scale": [
-                    1,
-                    1,
-                    1
                 ]
-            }
-        },
-        {
-            "RigidBodyComponent": {
-                "mass": 20.0,
-                "elasticity": 0.9,
-                "isCollidable": true,
-                "colliderType": "BOX"
-            }
-        },
-        {
-            "ScriptComponent": {
-                "BulletScript": {}
-            }
-        },
-        {
-            "LightComponent": {
-                "type": "POINT",
-                "color": [
-                    255,
-                    0,
-                    0
-                ],
-                "intensity": 0.2,
-                "range": 40.0,
-                "attenuation": 5.0,
-                "shadows": false,
-                "shadowBias": 0.005
             }
         }
     ]

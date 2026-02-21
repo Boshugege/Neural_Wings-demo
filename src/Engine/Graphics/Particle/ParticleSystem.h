@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#define MAX_ORPHAN_COUNT 50
+
 class GameWorld;
 class mCamera;
 
@@ -38,6 +40,8 @@ public:
         FillParams(p, std::forward<Args>(args)...);
     }
     void LoadEffectLibrary(const std::string &path);
+
+    int GetOrphanCount() { return m_orphans.size(); }
 
 private:
     GameWorld *owner_world = nullptr;

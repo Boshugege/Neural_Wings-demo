@@ -101,7 +101,7 @@ void SceneManager::ParseEntity(const json &entityData, GameWorld &gameWorld, Gam
     }
     if (entityData.contains("rotation"))
     {
-        tf.SetLocalRotation(tf.GetLocalRotation() * Quat4f(DEG2RAD * (JsonParser::ToVector3f(entityData["rotation"]))));
+        tf.SetLocalRotation(tf.GetLocalRotation() * Quat4f::XYZRotate(DEG2RAD * (JsonParser::ToVector3f(entityData["rotation"]))));
     }
     if (entityData.contains("scale"))
     {
@@ -159,6 +159,7 @@ void SceneManager::AddShaders(GameObject &gameObject, const json &renderData, Ga
     rd.showAngVol = renderData.value("showAngVol", false);
     rd.showVol = renderData.value("showVol", false);
     rd.showCenter = renderData.value("showCenter", false);
+    rd.castShadows = renderData.value("castShadows", true);
 
     if (renderData.contains("defaultMaterial"))
     {

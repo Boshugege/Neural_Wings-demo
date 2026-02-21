@@ -1,5 +1,5 @@
 {
-    "name": "test_bulllet",
+    "name": "Cube",
     "components": [
         {
             "TransformComponent": {
@@ -9,9 +9,9 @@
                     0
                 ],
                 "scale": [
-                    0.6,
-                    0.6,
-                    0.6
+                    1,
+                    1,
+                    1
                 ],
                 "rotation": [
                     0,
@@ -23,6 +23,12 @@
         {
             "RenderComponent": {
                 "model": "primitive://cube",
+                "isVisible": true,
+                "showWires": true,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
                 "castShadows": true,
                 "defaultMaterial": {
                     "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
@@ -47,18 +53,18 @@
                                         1
                                     ]
                                 },
-                                "blendMode": "NONE",
-                                "depthWrite": true,
-                                "depthTest": true,
                                 "fs": "assets/shaders/lighting/lighting.fs",
                                 "emissive": {
                                     "color": [
-                                        255,
-                                        0,
-                                        0
+                                        100,
+                                        100,
+                                        255
                                     ],
-                                    "intensity": 0.5
-                                }
+                                    "intensity": 2.0
+                                },
+                                "blendMode": "NONE",
+                                "depthWrite": true,
+                                "depthTest": true
                             }
                         ]
                     }
@@ -72,29 +78,58 @@
         },
         {
             "RigidBodyComponent": {
-                "mass": 20.0,
-                "elasticity": 0.9,
-                "isCollidable": true,
+                "mass": 100,
+                "drag": 0.0,
+                "angularDrag": 0.0,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
                 "colliderType": "BOX"
             }
         },
         {
-            "ScriptComponent": {
-                "BulletScript": {}
+            "AudioComponent": {
+                "clips": {
+                    "Test_Velocity": {
+                        "path": "assets/sounds/vel.wav",
+                        "is3D": true,
+                        "looping": true,
+                        "volume": 1.0,
+                        "minDist": 5.0,
+                        "maxDist": 100.0
+                    },
+                    "Fire": {
+                        "path": "assets/sounds/fire.wav",
+                        "is3D": true,
+                        "looping": false,
+                        "volume": 0.2,
+                        "minDist": 5.0,
+                        "maxDist": 40.0,
+                        "multiVoice": 12
+                    }
+                }
             }
         },
         {
             "LightComponent": {
                 "type": "POINT",
                 "color": [
-                    255,
-                    0,
-                    0
+                    100,
+                    100,
+                    255
                 ],
-                "intensity": 0.2,
-                "range": 40.0,
-                "attenuation": 5.0,
-                "shadows": false,
+                "intensity": 0.3,
+                "range": 100.0,
+                "attenuation": 1.0,
+                "shadows": true,
                 "shadowBias": 0.005
             }
         }

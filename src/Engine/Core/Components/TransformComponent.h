@@ -13,7 +13,7 @@ private:
 
     Matrix4f worldMatrix = Matrix4f::identity();
 
-    GameObject *owner = nullptr;        // 组件所属对象
+    // 组件所属对象
     GameObject *parent = nullptr;       // 父对象
     std::vector<GameObject *> children; // 子对象
 
