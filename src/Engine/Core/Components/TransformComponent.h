@@ -52,4 +52,5 @@ public:
     Quat4f GetWorldRotation() const;
     Vector3f GetWorldScale() const;
     Vector3f GetForward() const;
+    Vector3f GetUp() const;
 };

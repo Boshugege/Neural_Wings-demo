@@ -1,6 +1,6 @@
 {
     "network": {
-        "serverIP": "192.168.21.213",
+        "serverIP": "127.0.0.1",
         "serverPort": 7777
     },
     "performance": {

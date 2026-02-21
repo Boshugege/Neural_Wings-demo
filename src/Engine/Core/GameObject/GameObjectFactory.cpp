@@ -193,7 +193,13 @@ void GameObjectFactory::ParseRigidBodyComponent(GameObject &gameObject, const js
         rb.colliderType = ColliderType::SPHERE;
     else
         std::cerr << "Unknown collider type: " << colliderType << std::endl;
-    rb.SetHitbox(tf.GetLocalScale());
+
+    if (prefab.contains("hitBox"))
+    {
+        rb.SetHitbox(JsonParser::ToVector3f(prefab["hitBox"]));
+    }
+    else
+        rb.SetHitbox(tf.GetLocalScale());
 }
 void GameObjectFactory::ParseScriptComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab)
 {

@@ -68,6 +68,12 @@ struct RigidbodyComponent : public IComponent
         colliderType = ColliderType::BOX;
         Collidable = true;
     }
+    void scaleHitboxBox(const Vector3f &scale)
+    {
+        localAABB.min = localAABB.min & scale;
+        localAABB.max = localAABB.max & scale;
+        boudingRadius = boudingRadius * scale.x();
+    }
     void setHitboxBox(const Vector3f &size)
     {
         setHitboxBox(-size / 2.0f, size / 2.0f);

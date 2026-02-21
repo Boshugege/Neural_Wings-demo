@@ -323,4 +323,6 @@ RenderTexture2D *LightingManager::GetShadowMap(int index)
 {
     if (index >= 0 && index < m_shadowMaps.size())
         return &m_shadowMaps[index];
+    else
+        return nullptr;
 }

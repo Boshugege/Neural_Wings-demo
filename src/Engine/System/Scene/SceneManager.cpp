@@ -110,7 +110,8 @@ void SceneManager::ParseEntity(const json &entityData, GameWorld &gameWorld, Gam
         if (obj.HasComponent<RigidbodyComponent>())
         {
             auto &rb = obj.GetComponent<RigidbodyComponent>();
-            rb.SetHitbox(tf.GetLocalScale());
+            // rb.SetHitbox(rb.Get tf.GetLocalScale());
+            rb.scaleHitboxBox(tf.GetLocalScale());
         }
     }
 

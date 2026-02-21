@@ -55,4 +55,5 @@ private:
     // Debug
     void DrawCoordinateAxes(Vector3f position, Quat4f rotation, float axisLength, float thickness);
     void DrawVector(Vector3f position, Vector3f direction, float axisLength, float thickness);
+    void DrawHitbox(GameWorld &gameWorld, CameraManager &cameraManager);
 };

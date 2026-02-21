@@ -39,6 +39,9 @@ public:
     Vector3f getDirection() const;
     Vector3f getLocalLookAtOffset() const;
 
+    void setLocalPosition(Vector3f pos);
+    Vector3f getLocalPosition() const;
+
     float getNearPlane() const;
     float getFarPlane() const;
 
@@ -59,6 +62,7 @@ private:
     Vector3f m_localPositionOffset = Vector3f::ZERO;
     Vector3f m_localDirection = Vector3f(0, 0, 1);
     Vector3f m_localUp = Vector3f(0, 1, 0);
+    Vector3f m_localRight = Vector3f(-1, 0, 0);
 
     float m_nearPlane = 0.1;
     float m_farPlane = 1000;

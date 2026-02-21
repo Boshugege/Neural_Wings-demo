@@ -5,6 +5,8 @@
 #include <iostream>
 
 using json = nlohmann::json;
+constexpr int KEY_MW_UP = 5001;
+constexpr int KEY_MW_DOWN = 5002;
 
 InputManager::InputManager()
 {
@@ -142,7 +144,7 @@ void InputManager::Update()
 
     // 更新轴值
     Vector2 mouseDelta = GetMouseDelta();
-
+    float wheelMove = GetMouseWheelMove();
     for (auto &pair : m_axisValues)
     {
         const std::string &axisName = pair.first;
@@ -164,13 +166,27 @@ void InputManager::Update()
         }
         else
         { // Keyboard keys
-            if (binding.positiveKey != -1 && IsKeyDown(binding.positiveKey))
+            if (binding.positiveKey != -1)
             {
-                axisValue += 1.0f;
+                if (binding.positiveKey == KEY_MW_UP && wheelMove > 0)
+                    axisValue += wheelMove * binding.sensitivity;
+                else if (binding.positiveKey == KEY_MW_DOWN && wheelMove < 0)
+                    axisValue += -wheelMove * binding.sensitivity;
+                if (IsKeyDown(binding.positiveKey))
+                {
+                    axisValue += 1.0f;
+                }
             }
-            if (binding.negativeKey != -1 && IsKeyDown(binding.negativeKey))
+            if (binding.negativeKey != -1)
             {
-                axisValue -= 1.0f;
+                if (binding.negativeKey == KEY_MW_UP && wheelMove > 0)
+                    axisValue -= wheelMove * binding.sensitivity;
+                else if (binding.negativeKey == KEY_MW_DOWN && wheelMove < 0)
+                    axisValue -= -wheelMove * binding.sensitivity;
+                if (IsKeyDown(binding.negativeKey))
+                {
+                    axisValue -= 1.0f;
+                }
             }
         }
     }
@@ -230,7 +246,7 @@ int InputManager::KeyNameToKeyCode(const std::string &keyName) const
     if (keyName == "RIGHT")
         return KEY_RIGHT;
     // 功能键
-    if (keyName == "LEF_SHIFT")
+    if (keyName == "LEFT_SHIFT")
         return KEY_LEFT_SHIFT;
     if (keyName == "SPACE")
         return KEY_SPACE;
@@ -247,6 +263,10 @@ int InputManager::KeyNameToKeyCode(const std::string &keyName) const
         return MOUSE_BUTTON_LEFT;
     if (keyName == "MOUSE_RIGHT_BUTTON")
         return MOUSE_BUTTON_RIGHT;
+    if (keyName == "MOUSE_WHEEL_UP")
+        return KEY_MW_UP;
+    if (keyName == "MOUSE_WHEEL_DOWN")
+        return KEY_MW_DOWN;
 
     std::cerr << "Warning: [InputManager] Unknown key name: " << keyName << std::endl;
     return -1;

@@ -256,6 +256,9 @@ void Renderer::RenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
 
     m_postProcesser->PostProcess(gameWorld, cameraManager);
 
+    // debug
+    DrawHitbox(gameWorld, cameraManager);
+    //
     // 最终输出
     ClearBackground(BLACK);
     if (!isPosetProcess)
@@ -608,4 +611,101 @@ void Renderer::DrawVector(Vector3f position, Vector3f direction, float axisLengt
     Vector3f tip = position + direction * axisLength;
     DrawCylinderEx(position, end, thickness, thickness, sides, RED);
     DrawCylinderEx(end, tip, coneRadius, 0.0f, sides, WHITE);
+}
+
+void Renderer::DrawHitbox(GameWorld &gameWorld, CameraManager &cameraManager)
+{
+
+    auto &m_RTPool = m_postProcesser->GetRTPool();
+    auto &itScene = m_RTPool["outScreen"];
+    BeginTextureMode(itScene);
+    {
+
+        rlDisableDepthMask();
+        rlDisableDepthTest();
+        {
+            for (const auto &view : m_renderViewer->GetRenderViews())
+            {
+                mCamera *camera = cameraManager.GetCamera(view.cameraName);
+                if (camera)
+                {
+
+                    int x1 = (int)view.viewport.x;
+                    int y1 = (int)view.viewport.y;
+                    int x2 = (int)view.viewport.width;
+                    int y2 = (int)view.viewport.height;
+
+                    int vx = x1;
+                    int vy = y1;
+                    int vw = x2 - x1;
+                    int vh = y2 - y1;
+
+                    BeginScissorMode(vx, vy, vw, vh); //  透明底？
+                    // if (view.clearBackground)
+                    // {
+                    //     ClearBackground(view.backgroundColor);
+                    // }
+
+                    float aspect = (float)vw / (float)vh;
+
+                    Camera3D rawCamera = camera->GetRawCamera();
+                    BeginMode3D(rawCamera);
+
+                    rlViewport(vx, itScene.texture.height - (vy + vh), vw, vh);
+
+                    rlMatrixMode(RL_PROJECTION);
+                    rlLoadIdentity();
+                    if (rawCamera.projection == CAMERA_PERSPECTIVE)
+                    {
+                        double top = 0.01 * tan(rawCamera.fovy * 0.5 * DEG2RAD);
+                        double right = top * aspect;
+                        rlFrustum(-right, right, -top, top, 0.01, 1000.0);
+                    }
+                    else
+                    {
+                        float top = rawCamera.fovy * 0.5f;
+                        float right = top * aspect;
+                        rlOrtho(-right, right, -top, top, 0.01, 1000.0);
+                    }
+                    rlMatrixMode(RL_MODELVIEW);
+
+                    // DrawWorldObjects(gameWorld, rawCamera, *camera, aspect);
+                    auto &objs = gameWorld.GetEntitiesWith<TransformComponent, RigidbodyComponent>();
+                    for (const auto *gameObject : objs)
+                    {
+                        const auto &tf = gameObject->GetComponent<TransformComponent>();
+                        const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
+                        HitBox worldHitbox(tf, rb);
+
+                        if (worldHitbox.colliderType == ColliderType::SPHERE)
+                        {
+                            DrawSphereWires(worldHitbox.center, worldHitbox.boudingRadius, 8, 8, GREEN);
+                        }
+                        else if (worldHitbox.colliderType == ColliderType::BOX)
+                        {
+                            rlPushMatrix();
+                            rlTranslatef(worldHitbox.center.x(), worldHitbox.center.y(), worldHitbox.center.z());
+                            float rotMat[16] = {
+                                worldHitbox.axes[0].x(), worldHitbox.axes[0].y(), worldHitbox.axes[0].z(), 0.0f, // X轴
+                                worldHitbox.axes[1].x(), worldHitbox.axes[1].y(), worldHitbox.axes[1].z(), 0.0f, // Y轴
+                                worldHitbox.axes[2].x(), worldHitbox.axes[2].y(), worldHitbox.axes[2].z(), 0.0f, // Z轴
+                                0.0f, 0.0f, 0.0f, 1.0f                                                           // W
+                            };
+                            rlMultMatrixf(rotMat);
+                            Vector3 size = (worldHitbox.halfExtents * 2.0f);
+                            DrawCubeWiresV(Vector3{0, 0, 0}, size, GREEN);
+
+                            rlPopMatrix();
+                        }
+                    }
+                    EndMode3D();
+                    EndScissorMode();
+                }
+            }
+        }
+        rlViewport(0, 0, itScene.texture.width, itScene.texture.height);
+        rlEnableDepthMask();
+        rlEnableDepthTest();
+    }
+    EndTextureMode();
 }

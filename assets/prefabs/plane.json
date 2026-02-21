@@ -1,0 +1,217 @@
+{
+    "name": "Cube",
+    "components": [
+        {
+            "TransformComponent": {
+                "position": [
+                    0,
+                    0,
+                    0
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        {
+            "RenderComponent": {
+                "model": "assets/models/plane.obj",
+                "isVisible": true,
+                "showWires": true,
+                "showAxes": false,
+                "showAngVol": false,
+                "showVol": false,
+                "showCenter": false,
+                "castShadows": true,
+                "defaultMaterial": {
+                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+                    "fs": "assets/shaders/default.fs",
+                    "color": [
+                        50,
+                        100,
+                        50,
+                        255
+                    ]
+                },
+                "meshPasses": [
+                    {
+                        "meshIndex": 0,
+                        "name": "Mesh_0",
+                        "passes": [
+                            {
+                                "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                                "textures": {
+                                    "u_diffuseMap": [
+                                        "assets/textures/test_1.png",
+                                        1
+                                    ]
+                                },
+                                "fs": "assets/shaders/lighting/lighting.fs",
+                                "emissive": {
+                                    "color": [
+                                        100,
+                                        100,
+                                        100
+                                    ],
+                                    "intensity": 0.5
+                                },
+                                "blendMode": "NONE",
+                                "depthWrite": true,
+                                "depthTest": true
+                            },
+                            {
+                                "name": "outline(描边需要剔除正面,使用uniforms来自定义传入shader的参数,支持vec3,vec4,float)",
+                                "vs": "assets/shaders/outline/outline.vs",
+                                "fs": "assets/shaders/outline/outline.fs",
+                                "blendMode": "ALPHA",
+                                "cullFace": "FRONT",
+                                "uniforms": {
+                                    "u_outlineWidth": 0.1,
+                                    "u_color": [
+                                        255,
+                                        50,
+                                        50,
+                                        255
+                                    ]
+                                },
+                                "depthWrite": true,
+                                "depthTest": true
+                            }
+                        ]
+                    }
+                ],
+                "scale": [
+                    1,
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "RigidBodyComponent": {
+                "mass": 10,
+                "drag": 0.4,
+                "angularDrag": 0.8,
+                "elasticity": 1.0,
+                "velocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "angularVlocity": [
+                    0,
+                    0,
+                    0
+                ],
+                "colliderType": "BOX",
+                "hitBox": [
+                    5,
+                    0.5,
+                    7
+                ]
+            }
+        },
+        {
+            "AudioComponent": {
+                "clips": {
+                    "Test_Velocity": {
+                        "path": "assets/sounds/vel.wav",
+                        "is3D": true,
+                        "looping": true,
+                        "volume": 1.0,
+                        "minDist": 5.0,
+                        "maxDist": 100.0
+                    },
+                    "Fire": {
+                        "path": "assets/sounds/fire.wav",
+                        "is3D": true,
+                        "looping": false,
+                        "volume": 0.2,
+                        "minDist": 5.0,
+                        "maxDist": 40.0,
+                        "multiVoice": 12
+                    }
+                }
+            }
+        },
+        {
+            "ScriptComponent": {
+                "PlayerControlScript": {
+                    "Thrust": 3000,
+                    "LiftCoefficient": 0.05,
+                    "DragCoefficient": 0.1,
+                    "PitchPower": 400,
+                    "YawPower": 200,
+                    "RollPower": 200,
+                    "ZoomSpeed": 0.1,
+                    "MinCamDist": 4,
+                    "MaxCamDist": 50
+                }
+            }
+        },
+        {
+            "ParticleEmitterComponent": {
+                "activate": true,
+                "emitters": [
+                    {
+                        "name": "Core_Thrust",
+                        "maxParticles": 1090,
+                        "emissionRate": 20.0,
+                        "maxLife": 15,
+                        "space": "WORLD",
+                        "updateShader": "assets/shaders/particles/compute/default.vs",
+                        "initializers": [
+                            {
+                                "name": "SphereDir",
+                                "params": {
+                                    "offset": [
+                                        0.0,
+                                        0.0,
+                                        -5.0
+                                    ],
+                                    "minSpeed": 0.0,
+                                    "maxSpeed": 1.0,
+                                    "size": [
+                                        1.0,
+                                        1.0
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "RandomLife",
+                                "params": {
+                                    "minLife": 5.5,
+                                    "maxLife": 10.5
+                                }
+                            }
+                        ],
+                        "passes": [
+                            {
+                                "name": "inScreenRT",
+                                "vs": "assets/shaders/particles/render/billboard.vs",
+                                "fs": "assets/shaders/particles/render/soft.fs",
+                                "blendMode": "NONE",
+                                "hint": "粒子没有深度写入功能，仅深度测试",
+                                "textures": {
+                                    "tex": [
+                                        "assets/textures/test_4.png",
+                                        1
+                                    ]
+                                },
+                                "uniforms": {},
+                                "outputRT": "inScreen"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

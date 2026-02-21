@@ -144,7 +144,7 @@ void mCamera::UpdateFromTarget(Vector3f pos, Vector3f tar, Vector3f u, const Cam
         m_target = tar;
         m_direction = (m_target - m_position).Normalized();
         Quat4f worldRot = tf.GetWorldRotation();
-        m_up = worldRot * (Vector3f::UP);
+        m_up = worldRot * (m_localUp);
         m_right = (m_direction ^ m_up).Normalized();
         m_up = (m_right ^ m_direction).Normalized();
     }
@@ -213,6 +213,8 @@ void mCamera::SetMountTarget(GameObject *target)
     auto &tf = m_mountTarget->GetComponent<TransformComponent>();
     Matrix4f mountTarWorldMat = tf.GetWorldMatrix();
     m_direction = (mountTarWorldMat * Vector4f(m_localDirection, 0)).xyz().Normalized();
+    m_up = (mountTarWorldMat * Vector4f(m_localUp, 0)).xyz().Normalized();
+    m_right = (m_direction ^ m_up).Normalized();
 }
 const std::string &mCamera::GetMountTargetName() const
 {
@@ -236,16 +238,33 @@ Vector3f mCamera::getLocalLookAtOffset() const
 {
     return m_localDirection;
 }
+
+void mCamera::setLocalPosition(Vector3f pos)
+{
+    m_localPositionOffset = pos;
+}
+Vector3f mCamera::getLocalPosition() const
+{
+    return m_localPositionOffset;
+}
+
 void mCamera::Rotate(float lookHorizontal, float lookVertical)
 {
     if (m_mountTarget != nullptr)
     {
-        m_localDirection.RotateByAxixAngle(m_localUp, lookHorizontal);
-        Vector3f localRight = (m_localDirection ^ m_localUp).Normalized();
-        m_localDirection.RotateByAxixAngle(localRight, lookVertical);
-        m_localUp.RotateByAxixAngle(localRight, lookVertical);
+        Vector3f localFixedUp = Vector3f::UP;
+        m_localDirection.RotateByAxixAngle(localFixedUp, lookHorizontal);
+        m_localRight = (m_localDirection ^ localFixedUp).Normalized();
+
+        Vector3f nextDir = m_localDirection;
+        nextDir.RotateByAxixAngle(m_localRight, lookVertical);
+        if (abs(nextDir * localFixedUp) < 0.99f)
+        {
+            m_localDirection = nextDir;
+        }
+
+        m_localUp = (m_localRight ^ m_localDirection).Normalized();
         m_localDirection.Normalize();
-        m_localUp.Normalize();
     }
     else
     {

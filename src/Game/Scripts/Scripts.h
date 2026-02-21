@@ -4,3 +4,4 @@
 #include "RayScript.h"
 #include "LocalPlayerSyncScript.h"
 #include "AudioScript.h"
+#include "PlayerControlScript.h"

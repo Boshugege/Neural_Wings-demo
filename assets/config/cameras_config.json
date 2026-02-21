@@ -1,8 +1,8 @@
 {
   "cameras": [
     {
-      "name": "main_orbital",
-      "isMain": true,
+      "name": "observer",
+      "isMain": false,
       "position": [
         15.0,
         15.0,
@@ -31,12 +31,12 @@
     },
     {
       "name": "follow",
-      "isMain": false,
-      "mountTarget": "cube_camera",
+      "isMain": true,
+      "mountTarget": "plane",
       "posOffset": [
         0,
-        1,
-        0
+        7,
+        -5
       ],
       "lookAtOffset": [
         0,
@@ -48,7 +48,7 @@
         1.0,
         0.0
       ],
-      "fovy": 45.0,
+      "fovy": 70.0,
       "nearPlane": 0.1,
       "farPlane": 1000.0,
       "projection": "PERSPECTIVE"

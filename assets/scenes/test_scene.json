@@ -28,7 +28,7 @@
         {
             "name": "bullet",
             "prefab": "assets/prefabs/bullet.json",
-            "count": 5
+            "count": 1
         }
     ],
     "entities": [
@@ -109,11 +109,11 @@
             ]
         },
         {
-            "name": "cube_camera",
+            "name": "plane",
             "tag": "cube",
-            "prefab": "assets/prefabs/light_cube.json",
+            "prefab": "assets/prefabs/plane.json",
             "position": [
-                20,
+                50,
                 -2,
                 0
             ],
@@ -128,7 +128,7 @@
                 "velocity": [
                     0,
                     0,
-                    -4
+                    0
                 ]
             },
             "scripts": [
@@ -136,7 +136,9 @@
                     "CollisionListener": {}
                 },
                 {
-                    "WeaponScript": {}
+                    "WeaponScript": {
+                        "velocity": 40
+                    }
                 },
                 {
                     "RayScript": {}
@@ -144,11 +146,11 @@
             ]
         },
         {
-            "name": "cube_camera",
+            "name": "cube_camera_1",
             "tag": "cube",
             "prefab": "assets/prefabs/light_cube.json",
             "position": [
-                -20,
+                10,
                 2,
                 0
             ],
@@ -168,7 +170,7 @@
                 "velocity": [
                     0,
                     0,
-                    -4
+                    0
                 ]
             },
             "scripts": [
@@ -204,7 +206,7 @@
             "prefab": "assets/prefabs/ground.json",
             "position": [
                 0,
-                40,
+                100,
                 0
             ],
             "rotation": [
@@ -218,22 +220,7 @@
             "tag": "cube",
             "prefab": "assets/prefabs/ground.json",
             "position": [
-                40,
-                0,
-                0
-            ],
-            "rotation": [
-                -90,
-                90,
-                0
-            ]
-        },
-        {
-            "name": "ground3",
-            "tag": "cube",
-            "prefab": "assets/prefabs/ground.json",
-            "position": [
-                -40,
+                100,
                 0,
                 0
             ],
@@ -250,22 +237,7 @@
             "position": [
                 0,
                 0,
-                40
-            ],
-            "rotation": [
-                -90,
-                0,
-                0
-            ]
-        },
-        {
-            "name": "ground3",
-            "tag": "cube",
-            "prefab": "assets/prefabs/ground.json",
-            "position": [
-                0,
-                0,
-                -40
+                -100
             ],
             "rotation": [
                 -90,

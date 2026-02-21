@@ -3,41 +3,25 @@
         {
             "action": "Forward",
             "keys": [
-                "W",
                 "UP"
             ]
         },
         {
             "action": "Backward",
             "keys": [
-                "S",
                 "DOWN"
             ]
         },
         {
             "action": "Left",
             "keys": [
-                "A",
                 "LEFT"
             ]
         },
         {
             "action": "Right",
             "keys": [
-                "D",
                 "RIGHT"
-            ]
-        },
-        {
-            "action": "PitchUp",
-            "keys": [
-                "LEFT_CONTROL"
-            ]
-        },
-        {
-            "action": "PitchDown",
-            "keys": [
-                "SPACE"
             ]
         },
         {
@@ -57,6 +41,18 @@
             "keys": [
                 "ESC"
             ]
+        },
+        {
+            "action": "Thrust",
+            "keys": [
+                "LEFT_SHIFT"
+            ]
+        },
+        {
+            "action": "Brake",
+            "keys": [
+                "LEFT_CONTROL"
+            ]
         }
     ],
     "axisbindings": [
@@ -72,9 +68,25 @@
             "invert": true
         },
         {
+            "axis": "Pitch",
+            "positiveKey": "S",
+            "negativeKey": "W",
+            "comment": "S拉起，W俯冲"
+        },
+        {
+            "axis": "Roll",
+            "positiveKey": "D",
+            "negativeKey": "A"
+        },
+        {
             "axis": "Yaw",
-            "positiveKey": "E",
-            "negativeKey": "Q"
+            "positiveKey": "Q",
+            "negativeKey": "E"
+        },
+        {
+            "axis": "Scale",
+            "positiveKey": "MOUSE_WHEEL_DOWN",
+            "negativeKey": "MOUSE_WHEEL_UP"
         }
     ]
 }

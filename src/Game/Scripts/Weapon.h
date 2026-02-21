@@ -11,15 +11,14 @@ public:
     BulletScript() = default;
     void OnFixedUpdate(float fixedDeltaTime) override;
     void OnWake() override;
-
-    Vector3f m_velocity = Vector3f(0, 0, 0);
 };
 
 class WeaponScript : public IScriptableComponent
 {
 public:
+    void Initialize(const json &data) override;
     WeaponScript() = default;
     void OnUpdate(float deltaTime) override;
-
+    float m_bulletVelocity = 0.0f;
     float m_fireTimer = 0.0f;
 };

@@ -62,6 +62,8 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
                               { return std::make_unique<LocalPlayerSyncScript>(); });
     scriptingFactory.Register("AudioScript", []()
                               { return std::make_unique<AudioScript>(); });
+    scriptingFactory.Register("PlayerControlScript", []()
+                              { return std::make_unique<PlayerControlScript>(); });
 
     // 注
     // 注册粒子初始化器
@@ -211,41 +213,41 @@ void GameplayScreen::Update(float deltaTime)
     }
     m_skipExitThisFrame = false;
 
-    if (auto *mainCam = m_cameraManager.GetMainCamera())
+    if (auto *observerCam = m_cameraManager.GetCamera("observer"))
     {
-        Vector3f mainPos = mainCam->Position();
+        Vector3f observerPos = observerCam->Position();
 
         if (m_inputManager.IsActionDown("Forward"))
         {
-            mainPos += mainCam->Direction() * 0.3f;
+            observerPos += observerCam->Direction() * 0.3f;
         }
         if (m_inputManager.IsActionDown("Backward"))
         {
-            mainPos -= mainCam->Direction() * 0.1f;
+            observerPos -= observerCam->Direction() * 0.1f;
         }
         if (m_inputManager.IsActionDown("Left"))
         {
-            mainPos -= mainCam->Right() * 0.1f;
+            observerPos -= observerCam->Right() * 0.1f;
         }
         if (m_inputManager.IsActionDown("Right"))
         {
-            mainPos += mainCam->Right() * 0.1f;
+            observerPos += observerCam->Right() * 0.1f;
         }
-        mainCam->UpdateFromDirection(mainPos, mainCam->Direction(), mainCam->Up());
+        observerCam->UpdateFromDirection(observerPos, observerCam->Direction(), observerCam->Up());
 
         float lookHorizontal = -m_inputManager.GetAxisValue("LookHorizontal") * PI / 180;
         float lookVertical = m_inputManager.GetAxisValue("LookVertical") * PI / 180;
-        mainCam->Rotate(lookHorizontal, lookVertical);
+        observerCam->Rotate(lookHorizontal, lookVertical);
 
-        if (auto *rearCam = m_cameraManager.GetCamera("rear_view"))
-        {
-            Vector3f mainPos = mainCam->Position();
-            Vector3f mainTarget = mainCam->Target();
-            Vector3f direction = mainTarget - mainPos;
-            direction.Normalize();
+        // if (auto *rearCam = m_cameraManager.GetCamera("rear_view"))
+        // {
+        //     Vector3f mainPos = mainCam->Position();
+        //     Vector3f mainTarget = mainCam->Target();
+        //     Vector3f direction = mainTarget - mainPos;
+        //     direction.Normalize();
 
-            rearCam->UpdateFromDirection(mainPos, -direction, mainCam->Up());
-        }
+        //     rearCam->UpdateFromDirection(mainPos, -direction, mainCam->Up());
+        // }
         if (auto *follow = m_cameraManager.GetCamera("follow"))
         {
             Vector3f dir = follow->getLocalLookAtOffset();

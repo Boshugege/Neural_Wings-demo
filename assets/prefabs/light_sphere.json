@@ -63,7 +63,7 @@
                     1
                 ],
                 "intensity": 0.9,
-                "range": 100.0,
+                "range": 120.0,
                 "attenuation": 1.0,
                 "shadows": true,
                 "shadowBias": 0.01

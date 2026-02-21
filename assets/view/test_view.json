@@ -1,12 +1,12 @@
 {
     "views": [
         {
-            "name": "main_orbital",
+            "name": "observer",
             "viewport": [
-                0.0,
-                0.0,
-                1,
-                1
+                0.7,
+                0.7,
+                1.0,
+                1.0
             ],
             "clearBackground": true,
             "backgroundColor": [
@@ -19,8 +19,8 @@
         {
             "name": "follow",
             "viewport": [
-                0.7,
-                0.7,
+                0,
+                0,
                 1,
                 1
             ],
