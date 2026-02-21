@@ -44,7 +44,11 @@
             "accuracy_FluidBlur_2",
             "accuracy_raw_Normal",
             "accuracy_raw_Fluid_Thickness",
-            "simple_Fluid"
+            "simple_Fluid",
+            "rawScene",
+            "bloom",
+            "blur1",
+            "blur2"
         ],
         "depthLinks": [
             {
@@ -134,8 +138,80 @@
                         "raw_Normal"
                     ]
                 ],
-                "output": "outScreen",
+                "output": "rawScene",
                 "uniforms": {}
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/blur.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "rawScene"
+                    ]
+                ],
+                "uniforms": {
+                    "u_direction": [
+                        1,
+                        0
+                    ],
+                    "u_radius": 40.0
+                },
+                "output": "blur1"
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/blur.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "blur1"
+                    ]
+                ],
+                "uniforms": {
+                    "u_direction": [
+                        0,
+                        1
+                    ],
+                    "u_radius": 40.0
+                },
+                "output": "blur2"
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bright.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "blur2"
+                    ]
+                ],
+                "uniforms": {
+                    "u_threshold": 0.9
+                },
+                "output": "bloom"
+            },
+            {
+                "name": "combine",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/combine.fs",
+                "inputs": [
+                    [
+                        "u_baseTex",
+                        "rawScene"
+                    ],
+                    [
+                        "u_brightTex",
+                        "bloom"
+                    ]
+                ],
+                "output": "outScreen",
+                "uniforms": {
+                    "u_bloomIntensity": 1.0
+                }
             }
         ]
     }

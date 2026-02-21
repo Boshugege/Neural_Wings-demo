@@ -28,7 +28,7 @@ public:
         tau = (float)config["tau"];
         maxLife = (float)config["maxLife"];
         impulse = config["impulse"];
-        burstCount = (int)(relVel.Length() * ((float)config["countFactor"]));
+        burstCount = impulse * ((float)config["countFactor"]);
     }
     virtual int BurstCount() override
     {

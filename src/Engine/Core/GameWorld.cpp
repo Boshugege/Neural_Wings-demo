@@ -103,6 +103,9 @@ bool GameWorld::Update(float DeltaTime)
     {
         m_audioManager->Update(*this, *activeCam);
     }
+
+    m_renderer->Update(*this);
+
     // Network: poll incoming packets and sync transforms.
     if (m_networkClient)
     {

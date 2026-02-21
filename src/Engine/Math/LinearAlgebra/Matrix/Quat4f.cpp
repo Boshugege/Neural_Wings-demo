@@ -457,6 +457,29 @@ Quat4f Quat4f::dirToQuat(const Vector3f &dir)
 	return res;
 }
 
+Quat4f Quat4f::XYZRotate(const Vector3f &v)
+{
+	float halfX = v.x() * 0.5f;
+	Quat4f qx = Quat4f(
+		cos(halfX),
+		sin(halfX),
+		0.0f,
+		0.0f);
+	float halfY = v.y() * 0.5f;
+	Quat4f qy = Quat4f(
+		cos(halfY),
+		0.0f,
+		sin(halfY),
+		0.0f);
+	float halfZ = v.z() * 0.5f;
+	Quat4f qz = Quat4f(
+		cos(halfZ),
+		0.0f,
+		0.0f,
+		sin(halfZ));
+	return qz * qy * qx;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Operators
 //////////////////////////////////////////////////////////////////////////

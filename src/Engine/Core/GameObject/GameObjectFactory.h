@@ -19,4 +19,5 @@ private:
     static void ParseRenderComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab);
     static void ParseParticleEmitterComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab);
     static void ParseAudioComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab);
+    static void ParseLightComponent(GameWorld &gameWorld, GameObject &gameObject, const json &prefab);
 };

@@ -6,6 +6,7 @@
 #include "Engine/Math/Math.h"
 #include "PostProcess/PostProcesser.h"
 #include "Skybox/Skybox.h"
+#include "Lighting/LightingManager.h"
 
 #include <memory>
 #include <vector>
@@ -28,6 +29,10 @@ public:
 
     Skybox *GetSkybox() { return m_skybox.get(); }
 
+    void Update(GameWorld &gameworld);
+
+    static RenderTexture2D LoadRT(int width, int height, PixelFormat format);
+
 private:
     std::unique_ptr<Skybox> m_skybox;
     bool m_useSkybox = false;
@@ -44,7 +49,7 @@ private:
     bool LoadViewConfig(const std::string &configPath, GameWorld &gameWorld);
     std::unique_ptr<RenderViewer> m_renderViewer;
     std::unique_ptr<PostProcesser> m_postProcesser;
-
+    std::unique_ptr<LightingManager> m_lightingManager;
     // Texture2D m_dummyDepth;
     // void CopyDepthBuffer(RenderTexture2D sourceRT, Texture2D targetDepth);
     // Debug

@@ -241,9 +241,6 @@ void NetworkSyncSystem::ApplyRemoteInterpolation(GameWorld &world, NetworkClient
 
         tf.SetWorldMatrix(Matrix4f::CreateTransform(outputPos, outputRot, Vector3f::ONE));
 
-        // tf.SetLocalPosition(outputPos);
-        // tf.SetLocalRotation(outputRot);
-
         while (track.snapshots.size() > 2 &&
                track.snapshots[1].receiveTimeSec < (renderTimeSec - 0.25))
         {

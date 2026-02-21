@@ -19,6 +19,8 @@ void Renderer::Init(const std::string &configViewPath, GameWorld &gameWorld)
 {
     m_postProcesser = std::make_unique<PostProcesser>();
     m_renderViewer = std::make_unique<RenderViewer>();
+    m_lightingManager = std::make_unique<LightingManager>();
+    m_lightingManager->InitShadowMaps(4096, 4096, gameWorld.GetResourceManager());
 
     this->LoadViewConfig(configViewPath, gameWorld);
 }
@@ -124,6 +126,7 @@ void Renderer::RawRenderScene(GameWorld &gameWorld, CameraManager &cameraManager
                 {
                     ClearBackground(view.backgroundColor);
                 }
+
                 float aspect = (float)vw / (float)vh;
 
                 Camera3D rawCamera = camera->GetRawCamera();
@@ -240,6 +243,12 @@ void Renderer::RenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
     {
         std::cerr << "[Renderer]: No outScreen render target found!!!" << std::endl;
         return;
+    }
+
+    if (m_lightingManager)
+    {
+        m_lightingManager->Update(gameWorld);
+        m_lightingManager->RenderShadowMaps(gameWorld, cameraManager.GetMainCamera()->Position());
     }
 
     RawRenderScene(gameWorld, cameraManager);
@@ -411,6 +420,9 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
         pass.shader->SetMat4("matProj", matProj);
         pass.shader->SetMat4("matView", matView);
 
+        pass.shader->SetVec3("emissiveColor", pass.emissiveColor / 255.0f);
+        pass.shader->SetFloat("emissiveIntensity", pass.emissiveIntensity);
+
         int texUnit = 1;
         if (pass.useDiffuseMap)
         {
@@ -447,6 +459,8 @@ void Renderer::RenderSinglePass(const Mesh &mesh, const Model &model, const int 
             }
             texUnit++;
         }
+
+        m_lightingManager->UploadToShader(pass.shader, camera.Position(), texUnit);
 
         if (pass.cullFace >= 0)
         {
@@ -496,6 +510,52 @@ void Renderer::DrawParticle(GameWorld &gameWorld, mCamera &camera, float aspect)
 
     particleSys.Render(m_RTPool, realTime, gameTime, VP, matProj, gameWorld, camera);
 }
+
+void Renderer::Update(GameWorld &gameworld)
+{
+    m_lightingManager->Update(gameworld);
+}
+
+// raylib源码修改，深度不再不可采样
+#include "rlgl.h"
+RenderTexture2D Renderer::LoadRT(int width, int height, PixelFormat format)
+{
+    RenderTexture2D target = {0};
+
+    target.id = rlLoadFramebuffer(); // Load an empty framebuffer
+
+    if (target.id > 0)
+    {
+        rlEnableFramebuffer(target.id);
+
+        // Create color texture (default to RGBA)
+        target.texture.id = rlLoadTexture(NULL, width, height, format, 1);
+        target.texture.width = width;
+        target.texture.height = height;
+        target.texture.format = format;
+        target.texture.mipmaps = 1;
+
+        // Create depth renderbuffer/texture
+        target.depth.id = rlLoadTextureDepth(width, height, false);
+        target.depth.width = width;
+        target.depth.height = height;
+        target.depth.format = 19; // DEPTH_COMPONENT_24BIT?
+        target.depth.mipmaps = 1;
+
+        // Attach color texture and depth renderbuffer/texture to FBO
+        rlFramebufferAttach(target.id, target.texture.id, RL_ATTACHMENT_COLOR_CHANNEL0, RL_ATTACHMENT_TEXTURE2D, 0);
+        rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+
+        // Check if fbo is complete with attachments (valid)
+        if (rlFramebufferComplete(target.id))
+            std::cout << "[PostProcesser]: [ID " << target.id << "] Framebuffer object created successfully" << std::endl;
+
+        rlDisableFramebuffer();
+    }
+
+    return target;
+}
+
 // Debug
 #include <iostream>
 void Renderer::DrawCoordinateAxes(Vector3f position, Quat4f rotation, float axisLength, float thickness)
