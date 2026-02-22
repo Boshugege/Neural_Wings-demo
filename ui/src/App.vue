@@ -4,7 +4,7 @@ import MenuScreen from "./pages/MenuScreen.vue";
 import NotFoundScreen from "./pages/NotFoundScreen.vue";
 import OptionsScreen from "./pages/OptionsScreen.vue";
 import StartScreen from "./pages/StartScreen.vue";
-import ChatHUD from "./pages/ChatHUD.vue";
+import HudRoot from "./hud/HudRoot.vue";
 
 // Global state for C++ communication
 window.vueAppState = window.vueAppState || {};
@@ -374,6 +374,6 @@ onBeforeUnmount(() => {
     </main>
   </div>
 
-  <!-- Global Chat HUD overlay -->
-  <ChatHUD />
+  <!-- Global HUD overlay root -->
+  <HudRoot />
 </template>

@@ -1,6 +1,8 @@
 #include "GameplayScreen.h"
 #include "raylib.h"
 #include "Game/Screen/MyScreenState.h"
+#include "Game/HUD/ChatHud.h"
+#include "Game/HUD/MyHudState.h"
 #include "Game/Systems/Physics/SolarStage.h"
 #include "Game/Systems/Physics/NetworkVerifyStage.h"
 #include "Game/Systems/Particles/Initializers/RandomLife.h"
@@ -8,6 +10,8 @@
 #include "Game/Systems/Particles/Initializers/CollisionInit.h"
 #include "Game/Systems/Particles/Initializers/SPHInit.h"
 #include "Game/Scripts/Scripts.h"
+#include "Engine/System/HUD/HudFactory.h"
+#include "Engine/System/HUD/HudManager.h"
 
 #include "raymath.h"
 #include "Engine/Engine.h"
@@ -31,6 +35,12 @@ GameplayScreen::GameplayScreen(ScreenManager *sm)
                                           inputConfigPath,
                                           renderViewConfigPath,
                                           effectLibPath);
+
+    // Register gameplay HUDs in one place; future HUDs can be added here.
+    auto hudFactory = std::make_unique<HudFactory>();
+    hudFactory->Register(CHAT_HUD, [this]()
+                         { return std::make_unique<ChatHud>(screenManager, &m_world->GetInputManager()); });
+    m_hudManager = std::make_unique<HudManager>(std::move(hudFactory));
 }
 GameplayScreen::~GameplayScreen()
 {
@@ -83,8 +93,6 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
 void GameplayScreen::OnEnter()
 {
     DisableCursor();
-    m_skipExitThisFrame = false;
-    m_framesInScreen = 0;
 
     // ── 注入 ScreenManager 的全局 NetworkClient ──
     if (screenManager)
@@ -107,26 +115,11 @@ void GameplayScreen::OnEnter()
         netClient.Connect(serverHost, serverPort);
     }
     m_world->GetNetworkSyncSystem().Init(netClient);
-
-    // Initialise Vue-side chat state
-    if (screenManager)
+    if (m_hudManager)
     {
-        if (auto *ui = screenManager->GetUILayer())
-        {
-            // Navigate to gameplay route so only ChatHUD renders (no menu overlay)
-            ui->ExecuteScript("window.location.hash = '#/gameplay';");
-            // Keep UI layer visible in gameplay so incoming chat can render
-            // without requiring chat focus.
-            ui->SetVisible(true);
-            ui->ExecuteScript(
-                "window.vueAppState = window.vueAppState || {};"
-                "window.vueAppState.chatMessages = [];"
-                "window.vueAppState.chatSendRequested = false;"
-                "window.vueAppState.chatSendText = '';"
-                "window.vueAppState.chatSendQueue = [];"
-                "window.vueAppState.chatActive = false;"
-                "window.vueAppState.chatInputText = '';");
-        }
+        m_hudManager->Clear();
+        // Keep Chat HUD always mounted in gameplay. It handles its own active state.
+        m_hudManager->AddHud(CHAT_HUD);
     }
 
     // 监听事件
@@ -153,8 +146,8 @@ void GameplayScreen::OnEnter()
 // 当离开游戏场景时调用
 void GameplayScreen::OnExit()
 {
-    if (m_chatActive)
-        DeactivateChat();
+    if (m_hudManager)
+        m_hudManager->Clear();
 
     auto &netClient = m_world->GetNetworkClient();
 
@@ -182,6 +175,10 @@ void GameplayScreen::FixedUpdate(float fixedDeltaTime)
 
     // auto &m_inputManager = m_world->GetInputManager();
     // m_inputManager.Update();
+    if (m_hudManager)
+    {
+        m_hudManager->FixedUpdate(fixedDeltaTime);
+    }
     m_world->FixedUpdate(fixedDeltaTime);
 }
 
@@ -192,18 +189,9 @@ void GameplayScreen::Update(float deltaTime)
     auto &m_inputManager = m_world->GetInputManager();
     auto &m_cameraManager = m_world->GetCameraManager();
 
-    // ── Chat toggle (raw raylib key, not via InputManager) ─────────
-    // Enter opens chat; when chat active, Enter sends and Esc closes.
-    // Guard: skip the first few frames to avoid accidental activation
-    // from a lingering Enter keypress during screen transition.
-    ++m_framesInScreen;
-    if (m_chatActive)
+    if (m_hudManager)
     {
-        PollChatUI(); // check for Enter (send) / Esc (dismiss) via raw raylib
-    }
-    else if (m_framesInScreen > 2 && IsKeyPressed(KEY_ENTER))
-    {
-        ActivateChat();
+        m_hudManager->Update(deltaTime);
     }
 
     m_inputManager.Update();
@@ -214,13 +202,14 @@ void GameplayScreen::Update(float deltaTime)
     if (!m_world->Update(deltaTime))
         m_nextScreenState = MAIN_MENU;
 
-    // Only allow Exit when chat is NOT active
-    if (!m_chatActive && !m_skipExitThisFrame &&
+    const bool chatBlocksInput = (m_hudManager && m_hudManager->BlocksGameplayInput());
+    const bool suppressExit = (m_hudManager && m_hudManager->ConsumeExitSuppressRequest());
+
+    if (!chatBlocksInput && !suppressExit &&
         m_inputManager.IsActionPressed("Exit"))
     {
         m_nextScreenState = MAIN_MENU;
     }
-    m_skipExitThisFrame = false;
 
     if (auto *observerCam = m_cameraManager.GetCamera("observer"))
     {
@@ -275,7 +264,7 @@ void GameplayScreen::Draw()
 
     m_world->Render();
     // 在3D内容之上绘制一些2D的调试信息
-    if (m_chatActive)
+    if (m_hudManager && m_hudManager->BlocksGameplayInput())
     {
         DrawText("Chat active: ENTER send, ESC close chat", 10, GetScreenHeight() - 30, 20, DARKGRAY);
     }
@@ -287,6 +276,11 @@ void GameplayScreen::Draw()
     int active = m_world->GetActivateGameObjects().size();
     DrawText(TextFormat("Total Entities: %d", total), 10, 50, 20, WHITE);
     DrawText(TextFormat("Active Entities: %d", active), 10, 80, 20, GREEN);
+
+    if (m_hudManager)
+    {
+        m_hudManager->Draw();
+    }
 
     // Always draw UILayer in gameplay so new chat messages are visible
     // even when chat input is not active.
@@ -304,104 +298,4 @@ ScreenState GameplayScreen::GetNextScreenState() const
 ScreenState GameplayScreen::GetScreenState() const
 {
     return GAMEPLAY;
-}
-
-// ── Chat helpers ───────────────────────────────────────────────────
-
-void GameplayScreen::ActivateChat()
-{
-    if (m_chatActive)
-        return;
-    m_chatActive = true;
-    m_world->GetInputManager().SetEnabled(false);
-    EnableCursor();
-
-    if (screenManager)
-    {
-        if (auto *ui = screenManager->GetUILayer())
-        {
-            // Make UILayer visible so Ultralight forwards keyboard to Vue
-            ui->SetVisible(true);
-            ui->ExecuteScript(
-                "window.vueAppState.chatActive = true;"
-                "if (window.__NW_CHAT_ACTIVATE__) window.__NW_CHAT_ACTIVATE__();");
-        }
-    }
-}
-
-void GameplayScreen::DeactivateChat()
-{
-    if (!m_chatActive)
-        return;
-    m_chatActive = false;
-    m_world->GetInputManager().SetEnabled(true);
-    DisableCursor();
-
-    if (screenManager)
-    {
-        if (auto *ui = screenManager->GetUILayer())
-        {
-            ui->ExecuteScript(
-                "window.vueAppState.chatActive = false;"
-                "if (window.__NW_CHAT_DEACTIVATE__) window.__NW_CHAT_DEACTIVATE__();");
-        }
-    }
-}
-
-void GameplayScreen::PollChatUI()
-{
-    // ── Esc → dismiss chat (C++ side, no dependency on Vue keyboard) ──
-    if (IsKeyPressed(KEY_ESCAPE))
-    {
-        // Consume this ESC so it won't also trigger gameplay "Exit" in this frame.
-        m_skipExitThisFrame = true;
-        DeactivateChat();
-        return;
-    }
-
-    // ── Enter → send message ──
-    if (IsKeyPressed(KEY_ENTER))
-    {
-        if (!screenManager)
-            return;
-        auto *ui = screenManager->GetUILayer();
-        if (!ui)
-            return;
-
-        // Read text from Vue input field
-        std::string text = ui->GetAppState("chatInputText");
-        ui->ExecuteScript("if (window.__NW_CHAT_CLEAR_INPUT__) window.__NW_CHAT_CLEAR_INPUT__();");
-
-        if (!text.empty())
-        {
-            // Escape text for safe embedding in a JS string literal
-            std::string escaped;
-            escaped.reserve(text.size() + 8);
-            escaped += '"';
-            for (char c : text)
-            {
-                if (c == '\\')
-                    escaped += "\\\\";
-                else if (c == '"')
-                    escaped += "\\\"";
-                else if (c == '\n')
-                    escaped += "\\n";
-                else if (c == '\r')
-                    escaped += "\\r";
-                else
-                    escaped += c;
-            }
-            escaped += '"';
-
-            // Enqueue via the global chatSendQueue so the rate-limited
-            // pipeline in ScreenManager handles the actual send.
-            ui->ExecuteScript(
-                "window.vueAppState = window.vueAppState || {};"
-                "if (!Array.isArray(window.vueAppState.chatSendQueue))"
-                "  window.vueAppState.chatSendQueue = [];"
-                "window.vueAppState.chatSendQueue.push(" +
-                escaped + ");");
-        }
-        // Keep chat open after sending
-    }
 }

@@ -2,6 +2,7 @@
 #include "Engine/System/Physics/Physics.h"
 #include "Engine/System/Resource/ResourceManager.h"
 #include "Engine/System/Screen/Screen.h"
+#include "Engine/System/HUD/HUD.h"
 #include "Engine/System/Time/Time.h"
 #include "Engine/System/Scene/Scene.h"
 #include "Engine/System/Script/Script.h"
