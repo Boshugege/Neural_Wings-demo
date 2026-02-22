@@ -49,7 +49,7 @@ public:
     void UpdateFromTarget(Vector3f pos, Vector3f tar, Vector3f u, const CameraMode &mode = CAMERA_CUSTOM);
     void UpdateFixed(Vector3f dir, Vector3f u, const CameraMode &mode = CAMERA_CUSTOM);
     void UpdatemCamera(const CameraMode &mode = CAMERA_CUSTOM);
-    void Rotate(float LookHorizontal, float LookVertical);
+    void Rotate(float LookHorizontal, float LookVertical, Vector3f up = Vector3f(0, 0, 0));
 
     Camera3D &GetRawCamera();
     const Camera3D &GetConstRawCamera() const;

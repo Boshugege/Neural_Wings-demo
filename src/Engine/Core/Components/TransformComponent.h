@@ -53,4 +53,5 @@ public:
     Vector3f GetWorldScale() const;
     Vector3f GetForward() const;
     Vector3f GetUp() const;
+    Vector3f GetRight() const;
 };

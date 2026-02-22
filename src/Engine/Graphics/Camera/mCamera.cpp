@@ -248,7 +248,7 @@ Vector3f mCamera::getLocalPosition() const
     return m_localPositionOffset;
 }
 
-void mCamera::Rotate(float lookHorizontal, float lookVertical)
+void mCamera::Rotate(float lookHorizontal, float lookVertical, Vector3f fixedUp)
 {
     if (m_mountTarget != nullptr)
     {
@@ -268,10 +268,31 @@ void mCamera::Rotate(float lookHorizontal, float lookVertical)
     }
     else
     {
-        m_direction.RotateByAxixAngle(m_up, lookHorizontal);
-        m_right.RotateByAxixAngle(m_up, lookHorizontal);
-        m_direction.RotateByAxixAngle(m_right, lookVertical);
-        m_up.RotateByAxixAngle(m_right, lookVertical);
+        if (fixedUp.Length() > 0.5)
+        {
+            m_direction.RotateByAxixAngle(fixedUp, lookHorizontal);
+            m_right = (m_direction ^ fixedUp).Normalized();
+
+            Vector3f nextDir = m_localDirection;
+            nextDir.RotateByAxixAngle(m_right, lookVertical);
+            if (abs(nextDir * fixedUp) < 0.99f)
+            {
+                m_localDirection = nextDir;
+            }
+            m_up = (m_right ^ m_direction).Normalized();
+        }
+        else
+        {
+            m_direction.RotateByAxixAngle(m_up, lookHorizontal);
+            m_right.RotateByAxixAngle(m_up, lookHorizontal);
+
+            m_direction.RotateByAxixAngle(m_right, lookVertical);
+            m_up.RotateByAxixAngle(m_right, lookVertical);
+            m_direction.Normalize();
+
+            m_up.Normalize();
+            m_right = (m_direction ^ m_up).Normalized();
+        }
     }
     UpdateFromDirection(m_position, m_direction, m_up);
 }

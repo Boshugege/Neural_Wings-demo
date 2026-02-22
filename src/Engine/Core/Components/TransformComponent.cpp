@@ -115,3 +115,4 @@ Quat4f TransformComponent::GetWorldRotation() const { return worldMatrix.getRota
 Vector3f TransformComponent::GetWorldScale() const { return worldMatrix.getScale(); }
 Vector3f TransformComponent::GetForward() const { return worldMatrix.getCol(2).xyz().Normalized(); }
 Vector3f TransformComponent::GetUp() const { return worldMatrix.getCol(1).xyz().Normalized(); }
+Vector3f TransformComponent::GetRight() const { return worldMatrix.getCol(0).xyz().Normalized(); }

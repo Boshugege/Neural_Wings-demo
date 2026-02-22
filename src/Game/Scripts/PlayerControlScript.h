@@ -32,4 +32,9 @@ private:
     float m_minCamDist = 5.0f;
     float m_maxCamDist = 30.0f;
     float m_camDistRatio = 0.3f;
+
+    bool m_isCamInit = false;
+    Vector3f m_camDir = Vector3f(0, 0, 1);
+    Vector3f m_focusPos;
+    float m_smoothedDist = 0.0f;
 };

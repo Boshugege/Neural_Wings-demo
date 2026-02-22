@@ -103,7 +103,7 @@ void PlayerControlScript::CalculatePhysics(float dt)
     float yawInput = input.GetAxisValue("Yaw");
 
     // 高速时更灵活，低速失控
-    float speedFactor = std::clamp(airspeed / 50.0f, 0.0f, 2.0f);
+    float speedFactor = std::clamp(airspeed / 100.0f, 0.0f, 1.0f);
     Vector3f localTorque = {
         pitchInput * m_pitchPower * speedFactor,
         yawInput * m_yawPower * speedFactor,
@@ -120,14 +120,50 @@ void PlayerControlScript::CalculatePhysics(float dt)
     {
         float zoomChange = (scrollDelta * m_zoomSpeed);
         m_camDistRatio += zoomChange;
-        m_camDistRatio = std::clamp(m_camDistRatio, m_minCamDist / m_maxCamDist, 1.0f);
+        m_camDistRatio = std::clamp(m_camDistRatio, 0.0f, 1.0f);
     }
 
     float baseDist = m_minCamDist + (m_maxCamDist - m_minCamDist) * m_camDistRatio;
-    float finalDist = baseDist * (1.0f + speedFactor * 2.0f);
+    float finalDist = baseDist * (1.0f + speedFactor * 1.4f);
 
     Vector3f localPos = camera->getLocalPosition();
     Vector3f newPos = localPos.Normalized() * finalDist;
     Vector3f smoothedPos = Vector3f::Lerp(localPos, newPos, 0.1f);
     camera->setLocalPosition(smoothedPos);
+
+    // camera_2
+
+    camera = owner->GetOwnerWorld()->GetCameraManager().GetCamera("follow_2");
+    auto &planeTf = owner->GetComponent<TransformComponent>();
+    Vector3f planePos = planeTf.GetWorldPosition();
+
+    if (!m_isCamInit)
+    {
+        m_camDir = planeTf.GetForward();
+        m_focusPos = planePos;
+        m_smoothedDist = finalDist;
+        m_isCamInit = true;
+    }
+
+    float lookH = input.GetAxisValue("LookHorizontal") * 0.01f;
+    float lookV = input.GetAxisValue("LookVertical") * 0.01f;
+    m_camDir.RotateByAxixAngle(Vector3f::UP, -lookH);
+    Vector3f camRight = (m_camDir ^ Vector3f::UP).Normalized();
+    Vector3f nextDir = m_camDir;
+    nextDir.RotateByAxixAngle(camRight, lookV);
+    if (abs(nextDir * Vector3f::UP) < 0.98f)
+    {
+        m_camDir = nextDir;
+    }
+    m_camDir.Normalize();
+    float focusLag = 1.0f - expf(-15.0f * dt);
+    Vector3f targetFocus = planePos + Vector3f(0, 5.5f, 0);
+    m_focusPos = Vector3f::Lerp(m_focusPos, targetFocus, focusLag);
+
+    float zoomSmoothFactor = 1.0f - expf(-8.0f * dt);
+    m_smoothedDist = Lerp(m_smoothedDist, finalDist, 0.1f);
+    Vector3f finalCamPos = m_focusPos - (m_camDir * m_smoothedDist);
+
+    camera->UpdateFromDirection(finalCamPos, m_camDir, Vector3f::UP);
+    camera->setFovy(60.0f * (1.0f + speedFactor));
 }

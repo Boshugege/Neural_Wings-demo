@@ -97,8 +97,8 @@
         {
             "RigidBodyComponent": {
                 "mass": 10,
-                "drag": 0.4,
-                "angularDrag": 0.8,
+                "drag": 0.00,
+                "angularDrag": 0.7,
                 "elasticity": 1.0,
                 "velocity": [
                     0,
@@ -134,7 +134,7 @@
                         "is3D": true,
                         "looping": false,
                         "volume": 0.2,
-                        "minDist": 5.0,
+                        "minDist": 1.0,
                         "maxDist": 40.0,
                         "multiVoice": 12
                     }
@@ -144,12 +144,12 @@
         {
             "ScriptComponent": {
                 "PlayerControlScript": {
-                    "Thrust": 3000,
-                    "LiftCoefficient": 0.05,
+                    "Thrust": 5000,
+                    "LiftCoefficient": 0.01,
                     "DragCoefficient": 0.1,
-                    "PitchPower": 400,
+                    "PitchPower": 300,
                     "YawPower": 200,
-                    "RollPower": 200,
+                    "RollPower": 400,
                     "ZoomSpeed": 0.1,
                     "MinCamDist": 4,
                     "MaxCamDist": 50
