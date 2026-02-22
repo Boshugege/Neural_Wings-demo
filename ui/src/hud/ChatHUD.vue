@@ -1,5 +1,11 @@
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount } from "vue";
+import {
+  enqueueChatSend,
+  resetChatState,
+  setChatActiveState,
+  setChatInputText,
+} from "./hudBridge";
 
 const messages = ref([]);
 const inputText = ref("");
@@ -130,8 +136,7 @@ function pushBatch(batch) {
 
 function activate() {
   isActive.value = true;
-  window.vueAppState = window.vueAppState || {};
-  window.vueAppState.chatActive = true;
+  setChatActiveState(true);
   nextTick(() => {
     if (inputRef.value) {
       inputRef.value.focus();
@@ -142,8 +147,7 @@ function activate() {
 function deactivate() {
   isActive.value = false;
   inputText.value = "";
-  window.vueAppState = window.vueAppState || {};
-  window.vueAppState.chatActive = false;
+  setChatActiveState(false);
 }
 
 function clearInput() {
@@ -152,8 +156,7 @@ function clearInput() {
 }
 
 function syncInputToAppState() {
-  window.vueAppState = window.vueAppState || {};
-  window.vueAppState.chatInputText = inputText.value.trim();
+  setChatInputText(inputText.value.trim());
 }
 
 function onInput() {
@@ -167,13 +170,7 @@ function onInput() {
  * so no messages can be lost between read and clear.
  */
 function enqueueSend(text) {
-  window.vueAppState = window.vueAppState || {};
-  if (!Array.isArray(window.vueAppState.chatSendQueue)) {
-    window.vueAppState.chatSendQueue = [];
-  }
-  if (window.vueAppState.chatSendQueue.length < 128) {
-    window.vueAppState.chatSendQueue.push(text);
-  }
+  enqueueChatSend(text);
 }
 
 function isEnterKey(e) {
@@ -301,12 +298,8 @@ onMounted(() => {
   window.__NW_CHAT_DEACTIVATE__ = deactivate;
   window.__NW_CHAT_CLEAR_INPUT__ = clearInput;
 
-  // Init vueAppState
-  window.vueAppState = window.vueAppState || {};
-  window.vueAppState.chatInputText = "";
-  window.vueAppState.chatSendText = "";
-  window.vueAppState.chatSendRequested = false;
-  window.vueAppState.chatSendQueue = [];
+  // Init shared chat state via HUD bridge.
+  resetChatState();
   syncRoute();
   window.addEventListener("hashchange", syncRoute);
   window.addEventListener("keydown", onGlobalKeydown);

@@ -111,7 +111,7 @@ bool GameWorld::Update(float DeltaTime)
     {
         m_networkClient->Poll();
         if (m_networkSyncSystem)
-            m_networkSyncSystem->Update(*this, *m_networkClient);
+            m_networkSyncSystem->Update(*this, *m_networkClient, DeltaTime);
     }
 
     return true;

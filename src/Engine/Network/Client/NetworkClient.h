@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 class INetworkTransport;
 
@@ -13,6 +14,12 @@ class INetworkTransport;
 class NetworkClient
 {
 public:
+    struct PlayerMeta
+    {
+        ClientID clientID = INVALID_CLIENT_ID;
+        std::string nickname;
+    };
+
     using OnPositionBroadcastFn =
         std::function<void(uint32_t serverTick,
                            const std::vector<NetBroadcastEntry> &entries)>;
@@ -24,6 +31,7 @@ public:
     using OnNicknameUpdateResultFn =
         std::function<void(NicknameUpdateStatus status,
                            const std::string &authoritativeNickname)>;
+    using OnPlayerMetaChangedFn = std::function<void()>;
 
     NetworkClient();
     ~NetworkClient();
@@ -49,6 +57,8 @@ public:
     // ── Sending ────────────────────────────────────────────────────
     void SendPositionUpdate(NetObjectID objectID,
                             const NetTransformState &transform);
+    void SendObjectRelease(NetObjectID objectID);
+    void SendHeartbeat();
     bool SendChatMessage(ChatMessageType chatType, const std::string &text,
                          ClientID targetID = INVALID_CLIENT_ID);
     void SendNicknameUpdate(const std::string &nickname);
@@ -60,6 +70,8 @@ public:
     void SetDesiredNickname(const std::string &nickname) { m_desiredNickname = nickname; }
     const std::string &GetDesiredNickname() const { return m_desiredNickname; }
     const std::string &GetAuthoritativeNickname() const { return m_authoritativeNickname; }
+    const std::unordered_map<ClientID, PlayerMeta> &GetPlayerMetaMap() const { return m_playerMeta; }
+    std::string GetPlayerNickname(ClientID clientID) const;
 
     // ── Callbacks ──────────────────────────────────────────────────
     void SetOnPositionBroadcast(OnPositionBroadcastFn fn)
@@ -78,6 +90,10 @@ public:
     {
         m_onNicknameUpdateResult = std::move(fn);
     }
+    void SetOnPlayerMetaChanged(OnPlayerMetaChangedFn fn)
+    {
+        m_onPlayerMetaChanged = std::move(fn);
+    }
 
 private:
     void OnRawReceive(const uint8_t *data, size_t len, uint8_t channelID);
@@ -89,6 +105,8 @@ private:
     OnObjectDespawnFn m_onObjectDespawn;
     OnChatMessageFn m_onChatMessage;
     OnNicknameUpdateResultFn m_onNicknameUpdateResult;
+    OnPlayerMetaChangedFn m_onPlayerMetaChanged;
     std::string m_desiredNickname;
     std::string m_authoritativeNickname;
+    std::unordered_map<ClientID, PlayerMeta> m_playerMeta;
 };

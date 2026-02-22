@@ -1,6 +1,7 @@
 #include "MainMenuScreen.h"
 #include "raylib.h"
 #include "Engine/System/Screen/ScreenManager.h"
+#include "Engine/System/HUD/HudBridgeScript.h"
 #include "Game/Screen/MyScreenState.h"
 MainMenuScreen::MainMenuScreen(ScreenManager *sm)
     : m_nextScreenState(SCREEN_STATE_NONE), IGameScreen(sm)
@@ -17,12 +18,9 @@ void MainMenuScreen::OnEnter()
     {
         screenManager->GetUILayer()->SetVisible(true);
         screenManager->GetUILayer()->LoadRoute(MAIN_MENU);
-        screenManager->GetUILayer()->ExecuteScript(
-            "window.vueAppState = window.vueAppState || {};"
-            "window.vueAppState.nextScreen = '';"
-            "window.vueAppState.chatSendRequested = false;"
-            "window.vueAppState.chatSendQueue = [];"
-            "window.vueAppState.chatActive = false;");
+        screenManager->GetUILayer()->ExecuteScript("window.vueAppState = window.vueAppState || {};"
+                                                   "window.vueAppState.nextScreen = '';");
+        screenManager->GetUILayer()->ExecuteScript(HudBridgeScript::ResetChatState());
     }
 }
 void MainMenuScreen::OnExit()

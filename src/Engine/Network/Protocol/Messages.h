@@ -39,13 +39,22 @@ struct MsgClientDisconnect
     ClientID clientID = INVALID_CLIENT_ID;
 };
 
-// ── Position sync ───────────────────────────────────────────────────
+/// C→S : keep the connection alive while idle in non-gameplay screens.
+struct MsgHeartbeat
+{
+    NetPacketHeader header{NetMessageType::Heartbeat};
+    ClientID clientID = INVALID_CLIENT_ID;
+};
 
-/// Compact transform state for one object.
+// ── Flight state sync ────────────────────────────────────────────────
+
+/// Compact flight state for one object (transform + velocity).
 struct NetTransformState
 {
     float posX, posY, posZ;
-    float rotW, rotX, rotY, rotZ; // quaternion
+    float rotW, rotX, rotY, rotZ;    // quaternion
+    float linVelX, linVelY, linVelZ; // linear velocity
+    float angVelX, angVelY, angVelZ; // angular velocity
 };
 
 /// C→S : client reports its own position.
@@ -80,6 +89,15 @@ struct MsgObjectDespawn
 {
     NetPacketHeader header{NetMessageType::ObjectDespawn};
     ClientID ownerClientID = INVALID_CLIENT_ID;
+    NetObjectID objectID = INVALID_NET_OBJECT_ID;
+};
+
+/// C→S : client releases an object but stays connected.
+/// Server will broadcast ObjectDespawn to other clients and clear the object state.
+struct MsgObjectRelease
+{
+    NetPacketHeader header{NetMessageType::ObjectRelease};
+    ClientID clientID = INVALID_CLIENT_ID;
     NetObjectID objectID = INVALID_NET_OBJECT_ID;
 };
 
@@ -140,6 +158,40 @@ struct MsgNicknameUpdateResult
     NicknameUpdateStatus status = NicknameUpdateStatus::Accepted;
     uint8_t nicknameLength = 0;
     // Followed by `nicknameLength` bytes of UTF-8 nickname.
+};
+
+/// One compact metadata entry header used inside PlayerMetaSnapshot payload.
+/// Variable-length: header + nickname bytes.
+struct MsgPlayerMetaEntry
+{
+    ClientID clientID = INVALID_CLIENT_ID;
+    uint8_t nicknameLength = 0;
+    // Followed by `nicknameLength` bytes of UTF-8 nickname.
+};
+
+/// S→C : full player metadata snapshot.
+/// Variable-length: header + entryCount + repeated entry(header+nicknameBytes).
+struct MsgPlayerMetaSnapshot
+{
+    NetPacketHeader header{NetMessageType::PlayerMetaSnapshot};
+    uint16_t entryCount = 0;
+};
+
+/// S→C : insert/update one player's metadata.
+/// Variable-length: header + clientID + nicknameLength + nickname bytes.
+struct MsgPlayerMetaUpsert
+{
+    NetPacketHeader header{NetMessageType::PlayerMetaUpsert};
+    ClientID clientID = INVALID_CLIENT_ID;
+    uint8_t nicknameLength = 0;
+    // Followed by `nicknameLength` bytes of UTF-8 nickname.
+};
+
+/// S→C : remove one player's metadata.
+struct MsgPlayerMetaRemove
+{
+    NetPacketHeader header{NetMessageType::PlayerMetaRemove};
+    ClientID clientID = INVALID_CLIENT_ID;
 };
 
 #pragma pack(pop)

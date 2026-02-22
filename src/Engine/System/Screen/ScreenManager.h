@@ -48,6 +48,8 @@ private:
     static constexpr size_t CHAT_SEND_QUEUE_MAX = 64;
     float m_chatSendCooldown = 0.0f;
     static constexpr float CHAT_SEND_INTERVAL = 0.30f; // 300 ms
+    float m_heartbeatCooldown = 0.0f;
+    static constexpr float HEARTBEAT_INTERVAL = 1.0f; // 1 s, for menu/options keep-alive
 
     std::unique_ptr<ResourceManager> m_resourceManager;
     std::unique_ptr<AudioManager> m_audioManager;

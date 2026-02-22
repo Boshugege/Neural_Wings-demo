@@ -6,6 +6,10 @@
 
 using json = nlohmann::json;
 
+/// Attaches NetworkSyncComponent to the owning entity (the local plane)
+/// and marks it as a local-player object so NetworkSyncSystem uploads
+/// its flight state (transform + velocity) to the server.
+/// No longer copies camera data — the plane's own physics drives the transform.
 class LocalPlayerSyncScript : public IScriptableComponent
 {
 public:
@@ -16,6 +20,5 @@ public:
     void OnUpdate(float deltaTime) override;
 
 private:
-    std::string m_cameraName;
     NetObjectID m_netObjectID = 1;
 };

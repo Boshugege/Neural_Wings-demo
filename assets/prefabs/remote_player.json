@@ -1,64 +1,65 @@
 {
-    "name": "RemotePlayer",
-    "components": [
-        {
-            "TransformComponent": {
-                "position": [
-                    0,
-                    0,
-                    0
-                ],
-                "scale": [
-                    0.45,
-                    0.45,
-                    0.45
-                ],
-                "rotation": [
-                    0,
-                    0,
-                    0
-                ]
-            }
+  "name": "RemotePlayer",
+  "components": [
+    {
+      "TransformComponent": {
+        "position": [0, 0, 0],
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0]
+      }
+    },
+    {
+      "RenderComponent": {
+        "model": "assets/models/plane.obj",
+        "isVisible": true,
+        "showWires": false,
+        "showAxes": false,
+        "showAngVol": false,
+        "showVol": false,
+        "showCenter": false,
+        "castShadows": true,
+        "defaultMaterial": {
+          "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+          "fs": "assets/shaders/default.fs",
+          "color": [50, 100, 50, 255]
         },
-        {
-            "RenderComponent": {
-                "model": "primitive://sphere",
-                "defaultMaterial": {
-                    "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
-                    "fs": "assets/shaders/default.fs",
-                    "color": [
-                        255,
-                        255,
-                        255,
-                        255
-                    ]
+        "meshPasses": [
+          {
+            "meshIndex": 0,
+            "name": "Mesh_0",
+            "passes": [
+              {
+                "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                "textures": {
+                  "u_diffuseMap": ["assets/textures/test_1.png", 1]
                 },
-                "scale": [
-                    0.45,
-                    0.45,
-                    0.45
-                ],
-                "showWires": false,
-                "meshPasses": [
-                    {
-                        "meshIndex": 0,
-                        "passes": [
-                            {
-                                "name": "texture",
-                                "textures": {
-                                    "u_diffuseMap": [
-                                        "assets/textures/test_1.png",
-                                        1
-                                    ]
-                                },
-                                "blendMode": "NONE",
-                                "depthWrite": true,
-                                "depthTest": true
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-    ]
+                "fs": "assets/shaders/lighting/lighting.fs",
+                "emissive": {
+                  "color": [100, 100, 100],
+                  "intensity": 0.5
+                },
+                "blendMode": "NONE",
+                "depthWrite": true,
+                "depthTest": true
+              },
+              {
+                "name": "outline",
+                "vs": "assets/shaders/outline/outline.vs",
+                "fs": "assets/shaders/outline/outline.fs",
+                "blendMode": "ALPHA",
+                "cullFace": "FRONT",
+                "uniforms": {
+                  "u_outlineWidth": 0.1,
+                  "u_color": [50, 120, 255, 255]
+                },
+                "depthWrite": true,
+                "depthTest": true
+              }
+            ]
+          }
+        ],
+        "scale": [1, 1, 1]
+      }
+    }
+  ]
 }

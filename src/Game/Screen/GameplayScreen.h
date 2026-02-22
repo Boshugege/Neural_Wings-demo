@@ -4,6 +4,8 @@
 #include "Engine/Graphics/Graphics.h"
 #include "MyScreenState.h"
 
+class HudManager;
+
 class GameplayScreen : public IGameScreen
 {
 public:
@@ -22,15 +24,8 @@ private:
     ScreenState m_nextScreenState;
     // 游戏世界系统
     std::unique_ptr<GameWorld> m_world;
+    std::unique_ptr<HudManager> m_hudManager;
     void ConfigCallback(ScriptingFactory &scriptingFactory,
                         PhysicsStageFactory &physicsStageFactory,
                         ParticleFactory &particleFactory);
-
-    // ── Chat ──────────────────────────────────────────────────
-    bool m_chatActive = false;
-    int m_framesInScreen = 0; // guard against first-frame Enter
-    bool m_skipExitThisFrame = false; // avoid ESC close-chat also triggering Exit
-    void ActivateChat();
-    void DeactivateChat();
-    void PollChatUI();
 };

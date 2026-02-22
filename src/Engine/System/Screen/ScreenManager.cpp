@@ -3,6 +3,7 @@
 #include "ScreenState.h"
 #include "Game/Screen/MyScreenState.h"
 #include "Engine/Network/Chat/ChatManager.h"
+#include "Engine/System/HUD/HudBridgeScript.h"
 #include <algorithm>
 
 #if defined(PLATFORM_WEB)
@@ -177,11 +178,33 @@ bool ScreenManager::UpdateFrame()
 
     m_currentScreen->Update(m_timeManager.GetDeltaTime());
 
-    // Poll global network while outside gameplay.
-    if (m_networkClient && m_currentScreen &&
-        m_currentScreen->GetScreenState() != GAMEPLAY)
+    // Poll global network while outside gameplay, and send keep-alive heartbeats
+    // so idle menu/options sessions are not timed out by the server.
+    if (m_networkClient && m_currentScreen)
     {
-        m_networkClient->Poll();
+        if (m_currentScreen->GetScreenState() != GAMEPLAY)
+        {
+            m_networkClient->Poll();
+
+            if (m_networkClient->IsConnected())
+            {
+                m_heartbeatCooldown -= m_timeManager.GetDeltaTime();
+                if (m_heartbeatCooldown <= 0.0f)
+                {
+                    m_networkClient->SendHeartbeat();
+                    m_heartbeatCooldown = HEARTBEAT_INTERVAL;
+                }
+            }
+            else
+            {
+                m_heartbeatCooldown = 0.0f;
+            }
+        }
+        else
+        {
+            // Gameplay has high-frequency position sync already.
+            m_heartbeatCooldown = 0.0f;
+        }
     }
     if (m_uiLayer)
     {
@@ -312,7 +335,7 @@ void ScreenManager::PollGlobalChatSendRequest()
     std::string raw = m_uiLayer->GetAppState("chatSendQueue");
     if (!raw.empty() && raw != "null" && raw != "undefined" && raw != "[]")
     {
-        m_uiLayer->ExecuteScript("window.vueAppState.chatSendQueue = [];");
+        m_uiLayer->ExecuteScript(HudBridgeScript::ClearChatQueue());
 
         if (raw.size() >= 2 && raw.front() == '[' && raw.back() == ']')
         {
@@ -381,9 +404,7 @@ void ScreenManager::PollGlobalChatSendRequest()
     if (m_uiLayer->GetAppState("chatSendRequested") == "true")
     {
         std::string text = m_uiLayer->GetAppState("chatSendText");
-        m_uiLayer->ExecuteScript(
-            "window.vueAppState.chatSendRequested = false;"
-            "window.vueAppState.chatSendText = '';");
+        m_uiLayer->ExecuteScript(HudBridgeScript::ClearLegacyChatSend());
         if (!text.empty() && m_chatSendQueue.size() < CHAT_SEND_QUEUE_MAX)
             m_chatSendQueue.push_back(std::move(text));
     }
