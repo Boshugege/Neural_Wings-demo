@@ -114,5 +114,5 @@ void EntityPlateHud::DrawNameplate(const std::string &displayName,
                   kFontSize + kPadY * 2,
                   Fade(BLACK, 0.42f));
     DrawText(displayName.c_str(), x + 1, y + 1, kFontSize, Fade(BLACK, 0.95f));
-    DrawText(displayName.c_str(), x, y, kFontSize, Color{214, 241, 255, 255});
+    DrawText(displayName.c_str(), x, y, kFontSize, Color{255, 50, 50, 255});
 }
