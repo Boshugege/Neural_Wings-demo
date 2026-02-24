@@ -3,6 +3,7 @@
 #include "Game/Screen/MyScreenState.h"
 #include "Game/HUD/ChatHud.h"
 #include "Game/HUD/EntityPlateHud.h"
+#include "Game/HUD/AttitudeHud.h"
 #include "Game/HUD/MyHudState.h"
 #include "Game/Systems/Physics/SolarStage.h"
 #include "Game/Systems/Physics/NetworkVerifyStage.h"
@@ -43,6 +44,8 @@ GameplayScreen::GameplayScreen(ScreenManager *sm)
                          { return std::make_unique<EntityPlateHud>(m_world.get()); });
     hudFactory->Register(CHAT_HUD, [this]()
                          { return std::make_unique<ChatHud>(screenManager, &m_world->GetInputManager()); });
+    hudFactory->Register(ATTITUDE_HUD, [this]()
+                         { return std::make_unique<AttitudeHud>(m_world.get()); });
     m_hudManager = std::make_unique<HudManager>(std::move(hudFactory));
 }
 GameplayScreen::~GameplayScreen()
@@ -59,6 +62,8 @@ void GameplayScreen::ConfigCallback(ScriptingFactory &scriptingFactory, PhysicsS
                                  { return std::make_unique<NetworkVerifyStage>(); });
     physicsStageFactory.Register("CollisionStage", []()
                                  { return std::make_unique<CollisionStage>(); });
+    physicsStageFactory.Register("GravityStage", []()
+                                 { return std::make_unique<GravityStage>(); });
 
     // 注册脚本
     scriptingFactory.Register("RotatorScript", []()
@@ -124,6 +129,7 @@ void GameplayScreen::OnEnter()
         // Keep gameplay overlays mounted in stable order.
         m_hudManager->AddHud(ENTITY_PLATE_HUD);
         m_hudManager->AddHud(CHAT_HUD);
+        m_hudManager->AddHud(ATTITUDE_HUD);
     }
 
     // 监听事件
@@ -276,8 +282,8 @@ void GameplayScreen::Draw()
     {
         DrawText("Press ENTER to chat, ESC to return.", 10, GetScreenHeight() - 30, 20, DARKGRAY);
     }
-    int total = m_world->GetGameObjects().size();
-    int active = m_world->GetActivateGameObjects().size();
+    int total = (int)m_world->GetGameObjects().size();
+    int active = (int)m_world->GetActivateGameObjects().size();
     DrawText(TextFormat("Total Entities: %d", total), 10, 50, 20, WHITE);
     DrawText(TextFormat("Active Entities: %d", active), 10, 80, 20, GREEN);
 
