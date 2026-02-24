@@ -18,6 +18,16 @@ extern "C"
 
 #include "NBNetTransport.h"
 #include <iostream>
+#include <string>
+
+#if !defined(PLATFORM_WEB)
+#if defined(_WIN32)
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+#endif
 
 // ── Constants ──────────────────────────────────────────────────────
 static constexpr const char *NW_PROTOCOL_NAME = "neural_wings";
@@ -27,6 +37,32 @@ static uint8_t MapChannel(uint8_t ourChannel)
     // our convention: 0 = reliable, 1 = unreliable
     return (ourChannel == 0) ? NBN_CHANNEL_RESERVED_RELIABLE : NBN_CHANNEL_RESERVED_UNRELIABLE;
 }
+
+#if !defined(PLATFORM_WEB)
+static std::string ResolveHostToIPv4(const std::string &host)
+{
+    addrinfo hints{};
+    hints.ai_family = AF_INET;      // nbnet UDP driver is IPv4-only
+    hints.ai_socktype = SOCK_DGRAM; // align with UDP transport
+
+    addrinfo *result = nullptr;
+    if (getaddrinfo(host.c_str(), nullptr, &hints, &result) != 0 || result == nullptr)
+    {
+        return host;
+    }
+
+    char ipBuffer[INET_ADDRSTRLEN] = {};
+    const sockaddr_in *addr = reinterpret_cast<const sockaddr_in *>(result->ai_addr);
+    const char *ok = inet_ntop(AF_INET, &addr->sin_addr, ipBuffer, sizeof(ipBuffer));
+
+    std::string resolved = host;
+    if (ok != nullptr)
+        resolved = ipBuffer;
+
+    freeaddrinfo(result);
+    return resolved;
+}
+#endif
 
 // ── Lifecycle ──────────────────────────────────────────────────────
 
@@ -39,6 +75,15 @@ bool NBNetTransport::Connect(const std::string &host, uint16_t port)
 {
     if (m_started)
         Disconnect();
+
+    std::string targetHost = host;
+#if !defined(PLATFORM_WEB)
+    targetHost = ResolveHostToIPv4(host);
+    if (targetHost != host)
+    {
+        std::cout << "[NBNetTransport] Resolved host " << host << " -> " << targetHost << "\n";
+    }
+#endif
 
     // Register the platform-appropriate driver BEFORE starting.
     // NBN_Driver_Register asserts the driver isn't already registered,
@@ -57,7 +102,7 @@ bool NBNetTransport::Connect(const std::string &host, uint16_t port)
 
     // Start the client (init + driver activation + built-in message registration)
     if (NBN_GameClient_StartEx(NW_PROTOCOL_NAME,
-                               host.c_str(),
+                               targetHost.c_str(),
                                port,
                                false,   // no encryption
                                nullptr, // no connection data
@@ -69,7 +114,7 @@ bool NBNetTransport::Connect(const std::string &host, uint16_t port)
 
     m_started = true;
     m_state = ConnectionState::Connecting;
-    std::cout << "[NBNetTransport] Connecting to " << host << ":" << port << " ...\n";
+    std::cout << "[NBNetTransport] Connecting to " << targetHost << ":" << port << " ...\n";
     return true;
 }
 

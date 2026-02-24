@@ -1,6 +1,6 @@
 {
     "network": {
-        "serverIP": "192.168.21.213",
+        "serverIP": "server.parityncsvt.top",
         "serverPort": 7777
     },
     "performance": {
