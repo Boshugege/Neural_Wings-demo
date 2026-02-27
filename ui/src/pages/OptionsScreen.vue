@@ -120,7 +120,7 @@ defineProps({
         </div>
 
         <div class="row">
-          <span>Server IP</span>
+          <span>Server</span>
           <div class="settings-control">
             <div class="server-ip-control">
               <input class="chip server-ip-input" type="text" :value="serverIP"

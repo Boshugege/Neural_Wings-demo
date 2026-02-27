@@ -358,16 +358,6 @@ void OptionsScreen::UpdatePingCheck(float deltaTime)
 
         m_serverCheckTimer = 0.0f;
 
-        const bool matchesActiveEndpoint =
-            (targetIP == activeConfig.serverIP) &&
-            (targetPort == activeConfig.serverPort);
-        if (matchesActiveEndpoint && netClient.IsConnected())
-        {
-            m_waitingServerCheck = false;
-            uiLayer->ExecuteScript("window.vueAppState.serverStatus = 'online';");
-            return;
-        }
-
         // Single global client: perform a fresh connect attempt for this probe.
         if (netClient.GetConnectionState() != ConnectionState::Disconnected)
             netClient.Disconnect();
