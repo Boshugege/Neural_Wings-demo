@@ -144,10 +144,10 @@
         {
             "ScriptComponent": {
                 "PlayerControlScript": {
-                    "Thrust": 5000,
-                    "LiftCoefficient": 0.01,
+                    "Thrust": 3000,
+                    "LiftCoefficient": 0.03,
                     "DragCoefficient": 0.1,
-                    "PitchPower": 300,
+                    "PitchPower": 200,
                     "YawPower": 200,
                     "RollPower": 400,
                     "ZoomSpeed": 0.1,

@@ -111,6 +111,11 @@ void TransformComponent::SetClean()
     isDirty = false;
 }
 Vector3f TransformComponent::GetWorldPosition() const { return worldMatrix.getTranslation(); }
+
+void TransformComponent::SetWorldPosition(const Vector3f &pos)
+{
+    this->SetWorldMatrix(Matrix4f::CreateTransform(pos, this->GetWorldRotation(), this->GetWorldScale()));
+}
 Quat4f TransformComponent::GetWorldRotation() const { return worldMatrix.getRotation(); }
 Vector3f TransformComponent::GetWorldScale() const { return worldMatrix.getScale(); }
 Vector3f TransformComponent::GetForward() const { return worldMatrix.getCol(2).xyz().Normalized(); }

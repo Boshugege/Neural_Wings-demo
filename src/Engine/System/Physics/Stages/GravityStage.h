@@ -24,5 +24,5 @@ private:
     float friction = 0.5f;
     Vector3f m_gravity = Vector3f(0.0f, -9.8f, 0.0f);
     float baumgarte = 0.9f;
-    float slop = 0.0f;
+    float slop = 0.01f;
 };

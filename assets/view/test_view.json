@@ -3,8 +3,8 @@
         {
             "name": "observer",
             "viewport": [
-                0.7,
-                0.7,
+                0.0,
+                0.0,
                 1.0,
                 1.0
             ],
@@ -15,40 +15,25 @@
                 0,
                 255
             ]
-        },
-        {
-            "name": "follow_2",
-            "viewport": [
-                0,
-                0,
-                1,
-                1
-            ],
-            "clearBackground": false,
-            "backgroundColor": [
-                255,
-                255,
-                255,
-                255
-            ]
         }
     ],
     "postProcess": {
-        "name": "SPH_SSF",
+        "name": "GTAO",
         "hints": "rtPool使用accuracy_前缀表示使用浮点纹理",
         "rtPool": [
             "inScreen",
-            "outScreen",
+            "GTAO",
+            "GTAO_Blur_1",
+            "GTAO_Blur_2",
             "accuracy_raw_Fluid_Depth",
             "accuracy_FluidBlur_1",
             "accuracy_FluidBlur_2",
             "accuracy_raw_Normal",
             "accuracy_raw_Fluid_Thickness",
             "simple_Fluid",
-            "rawScene",
-            "bloom",
-            "blur1",
-            "blur2"
+            "simple_Fluid",
+            "rawScreen",
+            "outScreen"
         ],
         "depthLinks": [
             {
@@ -64,6 +49,80 @@
         "hint": "拓扑序",
         "postProcessGraph": [
             {
+                "name": "GTAO",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/GTAO/gtao.fs",
+                "inputs": [
+                    [
+                        "u_rawScreen",
+                        "inScreen"
+                    ]
+                ],
+                "output": "GTAO",
+                "uniforms": {
+                    "u_radius": 0.6,
+                    "u_slices": 10,
+                    "u_intensity": 1.5,
+                    "u_steps": 6,
+                    "u_near": 0.01,
+                    "u_far": 100.0
+                }
+            },
+            {
+                "name": "GTAO_Blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bilateral_blur.fs",
+                "inputs": [
+                    [
+                        "u_Tex",
+                        "GTAO"
+                    ]
+                ],
+                "output": "GTAO_Blur_1",
+                "uniforms": {
+                    "u_dir": [
+                        1.0,
+                        0.0
+                    ],
+                    "u_radius": 2
+                }
+            },
+            {
+                "name": "GTAO_Blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bilateral_blur.fs",
+                "inputs": [
+                    [
+                        "u_Tex",
+                        "GTAO_Blur_1"
+                    ]
+                ],
+                "output": "GTAO_Blur_2",
+                "uniforms": {
+                    "u_dir": [
+                        0.0,
+                        1.0
+                    ],
+                    "u_radius": 2
+                }
+            },
+            {
+                "name": "Combine",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/GTAO/combine.fs",
+                "inputs": [
+                    [
+                        "u_baseTex",
+                        "inScreen"
+                    ],
+                    [
+                        "u_gtaoTex",
+                        "GTAO_Blur_2"
+                    ]
+                ],
+                "output": "rawScreen"
+            },
+            {
                 "name": "DepthBlur",
                 "vs": "assets/shaders/postprocess/default.vs",
                 "fs": "assets/shaders/postprocess/bilateral_blur.fs",
@@ -78,7 +137,8 @@
                     "u_dir": [
                         1,
                         0
-                    ]
+                    ],
+                    "u_radius": 20
                 }
             },
             {
@@ -96,7 +156,8 @@
                     "u_dir": [
                         0,
                         1
-                    ]
+                    ],
+                    "u_radius": 20
                 }
             },
             {
@@ -119,7 +180,7 @@
                 "inputs": [
                     [
                         "u_sceneTex",
-                        "inScreen"
+                        "rawScreen"
                     ],
                     [
                         "u_fluidDepth",
@@ -138,80 +199,8 @@
                         "raw_Normal"
                     ]
                 ],
-                "output": "rawScene",
-                "uniforms": {}
-            },
-            {
-                "name": "blur",
-                "vs": "assets/shaders/postprocess/default.vs",
-                "fs": "assets/shaders/postprocess/blur.fs",
-                "inputs": [
-                    [
-                        "u_screen",
-                        "rawScene"
-                    ]
-                ],
-                "uniforms": {
-                    "u_direction": [
-                        1,
-                        0
-                    ],
-                    "u_radius": 40.0
-                },
-                "output": "blur1"
-            },
-            {
-                "name": "blur",
-                "vs": "assets/shaders/postprocess/default.vs",
-                "fs": "assets/shaders/postprocess/blur.fs",
-                "inputs": [
-                    [
-                        "u_screen",
-                        "blur1"
-                    ]
-                ],
-                "uniforms": {
-                    "u_direction": [
-                        0,
-                        1
-                    ],
-                    "u_radius": 40.0
-                },
-                "output": "blur2"
-            },
-            {
-                "name": "blur",
-                "vs": "assets/shaders/postprocess/default.vs",
-                "fs": "assets/shaders/postprocess/bright.fs",
-                "inputs": [
-                    [
-                        "u_screen",
-                        "blur2"
-                    ]
-                ],
-                "uniforms": {
-                    "u_threshold": 0.9
-                },
-                "output": "bloom"
-            },
-            {
-                "name": "combine",
-                "vs": "assets/shaders/postprocess/default.vs",
-                "fs": "assets/shaders/postprocess/combine.fs",
-                "inputs": [
-                    [
-                        "u_baseTex",
-                        "rawScene"
-                    ],
-                    [
-                        "u_brightTex",
-                        "bloom"
-                    ]
-                ],
                 "output": "outScreen",
-                "uniforms": {
-                    "u_bloomIntensity": 1.0
-                }
+                "uniforms": {}
             }
         ]
     }

@@ -1,0 +1,218 @@
+{
+    "views": [
+        {
+            "name": "observer",
+            "viewport": [
+                0.7,
+                0.7,
+                1.0,
+                1.0
+            ],
+            "clearBackground": true,
+            "backgroundColor": [
+                0,
+                0,
+                0,
+                255
+            ]
+        },
+        {
+            "name": "follow_2",
+            "viewport": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "clearBackground": false,
+            "backgroundColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        }
+    ],
+    "postProcess": {
+        "name": "SPH_SSF",
+        "hints": "rtPool使用accuracy_前缀表示使用浮点纹理",
+        "rtPool": [
+            "inScreen",
+            "outScreen",
+            "accuracy_raw_Fluid_Depth",
+            "accuracy_FluidBlur_1",
+            "accuracy_FluidBlur_2",
+            "accuracy_raw_Normal",
+            "accuracy_raw_Fluid_Thickness",
+            "simple_Fluid",
+            "rawScene",
+            "bloom",
+            "blur1",
+            "blur2"
+        ],
+        "depthLinks": [
+            {
+                "source": "inScreen",
+                "targets": [
+                    "raw_Fluid_Depth",
+                    "raw_Fluid_Thickness",
+                    "raw_Normal",
+                    "simple_Fluid"
+                ]
+            }
+        ],
+        "hint": "拓扑序",
+        "postProcessGraph": [
+            {
+                "name": "DepthBlur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bilateral_blur.fs",
+                "inputs": [
+                    [
+                        "u_fluidDepth",
+                        "raw_Fluid_Depth"
+                    ]
+                ],
+                "output": "FluidBlur_1",
+                "uniforms": {
+                    "u_dir": [
+                        1,
+                        0
+                    ]
+                }
+            },
+            {
+                "name": "New DepthBlur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bilateral_blur.fs",
+                "inputs": [
+                    [
+                        "u_fluidDepth",
+                        "FluidBlur_1"
+                    ]
+                ],
+                "output": "FluidBlur_2",
+                "uniforms": {
+                    "u_dir": [
+                        0,
+                        1
+                    ]
+                }
+            },
+            {
+                "name": "NormalBuild",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/normalBuild.fs",
+                "inputs": [
+                    [
+                        "u_fluidDepth",
+                        "FluidBlur_2"
+                    ]
+                ],
+                "output": "raw_Normal",
+                "uniforms": {}
+            },
+            {
+                "name": "Shading",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/sph_ssf.fs",
+                "inputs": [
+                    [
+                        "u_sceneTex",
+                        "inScreen"
+                    ],
+                    [
+                        "u_fluidDepth",
+                        "FluidBlur_2"
+                    ],
+                    [
+                        "u_thickness",
+                        "raw_Fluid_Thickness"
+                    ],
+                    [
+                        "u_simpleFluid",
+                        "simple_Fluid"
+                    ],
+                    [
+                        "u_normal",
+                        "raw_Normal"
+                    ]
+                ],
+                "output": "rawScene",
+                "uniforms": {}
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/blur.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "rawScene"
+                    ]
+                ],
+                "uniforms": {
+                    "u_direction": [
+                        1,
+                        0
+                    ],
+                    "u_radius": 40.0
+                },
+                "output": "blur1"
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/blur.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "blur1"
+                    ]
+                ],
+                "uniforms": {
+                    "u_direction": [
+                        0,
+                        1
+                    ],
+                    "u_radius": 40.0
+                },
+                "output": "blur2"
+            },
+            {
+                "name": "blur",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/bright.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "blur2"
+                    ]
+                ],
+                "uniforms": {
+                    "u_threshold": 0.9
+                },
+                "output": "bloom"
+            },
+            {
+                "name": "combine",
+                "vs": "assets/shaders/postprocess/default.vs",
+                "fs": "assets/shaders/postprocess/combine.fs",
+                "inputs": [
+                    [
+                        "u_baseTex",
+                        "rawScene"
+                    ],
+                    [
+                        "u_brightTex",
+                        "bloom"
+                    ]
+                ],
+                "output": "outScreen",
+                "uniforms": {
+                    "u_bloomIntensity": 1.0
+                }
+            }
+        ]
+    }
+}

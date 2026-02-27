@@ -129,7 +129,7 @@ void GameplayScreen::OnEnter()
         // Keep gameplay overlays mounted in stable order.
         m_hudManager->AddHud(ENTITY_PLATE_HUD);
         m_hudManager->AddHud(CHAT_HUD);
-        m_hudManager->AddHud(ATTITUDE_HUD);
+        // m_hudManager->AddHud(ATTITUDE_HUD);
     }
 
     // 监听事件
@@ -256,15 +256,15 @@ void GameplayScreen::Update(float deltaTime)
 
         //     rearCam->UpdateFromDirection(mainPos, -direction, mainCam->Up());
         // }
-        if (auto *follow = m_cameraManager.GetCamera("follow"))
-        {
-            Vector3f dir = follow->getLocalLookAtOffset();
-            Vector3f up = Vector3f::UP;
-            float lookHorizontal = -m_inputManager.GetAxisValue("LookHorizontal") * PI / 180;
-            float lookVertical = m_inputManager.GetAxisValue("LookVertical") * PI / 180;
-            follow->Rotate(lookHorizontal, lookVertical);
-            // follow->UpdateFixed(dir, up);
-        }
+    }
+    if (auto *follow = m_cameraManager.GetCamera("follow"))
+    {
+        Vector3f dir = follow->getLocalLookAtOffset();
+        Vector3f up = Vector3f::UP;
+        float lookHorizontal = -m_inputManager.GetAxisValue("LookHorizontal") * PI / 180;
+        float lookVertical = m_inputManager.GetAxisValue("LookVertical") * PI / 180;
+        follow->Rotate(lookHorizontal, lookVertical);
+        // follow->UpdateFixed(dir, up);
     }
 }
 
