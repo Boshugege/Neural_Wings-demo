@@ -34,10 +34,8 @@ public:
 
     void SetLocalPosition(const Vector3f &pos);
     Vector3f GetLocalPosition() const;
-
     void SetLocalRotation(const Quat4f &rot);
     Quat4f GetLocalRotation() const;
-
     void SetLocalScale(const Vector3f &scl);
     Vector3f GetLocalScale() const;
 
@@ -49,6 +47,7 @@ public:
     void SetClean();
 
     Vector3f GetWorldPosition() const;
+    void SetWorldPosition(const Vector3f &pos);
     Quat4f GetWorldRotation() const;
     Vector3f GetWorldScale() const;
     Vector3f GetForward() const;

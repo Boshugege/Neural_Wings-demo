@@ -1,28 +1,25 @@
 {
-    "cameras": [
-      {
-        "name": "main_orbital",
-        "isMain": true,
-        "position": [ 15.0, 15.0, 15.0 ],
-        "target": [ 0.0, 1.0, 0.0 ],
-        "up": [ 0.0, 1.0, 0.0 ],
-        "fovy": 60.0,
-        "projection": "PERSPECTIVE"
-      },
-      {
-        "name": "rear_view",
-        "isMain": false,
-        "fovy": 50.0,
-        "projection": "PERSPECTIVE"
-      },
-      {
-          "name": "top_down",
-          "isMain": false,
-          "position": [0.0, 100.0, 0.0],
-          "target": [0.0, 0.0, 0.0],
-          "up": [0.0, 0.0, -1.0],
-          "fovy": 90.0,
-          "projection": "ORTHOGRAPHIC"
-      }
-    ]
-  }
+  "cameras": [
+    {
+      "name": "main",
+      "isMain": true,
+      "position": [
+        15.0,
+        15.0,
+        15.0
+      ],
+      "target": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "up": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "fovy": 60.0,
+      "projection": "PERSPECTIVE"
+    }
+  ]
+}

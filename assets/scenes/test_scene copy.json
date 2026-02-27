@@ -7,21 +7,10 @@
       },
       "SolarStage": {
         "G": 0.1,
-        "enable": false
+        "enable": true
       },
       "NetworkVerifyStage": {
         "enable": false
-      },
-      "GravityStage": {
-        "gravity": [
-          0,
-          -9.8,
-          0
-        ],
-        "ground": -20.0,
-        "e_ground": 0.5,
-        "mu": 0.04,
-        "enable": true
       }
     }
   },
@@ -49,7 +38,7 @@
       "prefab": "assets/prefabs/light_sphere.json",
       "position": [
         0,
-        5,
+        0,
         0
       ],
       "rotation": [
@@ -63,7 +52,7 @@
         3
       ],
       "physics": {
-        "mass": 500,
+        "mass": 5000,
         "elasticity": 1.0
       },
       "render": {
@@ -125,7 +114,7 @@
       "prefab": "assets/prefabs/plane.json",
       "position": [
         50,
-        40,
+        -2,
         0
       ],
       "rotation": [
@@ -148,7 +137,7 @@
         },
         {
           "WeaponScript": {
-            "velocity": 10
+            "velocity": 40
           }
         },
         {
@@ -184,7 +173,7 @@
         "mass": 100,
         "elasticity": 1.0,
         "velocity": [
-          -1,
+          0,
           0,
           0
         ]
@@ -207,7 +196,7 @@
       "prefab": "assets/prefabs/ground.json",
       "position": [
         0,
-        -20,
+        -40,
         0
       ],
       "rotation": [
@@ -257,16 +246,6 @@
       ],
       "rotation": [
         -90,
-        0,
-        0
-      ]
-    },
-    {
-      "name": "dirLight",
-      "tag": "dirLight",
-      "prefab": "assets/prefabs/dirLight.json",
-      "rotation": [
-        0,
         0,
         0
       ]

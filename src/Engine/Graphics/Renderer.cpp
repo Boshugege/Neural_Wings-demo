@@ -257,7 +257,8 @@ void Renderer::RenderScene(GameWorld &gameWorld, CameraManager &cameraManager)
     m_postProcesser->PostProcess(gameWorld, cameraManager);
 
     // debug
-    DrawHitbox(gameWorld, cameraManager);
+    // DrawHitbox(gameWorld, cameraManager);
+    // DrawAABB(gameWorld, cameraManager);
     //
     // 最终输出
     ClearBackground(BLACK);
@@ -641,10 +642,6 @@ void Renderer::DrawHitbox(GameWorld &gameWorld, CameraManager &cameraManager)
                     int vh = y2 - y1;
 
                     BeginScissorMode(vx, vy, vw, vh); //  透明底？
-                    // if (view.clearBackground)
-                    // {
-                    //     ClearBackground(view.backgroundColor);
-                    // }
 
                     float aspect = (float)vw / (float)vh;
 
@@ -697,6 +694,92 @@ void Renderer::DrawHitbox(GameWorld &gameWorld, CameraManager &cameraManager)
 
                             rlPopMatrix();
                         }
+                    }
+                    EndMode3D();
+                    EndScissorMode();
+                }
+            }
+        }
+        rlViewport(0, 0, itScene.texture.width, itScene.texture.height);
+        rlEnableDepthMask();
+        rlEnableDepthTest();
+    }
+    EndTextureMode();
+}
+
+void Renderer::DrawAABB(GameWorld &gameWorld, CameraManager &cameraManager)
+{
+
+    auto &m_RTPool = m_postProcesser->GetRTPool();
+    auto &itScene = m_RTPool["outScreen"];
+    BeginTextureMode(itScene);
+    {
+
+        rlDisableDepthMask();
+        rlDisableDepthTest();
+        {
+            for (const auto &view : m_renderViewer->GetRenderViews())
+            {
+                mCamera *camera = cameraManager.GetCamera(view.cameraName);
+                if (camera)
+                {
+
+                    int x1 = (int)view.viewport.x;
+                    int y1 = (int)view.viewport.y;
+                    int x2 = (int)view.viewport.width;
+                    int y2 = (int)view.viewport.height;
+
+                    int vx = x1;
+                    int vy = y1;
+                    int vw = x2 - x1;
+                    int vh = y2 - y1;
+
+                    BeginScissorMode(vx, vy, vw, vh); //  透明底？
+
+                    float aspect = (float)vw / (float)vh;
+
+                    Camera3D rawCamera = camera->GetRawCamera();
+                    BeginMode3D(rawCamera);
+
+                    rlViewport(vx, itScene.texture.height - (vy + vh), vw, vh);
+
+                    // DrawWorldObjects(gameWorld, rawCamera, *camera, aspect);
+                    auto &objs = gameWorld.GetEntitiesWith<TransformComponent, RigidbodyComponent>();
+                    for (const auto *gameObject : objs)
+                    {
+                        const auto &tf = gameObject->GetComponent<TransformComponent>();
+                        const auto &rb = gameObject->GetComponent<RigidbodyComponent>();
+
+                        Vector3f corners[8];
+                        AABB aabb = gameObject->GetWorldAABB(&corners);
+                        Color obbColor = PURPLE;
+                        if (rb.colliderType == ColliderType::BOX)
+                        {
+                            DrawLine3D(corners[0], corners[1], obbColor);
+                            DrawLine3D(corners[1], corners[3], obbColor);
+                            DrawLine3D(corners[3], corners[2], obbColor);
+                            DrawLine3D(corners[2], corners[0], obbColor);
+
+                            DrawLine3D(corners[4], corners[5], obbColor);
+                            DrawLine3D(corners[5], corners[7], obbColor);
+                            DrawLine3D(corners[7], corners[6], obbColor);
+                            DrawLine3D(corners[6], corners[4], obbColor);
+
+                            DrawLine3D(corners[0], corners[4], obbColor);
+                            DrawLine3D(corners[1], corners[5], obbColor);
+                            DrawLine3D(corners[2], corners[6], obbColor);
+                            DrawLine3D(corners[3], corners[7], obbColor);
+                        }
+
+                        Vector3 aabbCenter = {
+                            (aabb.min.x() + aabb.max.x()) * 0.5f,
+                            (aabb.min.y() + aabb.max.y()) * 0.5f,
+                            (aabb.min.z() + aabb.max.z()) * 0.5f};
+                        Vector3 aabbSize = {
+                            aabb.max.x() - aabb.min.x(),
+                            aabb.max.y() - aabb.min.y(),
+                            aabb.max.z() - aabb.min.z()};
+                        DrawCubeWiresV(aabbCenter, aabbSize, YELLOW);
                     }
                     EndMode3D();
                     EndScissorMode();

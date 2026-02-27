@@ -21,6 +21,7 @@ void GravityStage::Initialize(const json &config)
     }
     ground = config.value("ground", 0.0);
     e_ground = config.value("e_ground", 0.5);
+    mu = config.value("mu", 0.1);
 }
 void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
 {
@@ -40,29 +41,47 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
             auto &tf = gameObject->GetComponent<TransformComponent>();
             rb.AddForce(m_gravity * rb.mass);
             Vector3f corners[8];
-            AABB aabb = gameObject->GetWorldAABB(&corners);
-            float lowy = aabb.min.y();
+
+            float lowy = 0.0f;
+            if (rb.colliderType == ColliderType::BOX)
+            {
+                AABB aabb = gameObject->GetWorldAABB(&corners);
+                lowy = aabb.min.y();
+            }
+            else if (rb.colliderType == ColliderType::SPHERE)
+            {
+                AABB aabb = gameObject->GetWorldAABB();
+                lowy = aabb.min.y();
+            }
             Vector3f normal = Vector3f(0.0f, 1.0f, 0.0f);
             if (lowy < ground)
             {
                 float penetration = ground - lowy;
                 if (penetration > slop)
-                    // TODO:子父级-修改为世界坐标
-                    tf.GetLocalPosition().y() += (penetration - slop) * baumgarte;
+                {
+                    Vector3f pos = tf.GetWorldPosition();
+                    pos.y() += (penetration - slop) * baumgarte;
+                    tf.SetWorldPosition(pos);
+                }
                 struct Contact
                 {
                     Vector3f r;
                     float penetation;
                 };
                 std::vector<Contact> contacts;
-                for (size_t i = 0; i < 8; i++)
-                {
-                    if (corners[i].y() < ground + 0.01f)
+                if (rb.colliderType == ColliderType::BOX)
+                    for (size_t i = 0; i < 8; i++)
                     {
-                        // TODO:子父级-修改为世界坐标
-                        contacts.push_back({corners[i] - tf.GetLocalPosition(), ground - corners[i].y()});
+                        if (corners[i].y() < ground + 0.01f)
+                        {
+                            contacts.push_back({corners[i] - tf.GetWorldPosition(), ground - corners[i].y()});
+                        }
                     }
+                else if (rb.colliderType == ColliderType::SPHERE)
+                {
+                    contacts.push_back({Vector3f(0.0f, -rb.boudingRadius, 0.0f), ground - tf.GetWorldPosition().y() - rb.boudingRadius});
                 }
+
                 const float div = (float)contacts.size();
                 for (auto &cp : contacts)
                 {
@@ -74,8 +93,7 @@ void GravityStage::Execute(GameWorld &world, float fixedDeltaTime)
                         float e = (fabsf(nrV) < 0.2f) ? 0.0f : rb.elasticity * e_ground;
                         float i = -(1.0f + e) * nrV;
                         auto raxn = cp.r ^ normal;
-                        // TODO:子父级-修改为世界坐标
-                        auto rot = tf.GetLocalRotation().toMatrix();
+                        auto rot = tf.GetWorldRotation().toMatrix();
                         auto worldInverseInertia = rot * rb.inverseInertiaTensor * rot.transposed();
                         float term = raxn * (worldInverseInertia * raxn);
                         float j = i / (term + invMass);

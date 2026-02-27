@@ -77,8 +77,8 @@ void CollisionStage::ResolveCollision(GameWorld &world, GameObject *a, GameObjec
     auto &rbA = a->GetComponent<RigidbodyComponent>();
     auto &rbB = b->GetComponent<RigidbodyComponent>();
     // 冲量时无外力
-    rbA.ClearForces();
-    rbB.ClearForces();
+    // rbA.ClearForces();
+    // rbB.ClearForces();
     auto &tfA = a->GetComponent<TransformComponent>();
     auto &tfB = b->GetComponent<TransformComponent>();
     float invMassA = GetInverseMass(rbA);

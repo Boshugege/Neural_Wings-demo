@@ -5,16 +5,16 @@ in float vFar;
 
 out vec4 finalColor;
 
-uniform sampler2D u_fluidDepth;
+uniform sampler2D u_Tex;
 uniform vec2 u_dir;
 
-float radius = 30.0;
+uniform float u_radius;
 float sigma_s = 10.0; // 空间权重的标准差
 float sigma_r = 10.5; // 范围权重的标准差
 
 void main() {
     // vec4 centerColor = texture(rawScreen, fragTexCoord);
-    float centerDepth = texture(u_fluidDepth, fragTexCoord).r;
+    float centerDepth = texture(u_Tex, fragTexCoord).r;
     if(centerDepth <= 0.0 || centerDepth >= 5000.0) {
         finalColor = vec4(centerDepth, 0.0, 0.0, 1.0);
         return;
@@ -25,10 +25,10 @@ void main() {
     float twoSigmaS2 = 2.0 * sigma_s * sigma_s;
     float twoSigmaR2 = 2.0 * sigma_r * sigma_r;
 
-    vec2 texSize = vec2(textureSize(u_fluidDepth, 0));
-    for(float i = -radius; i <= radius; i++) {
+    vec2 texSize = vec2(textureSize(u_Tex, 0));
+    for(float i = -u_radius; i <= u_radius; i++) {
         vec2 sampleCoord = fragTexCoord + (u_dir * i) / texSize;
-        float sampleDepth = texture(u_fluidDepth, sampleCoord).r;
+        float sampleDepth = texture(u_Tex, sampleCoord).r;
 
         //vec4 sampleColor = texture(rawScreen, sampleCoord);
         if(sampleDepth <= 0.0 || sampleDepth >= 10000.0)
