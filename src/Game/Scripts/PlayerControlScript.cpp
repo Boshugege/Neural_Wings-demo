@@ -134,38 +134,40 @@ void PlayerControlScript::CalculatePhysics(float dt)
 
         // camera_2
 
-        camera = owner->GetOwnerWorld()->GetCameraManager().GetCamera("follow_2");
-        auto &planeTf = owner->GetComponent<TransformComponent>();
-        Vector3f planePos = planeTf.GetWorldPosition();
-
-        if (!m_isCamInit)
+        if (camera = owner->GetOwnerWorld()->GetCameraManager().GetCamera("follow_2"))
         {
-            m_camDir = planeTf.GetForward();
-            m_focusPos = planePos;
-            m_smoothedDist = finalDist;
-            m_isCamInit = true;
+            auto &planeTf = owner->GetComponent<TransformComponent>();
+            Vector3f planePos = planeTf.GetWorldPosition();
+
+            if (!m_isCamInit)
+            {
+                m_camDir = planeTf.GetForward();
+                m_focusPos = planePos;
+                m_smoothedDist = finalDist;
+                m_isCamInit = true;
+            }
+
+            float lookH = input.GetAxisValue("LookHorizontal") * 0.01f;
+            float lookV = input.GetAxisValue("LookVertical") * 0.01f;
+            m_camDir.RotateByAxixAngle(Vector3f::UP, -lookH);
+            Vector3f camRight = (m_camDir ^ Vector3f::UP).Normalized();
+            Vector3f nextDir = m_camDir;
+            nextDir.RotateByAxixAngle(camRight, lookV);
+            if (abs(nextDir * Vector3f::UP) < 0.98f)
+            {
+                m_camDir = nextDir;
+            }
+            m_camDir.Normalize();
+            float focusLag = 1.0f - expf(-15.0f * dt);
+            Vector3f targetFocus = planePos + Vector3f(0, 5.5f, 0);
+            m_focusPos = Vector3f::Lerp(m_focusPos, targetFocus, focusLag);
+
+            float zoomSmoothFactor = 1.0f - expf(-8.0f * dt);
+            m_smoothedDist = Lerp(m_smoothedDist, finalDist, 0.1f);
+            Vector3f finalCamPos = m_focusPos - (m_camDir * m_smoothedDist);
+
+            camera->UpdateFromDirection(finalCamPos, m_camDir, Vector3f::UP);
+            camera->setFovy(60.0f * (1.0f + speedFactor));
         }
-
-        float lookH = input.GetAxisValue("LookHorizontal") * 0.01f;
-        float lookV = input.GetAxisValue("LookVertical") * 0.01f;
-        m_camDir.RotateByAxixAngle(Vector3f::UP, -lookH);
-        Vector3f camRight = (m_camDir ^ Vector3f::UP).Normalized();
-        Vector3f nextDir = m_camDir;
-        nextDir.RotateByAxixAngle(camRight, lookV);
-        if (abs(nextDir * Vector3f::UP) < 0.98f)
-        {
-            m_camDir = nextDir;
-        }
-        m_camDir.Normalize();
-        float focusLag = 1.0f - expf(-15.0f * dt);
-        Vector3f targetFocus = planePos + Vector3f(0, 5.5f, 0);
-        m_focusPos = Vector3f::Lerp(m_focusPos, targetFocus, focusLag);
-
-        float zoomSmoothFactor = 1.0f - expf(-8.0f * dt);
-        m_smoothedDist = Lerp(m_smoothedDist, finalDist, 0.1f);
-        Vector3f finalCamPos = m_focusPos - (m_camDir * m_smoothedDist);
-
-        camera->UpdateFromDirection(finalCamPos, m_camDir, Vector3f::UP);
-        camera->setFovy(60.0f * (1.0f + speedFactor));
     }
 }

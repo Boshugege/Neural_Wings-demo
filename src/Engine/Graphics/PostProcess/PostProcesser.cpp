@@ -177,6 +177,17 @@ void PostProcesser::DrawTextureQuad(float width, float height, bool flipY)
     rlEnd();
 }
 #include "Engine/Graphics/Camera/CameraManager.h"
+
+#include "rlgl.h"
+
+#if defined(PLATFORM_WEB)
+#include <GLES3/gl3.h>
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#else
+#include "external/glad.h"
+#endif
+
 void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManager)
 {
     for (auto &pass : m_postProcessPasses)
@@ -186,7 +197,8 @@ void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManag
             continue;
 
         BeginTextureMode(itOut->second);
-        ClearBackground(BLANK);
+        // 保留深度
+        rlClearColor(0, 0, 0, 0);
 
         auto &mat = pass.material;
         mat.shader->Begin();
@@ -201,8 +213,8 @@ void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManag
                 if (texUnit == 0)
                     firstInputId = m_RTPool[rtName].texture.id;
                 mat.shader->SetTexture(shaderVarName, m_RTPool[rtName].texture, texUnit);
-                // 仅rawScreen有深度
-                if (rtName == "inScreen")
+
+                if (m_RTPool[rtName].depth.id > 0)
                 {
                     mat.shader->SetTexture(shaderVarName + "_depth", m_RTPool[rtName].depth, texUnit + 1);
                     texUnit++;
@@ -234,9 +246,17 @@ void PostProcesser::PostProcess(GameWorld &gameWorld, CameraManager &cameraManag
             mat.shader->SetCubeMap("skyboxMap", skyboxMap, texUnit);
             texUnit++;
         }
-        Matrix4f matView = GetCameraMatrix(cameraManager.GetMainCamera()->GetConstRawCamera());
+        Camera rawCamera = cameraManager.GetMainCamera()->GetConstRawCamera();
+        Matrix4f matView = GetCameraMatrix(rawCamera);
+
+        Matrix matProj = MatrixPerspective(rawCamera.fovy * DEG2RAD, GetScreenWidth() / (float)GetScreenHeight(), cameraManager.GetMainCamera()->getNearPlane(), cameraManager.GetMainCamera()->getFarPlane());
+        Matrix matVP = MatrixMultiply(matView, matProj);
+        Matrix invVP = MatrixInvert(matVP);
+
         // 上传参数
         mat.shader->SetMat4("matView", matView);
+        mat.shader->SetMat4("matVP", matVP);
+        mat.shader->SetMat4("invVP", invVP);
 
         mat.shader->SetFloat("gameTime", gameWorld.GetTimeManager().GetGameTime());
         mat.shader->SetFloat("realTime", gameWorld.GetTimeManager().GetRealTime());
@@ -292,6 +312,7 @@ void PostProcesser::LinkDepthBuffer(const std::string &sourceName, const std::st
     if (rlFramebufferComplete(dst.id))
     {
         m_fboDepthTracking[dst.id] = src.depth.id;
+        dst.depth.id = src.depth.id;
     }
     rlDisableFramebuffer();
 }

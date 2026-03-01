@@ -2,7 +2,7 @@
   "cameras": [
     {
       "name": "observer",
-      "isMain": true,
+      "isMain": false,
       "position": [
         15.0,
         15.0,
@@ -27,6 +27,53 @@
       "name": "rear_view",
       "isMain": false,
       "fovy": 50.0,
+      "projection": "PERSPECTIVE"
+    },
+    {
+      "name": "follow",
+      "isMain": false,
+      "mountTarget": "plane",
+      "posOffset": [
+        0,
+        7,
+        -5
+      ],
+      "lookAtOffset": [
+        0,
+        0,
+        1
+      ],
+      "up": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "fovy": 70.0,
+      "nearPlane": 0.1,
+      "farPlane": 1000.0,
+      "projection": "PERSPECTIVE"
+    },
+    {
+      "name": "follow_2",
+      "isMain": true,
+      "position": [
+        15.0,
+        15.0,
+        15.0
+      ],
+      "target": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "up": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "fovy": 70.0,
+      "nearPlane": 0.1,
+      "farPlane": 1000.0,
       "projection": "PERSPECTIVE"
     }
   ]

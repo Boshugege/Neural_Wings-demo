@@ -1,18 +1,18 @@
 {
     "views": [
         {
-            "name": "observer",
+            "name": "follow_2",
             "viewport": [
-                0.0,
-                0.0,
-                1.0,
-                1.0
+                0,
+                0,
+                1,
+                1
             ],
-            "clearBackground": true,
+            "clearBackground": false,
             "backgroundColor": [
-                0,
-                0,
-                0,
+                255,
+                255,
+                255,
                 255
             ]
         }
@@ -30,19 +30,21 @@
             "accuracy_FluidBlur_2",
             "accuracy_raw_Normal",
             "accuracy_raw_Fluid_Thickness",
-            "simple_Fluid",
-            "simple_Fluid",
-            "rawScreen",
-            "outScreen"
+            "accuracy_rawScreen",
+            "outScreen",
+            "Screen1",
+            "Screen2"
         ],
         "depthLinks": [
             {
                 "source": "inScreen",
                 "targets": [
+                    "rawScreen",
                     "raw_Fluid_Depth",
                     "raw_Fluid_Thickness",
                     "raw_Normal",
-                    "simple_Fluid"
+                    "Screen1",
+                    "Screen2"
                 ]
             }
         ],
@@ -191,16 +193,59 @@
                         "raw_Fluid_Thickness"
                     ],
                     [
-                        "u_simpleFluid",
-                        "simple_Fluid"
-                    ],
-                    [
                         "u_normal",
                         "raw_Normal"
                     ]
                 ],
-                "output": "outScreen",
+                "output": "Screen1",
                 "uniforms": {}
+            },
+            {
+                "name": "Foggy",
+                "fs": "assets/shaders/postprocess/fog/fog.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "Screen1"
+                    ]
+                ],
+                "output": "Screen2",
+                "uniforms": {
+                    "u_density": 0.001,
+                    "u_dustColor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                }
+            },
+            {
+                "name": "Cloud",
+                "fs": "assets/shaders/postprocess/cloud/clumpy_cloud.fs",
+                "inputs": [
+                    [
+                        "u_screen",
+                        "Screen2"
+                    ]
+                ],
+                "output": "outScreen",
+                "uniforms": {
+                    "u_cloudFrequency": 0.05,
+                    "u_cloudSize": 0.60,
+                    "u_cloudThickness": 0.1,
+                    "u_windDir": [
+                        1,
+                        0,
+                        1
+                    ],
+                    "u_windSpeed": 10.0,
+                    "u_stretch": 1.0,
+                    "u_distVar": 1.0,
+                    "u_density": 0.1,
+                    "MAX_STEPS": 24,
+                    "MAX_DIST": 2000,
+                    "STEP_SIZE": 18.0
+                }
             }
         ]
     }

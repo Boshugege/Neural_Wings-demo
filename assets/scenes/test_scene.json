@@ -48,6 +48,82 @@
       "tag": "sphere",
       "prefab": "assets/prefabs/light_sphere.json",
       "position": [
+        -100,
+        100,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        40,
+        40,
+        40
+      ],
+      "physics": {
+        "mass": 500,
+        "elasticity": 1.0
+      },
+      "render": {
+        "renderScale": [
+          1,
+          1,
+          1
+        ],
+        "defaultMaterial": {
+          "name": "baseColor(若无vs.默认使用assets/shaders/default.vs)",
+          "fs": "assets/shaders/default.fs"
+        },
+        "meshPasses": [
+          {
+            "meshIndex": 0,
+            "name": "Mesh_0",
+            "passes": [
+              {
+                "name": "texture(若无fs.默认使用assets/shaders/texture.fs)",
+                "textures": {
+                  "u_diffuseMap": [
+                    "assets/textures/gif/1.gif",
+                    10
+                  ]
+                },
+                "vs": "assets/shaders/default.vs",
+                "fs": "assets/shaders/lighting/lighting.fs",
+                "blendMode": "NONE",
+                "depthWrite": true,
+                "depthTest": true,
+                "emissive": {
+                  "color": [
+                    100,
+                    255,
+                    100
+                  ],
+                  "intensity": 1.0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "scripts": [
+        {
+          "RotatorScript": {
+            "angluarVelocity": [
+              0.0,
+              0.0,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "texture_sphere",
+      "tag": "sphere",
+      "prefab": "assets/prefabs/light_sphere.json",
+      "position": [
         0,
         5,
         0
@@ -214,6 +290,11 @@
         0,
         0,
         0
+      ],
+      "scale": [
+        10,
+        1,
+        10
       ]
     },
     {

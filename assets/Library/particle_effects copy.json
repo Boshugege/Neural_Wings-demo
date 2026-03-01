@@ -120,6 +120,22 @@
                 "outputRT": "raw_Fluid_Depth",
                 "depthTest": true,
                 "depthWrite": true
+            },
+            {
+                "name": "普通RT",
+                "vs": "assets/shaders/particles/render/billboard.vs",
+                "fs": "assets/shaders/particles/render/fluid.fs",
+                "blendMode": "NONE",
+                "textures": {
+                    "tex": [
+                        "assets/textures/sph.png",
+                        1
+                    ]
+                },
+                "uniforms": {},
+                "outputRT": "simple_Fluid",
+                "depthTest": true,
+                "depthWrite": true
             }
         ]
     }

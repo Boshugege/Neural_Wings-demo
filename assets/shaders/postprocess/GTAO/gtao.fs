@@ -35,6 +35,7 @@ vec3 getViewPos(vec2 uv) {
     vec3 viewRay = vec3(ndc.x * aspect * tanHalfFov, ndc.y * tanHalfFov, -1.0);
     return viewRay * linearZ;
 }
+
 vec3 getViewNormal(vec3 p, vec2 uv) {
     vec2 invRes = 1.0 / screenResolution;
     float d = texture(u_rawScreen_depth, uv).r;
