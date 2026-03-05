@@ -9,8 +9,11 @@ Set-StrictMode -Version Latest
 $raylibRef = if ($env:RAYLIB_REF) { $env:RAYLIB_REF } else { "5.5" }
 $rayguiRef = if ($env:RAYGUI_REF) { $env:RAYGUI_REF } else { "1c2365a" }
 $jsonRef = if ($env:NLOHMANN_JSON_REF) { $env:NLOHMANN_JSON_REF } else { "553c314fb" }
-$nbnetRef = if ($env:NBNET_REF) { $env:NBNET_REF } else { "master" }
-$ultralightSdkUrl = if ($env:ULTRALIGHT_SDK_URL) { $env:ULTRALIGHT_SDK_URL } else { "https://ultralight-sdk.sfo2.cdn.digitaloceanspaces.com/ultralight-sdk-latest-win-x64.7z" }
+$nbnetRef = if ($env:NBNET_REF) { $env:NBNET_REF } else { "2.0" }
+$ultralightSdkUrl = $env:ULTRALIGHT_SDK_URL
+if ([string]::IsNullOrWhiteSpace($ultralightSdkUrl)) {
+    throw "ULTRALIGHT_SDK_URL is not set. Provide a 1.4-compatible SDK package URL."
+}
 
 $deps = @(
     @{ Name = "raylib-master"; Url = "https://github.com/raysan5/raylib.git"; Ref = $raylibRef },
@@ -130,6 +133,16 @@ function Install-UltralightSdk {
     New-Item -ItemType Directory -Path $sdkDir -Force | Out-Null
     Get-ChildItem $sdkRoot -Force | ForEach-Object {
         Copy-Item $_.FullName $sdkDir -Recurse -Force
+    }
+
+    $rendererHeader = Join-Path $sdkDir "include\Ultralight\Renderer.h"
+    if (-not (Test-Path $rendererHeader)) {
+        throw "Ultralight SDK missing Renderer.h: $rendererHeader"
+    }
+
+    $hasRefreshDisplay = Select-String -Path $rendererHeader -Pattern "RefreshDisplay\(" -Quiet
+    if (-not $hasRefreshDisplay) {
+        throw "Ultralight SDK API is incompatible (Renderer::RefreshDisplay missing). Use your local-compatible 1.4 SDK URL."
     }
 
     Write-Host "Ultralight SDK installed to $sdkDir"
