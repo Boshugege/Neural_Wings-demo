@@ -104,6 +104,15 @@ A signature technical demonstration of the **GPU Particle Pipeline** and **Post-
     *   **Depth/Thickness Extraction**: Renders SPH particles as spheres to specific RTs to extract depth and thickness.
     *   **Smoothing & Reconstruction**: Uses **Bilateral Filtering** within the Render Graph to smooth fluid depth and eliminate graininess.
     *   **Final Shading**: Reconstructs surface normals from smoothed depth, combining scene textures for refraction, reflection, and Fresnel effects, transforming discrete particles into a continuous liquid surface.
+    *   
+### 4. 🎨 Frame Composition Editor
+To simplify complex post-processing design, the project includes a **visual frame composition editor**:
+*   **Node-based Workflow**: Supports creating rendering pipelines through drag-and-drop node operations.
+*   **Visual Configuration**: Supports adding **Pass nodes, particle nodes, and texture nodes**, with intuitive connections between node `inputs` and `outputs`.
+*   **One-click Generation**: Real-time preview of post-processing logic, with direct export to engine-readable `view/renderview.json` configuration files.
+*   **Import Support**: Supports importing existing `renderview.json` files to quickly reproduce complex rendering effects.
+
+![Frame Process Editor](./README/frameEditor.png)
 
 ---
 
