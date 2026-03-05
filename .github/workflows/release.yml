@@ -20,7 +20,7 @@ jobs:
       RAYGUI_REF: "1c2365a"
       NLOHMANN_JSON_REF: "553c314fb"
       NBNET_REF: "master"
-      ULTRALIGHT_REF: "1b4b800"
+      ULTRALIGHT_SDK_URL: "https://ultralight-sdk.sfo2.cdn.digitaloceanspaces.com/ultralight-sdk-latest-win-x64.7z"
 
     steps:
       - name: Checkout
