@@ -16,11 +16,13 @@ jobs:
       run:
         shell: pwsh
     env:
+      GITHUB_TOKEN: ${{ github.token }}
       RAYLIB_REF: "5.5"
       RAYGUI_REF: "1c2365a"
       NLOHMANN_JSON_REF: "553c314fb"
       NBNET_REF: "2.0"
-      ULTRALIGHT_SDK_URL: ${{ vars.ULTRALIGHT_SDK_URL }}
+      THIRD_PARTY_ARCHIVE_URL: ${{ vars.THIRD_PARTY_ARCHIVE_URL || secrets.THIRD_PARTY_ARCHIVE_URL }}
+      ULTRALIGHT_SDK_URL: ${{ vars.ULTRALIGHT_SDK_URL || secrets.ULTRALIGHT_SDK_URL }}
 
     steps:
       - name: Checkout
@@ -32,6 +34,12 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: ui/package-lock.json
+
+      - name: Validate Ultralight SDK URL
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${{ env.THIRD_PARTY_ARCHIVE_URL }}") -and [string]::IsNullOrWhiteSpace("${{ env.ULTRALIGHT_SDK_URL }}")) {
+            throw "Set THIRD_PARTY_ARCHIVE_URL (preferred) or ULTRALIGHT_SDK_URL in repository Variables/Secrets."
+          }
 
       - name: Setup third_party
         run: ./tools/setup_third_party.ps1 -Force

@@ -10,9 +10,10 @@ $raylibRef = if ($env:RAYLIB_REF) { $env:RAYLIB_REF } else { "5.5" }
 $rayguiRef = if ($env:RAYGUI_REF) { $env:RAYGUI_REF } else { "1c2365a" }
 $jsonRef = if ($env:NLOHMANN_JSON_REF) { $env:NLOHMANN_JSON_REF } else { "553c314fb" }
 $nbnetRef = if ($env:NBNET_REF) { $env:NBNET_REF } else { "2.0" }
+$thirdPartyArchiveUrl = $env:THIRD_PARTY_ARCHIVE_URL
 $ultralightSdkUrl = $env:ULTRALIGHT_SDK_URL
-if ([string]::IsNullOrWhiteSpace($ultralightSdkUrl)) {
-    throw "ULTRALIGHT_SDK_URL is not set. Provide a 1.4-compatible SDK package URL."
+if ([string]::IsNullOrWhiteSpace($thirdPartyArchiveUrl) -and [string]::IsNullOrWhiteSpace($ultralightSdkUrl)) {
+    throw "Neither THIRD_PARTY_ARCHIVE_URL nor ULTRALIGHT_SDK_URL is set."
 }
 
 $deps = @(
@@ -148,13 +149,108 @@ function Install-UltralightSdk {
     Write-Host "Ultralight SDK installed to $sdkDir"
 }
 
-New-Item -ItemType Directory -Path $ThirdPartyDir -Force | Out-Null
+function Resolve-ExtractedThirdPartyRoot {
+    param(
+        [string]$ExtractDir
+    )
 
-foreach ($dep in $deps) {
-    Sync-Repo -Dep $dep
+    $directMatch = @(
+        (Join-Path $ExtractDir "raylib-master"),
+        (Join-Path $ExtractDir "raygui-master"),
+        (Join-Path $ExtractDir "json-develop"),
+        (Join-Path $ExtractDir "nbnet"),
+        (Join-Path $ExtractDir "ultralight")
+    ) | ForEach-Object { Test-Path $_ } | Where-Object { $_ } | Measure-Object
+
+    if ($directMatch.Count -eq 5) {
+        return $ExtractDir
+    }
+
+    $tpNested = Join-Path $ExtractDir "third_party"
+    if (Test-Path (Join-Path $tpNested "raylib-master")) {
+        return $tpNested
+    }
+
+    foreach ($dir in (Get-ChildItem $ExtractDir -Directory -ErrorAction SilentlyContinue)) {
+        if (Test-Path (Join-Path $dir.FullName "raylib-master")) {
+            return $dir.FullName
+        }
+    }
+
+    throw "Unable to locate extracted third_party root in $ExtractDir"
 }
 
-Install-UltralightSdk
+function Install-ThirdPartyArchive {
+    if ([string]::IsNullOrWhiteSpace($thirdPartyArchiveUrl)) {
+        return $false
+    }
+
+    Write-Host "Installing third_party from archive URL: $thirdPartyArchiveUrl"
+
+    if (Test-Path $ThirdPartyDir) {
+        if ($Force) {
+            Remove-Item -Recurse -Force $ThirdPartyDir
+        } else {
+            Write-Host "Skipping archive install because $ThirdPartyDir exists (use -Force to refresh)."
+            return $true
+        }
+    }
+
+    $baseTemp = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [System.IO.Path]::GetTempPath() }
+    $tempDir = Join-Path $baseTemp "third-party-archive"
+    if (Test-Path $tempDir) {
+        Remove-Item -Recurse -Force $tempDir
+    }
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+    $archiveName = [System.IO.Path]::GetFileName(($thirdPartyArchiveUrl -split '\?')[0])
+    if ([string]::IsNullOrWhiteSpace($archiveName)) {
+        $archiveName = "third_party.zip"
+    }
+    $archivePath = Join-Path $tempDir $archiveName
+    $extractDir = Join-Path $tempDir "extract"
+    New-Item -ItemType Directory -Path $extractDir -Force | Out-Null
+
+    $headers = @{}
+    if (($thirdPartyArchiveUrl -match "github\.com") -and -not [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) {
+        $headers["Authorization"] = "Bearer $($env:GITHUB_TOKEN)"
+        $headers["Accept"] = "application/octet-stream"
+    }
+
+    if ($headers.Count -gt 0) {
+        Invoke-WebRequest -Uri $thirdPartyArchiveUrl -OutFile $archivePath -Headers $headers
+    } else {
+        Invoke-WebRequest -Uri $thirdPartyArchiveUrl -OutFile $archivePath
+    }
+
+    if ($archivePath.ToLowerInvariant().EndsWith(".zip")) {
+        Expand-Archive -Path $archivePath -DestinationPath $extractDir -Force
+    } else {
+        $sevenZip = Get-SevenZipExe
+        & $sevenZip x $archivePath "-o$extractDir" -y
+        if ($LASTEXITCODE -ne 0) { throw "Failed to extract third_party archive." }
+    }
+
+    $resolvedRoot = Resolve-ExtractedThirdPartyRoot -ExtractDir $extractDir
+    New-Item -ItemType Directory -Path $ThirdPartyDir -Force | Out-Null
+    Get-ChildItem $resolvedRoot -Force | ForEach-Object {
+        Copy-Item $_.FullName $ThirdPartyDir -Recurse -Force
+    }
+
+    Write-Host "third_party installed from archive."
+    return $true
+}
+
+New-Item -ItemType Directory -Path $ThirdPartyDir -Force | Out-Null
+
+$installedFromArchive = Install-ThirdPartyArchive
+if (-not $installedFromArchive) {
+    foreach ($dep in $deps) {
+        Sync-Repo -Dep $dep
+    }
+
+    Install-UltralightSdk
+}
 
 $required = @(
     "raylib-master/src/raylib.h",
